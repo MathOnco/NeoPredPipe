@@ -27,6 +27,21 @@ def ConfigSectionMap(section):
             dict1[option] = None
     return dict1
 
+class Sample():
+
+    def __init__(self):
+        self.Number = None
+        self.test = self.setit()
+
+    def setit(self):
+        self.Number=100
+
+def PrepClasses():
+    t = []
+    for i in range(0,1):
+        t.append(Sample)
+    return t
+
 if __name__=="__main__":
     # Pull information about usr system files
     localpath = os.path.abspath(__file__).rstrip('main_netMHCpan_pipe.py')  # path to scripts working directory
@@ -34,5 +49,6 @@ if __name__=="__main__":
     Config.read(localpath + "usr_paths.ini")
     annPaths =ConfigSectionMap(Config.sections()[0]) # get annovar script paths
 
-    print annPaths
+    t = PrepClasses()
+    print t[0].test
 
