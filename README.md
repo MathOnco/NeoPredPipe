@@ -5,8 +5,7 @@ This tool allows a user to process neoantigens predicted from vcf files using AN
 ## Dependencies
 
 1. Python == 2.7 (Built using Python 2.7.13, not compatible with python 3 due to OS processes)
-   - argparse
-   - ConfigParser
+   - biopython == 1.70
 2. ANNOVAR
 3. hg19 reference genome
 4. netMHCpan
@@ -22,7 +21,7 @@ python ./main_netMHCpan_pipe.py --help
 ```
    - Which produces the following:
 ```bash
-Info: Begin.
+INFO: Begin.
 usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-m]
                               [-c COLREGIONS [COLREGIONS ...]] [-l] [-d]
                               [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR]

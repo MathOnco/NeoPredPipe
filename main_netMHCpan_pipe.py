@@ -6,7 +6,8 @@ import glob
 import argparse
 import ConfigParser
 import shutil
-from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change
+from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
+    predict_neoantigens, ReformatFasta, MakeTempFastas
 
 def Parser():
     # get user variables
@@ -49,17 +50,17 @@ def ConfigSectionMap(section, Config):
 
 class Sample():
 
-    def __init__(self, FilePath, patID, vcfFile, hla, annovar, netmhcpan):
+    def __init__(self, FilePath, patID, vcfFile, hla, annovar, netmhcpan, Options):
         self.patID = patID
         self.vcfFile = vcfFile
         self.hla = hla
         self.avReadyFile=None
         self.annotationReady=None
+        self.fastaChange=None
+        self.fastaChangeFormat=None
+        self.peptideFastas = None # Will be a dictionary of tmp files for predictions
         self.ProcessAnnovar(FilePath, annovar)
-
-    def loadvcfs(self):
-        with open(self.vcfFile, 'r') as inputFile:
-            muts = [line.rstrip("\n") for line in inputFile.readlines()]
+        self.callNeoantigens(FilePath, netmhcpan, Options)
 
     def ProcessAnnovar(self, FilePath, annovar):
         # Prepare ANNOVAR input files
@@ -82,6 +83,19 @@ class Sample():
             self.fastaChange = FilePath+"fastaFiles/"+self.patID+'.fasta'
         else:
             self.fastaChange = get_coding_change(FilePath, self.patID, self.annotationReady, annovar)
+
+    def callNeoantigens(self, FilePath, netmhcpan, Options):
+        if os.path.isfile(FilePath+"fastaFiles/"+self.patID+'.reformat.fasta'):
+            print("INFO: Coding change fasta files %s has already been reformatted." % (self.patID))
+            self.fastaChangeFormat = FilePath+"fastaFiles/"+self.patID+'.reformat.fasta'
+        else:
+            self.fastaChangeFormat = ReformatFasta(self.fastaChange)
+
+        # Make tmp files.
+        self.peptideFastas = MakeTempFastas(self.fastaChangeFormat, Options.epitopes)
+
+        # Predict neoantigens
+        predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hla, Options.epitopes, netmhcpan)
 
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
@@ -125,6 +139,11 @@ def PrepClasses(FilePath, Options):
     except OSError as e:
         print("INFO: Proper directory already exist. Continue.")
 
+    try:
+        os.mkdir('tmp')
+    except OSError as e:
+        print("INFO: Proper directory already exist. Continue.")
+
     return(allFiles, hlas)
 
 def CleanUp(Options):
@@ -151,7 +170,6 @@ def CleanUp(Options):
             print(e)
 
 def main():
-    print("Info: Begin.")
     # Pull information about usr system files
     localpath = os.path.abspath(__file__).rstrip('main_netMHCpan_pipe.py')  # path to scripts working directory
     Config = ConfigParser.ConfigParser()
@@ -159,6 +177,7 @@ def main():
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
     Options = Parser()
+    print("INFO: Begin.")
 
     allFiles, hlas = PrepClasses(localpath, Options)
 
@@ -166,7 +185,7 @@ def main():
     t = []
     for patFile in allFiles:
         patname = patFile.rstrip(".vcf").split("/")[len(patFile.rstrip(".vcf").split("/")) - 1]
-        t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths))
+        t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, Options))
 
     CleanUp(Options)
 
