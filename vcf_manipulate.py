@@ -83,3 +83,4 @@ def predict_neoantigens(FilePath, patName, inFile, netMHCpan):
     :param netMHCpan:
     :return:
     '''
+    pass

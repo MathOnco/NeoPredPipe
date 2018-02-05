@@ -83,7 +83,6 @@ class Sample():
         else:
             self.fastaChange = get_coding_change(FilePath, self.patID, self.annotationReady, annovar)
 
-
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
         Options.vcfdir+="/"
