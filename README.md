@@ -22,9 +22,10 @@ python ./main_netMHCpan_pipe.py --help
 ```
    - Which produces the following:
 ```bash
+Info: Begin.
 usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-m]
-                              [-c COLREGIONS [COLREGIONS ...]] [-I VCFDIR]
-                              [-H HLAFILE] [-o OUTPUTDIR]
+                              [-c COLREGIONS [COLREGIONS ...]] [-l] [-d]
+                              [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -36,12 +37,18 @@ optional arguments:
                         Columns of regions within vcf that are not normal
                         multiregion vcf file. 0 is normal in test samples. Can
                         handle different number of regions per vcf file.
+  -l                    Specifies whether to delete the ANNOVAR log file.
+                        Default: True. Note: Use for debugging.
+  -d                    Specified whether to delete intermediate files created
+                        by program. Default: True. Note: Set flag to resume
+                        job.
 
 Required arguments:
   -I VCFDIR             Input vcf file directory location. Example: -I
                         ./Example/input_vcfs/
   -H HLAFILE            HLA file for vcf patient samples.
   -o OUTPUTDIR          Output Directory Path
+
 ```
 
 ## Input files
