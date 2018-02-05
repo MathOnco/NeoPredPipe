@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
 import sys
 import os
@@ -7,12 +7,17 @@ import ConfigParser
 
 # get user variables
 parser = argparse.ArgumentParser()
-parser.add_argument("InputCSV", type=str, help=".csv file with Input VCF, normal BAM, semi-colon separated epitope lengths, Polysolver HLA Type File")
-##parser.add_argument("I", type=str, help="Input vcf files location")
-##parser.add_argument("E", type=str, help="Comma separated epitope lengths for prediction (e.g. 8,9,10)")
-##parser.add_argument("H", type=str, help="Polysolver HLA Type file")
-parser.add_argument("OutputDir", type=str, help="Output Directory Path")
-args = parser.parse_args() # main user args
+parser.add_argument("-E", "--epitopes", dest="epitopes", nargs='+', type=int, default=[8,9,10], help="Epitope lengths for predictions. Default: 8 9 10")
+
+requiredNamed = parser.add_argument_group('Required arguments')
+requiredNamed.add_argument("-I", dest="vcfdir", default=None, type=str, help="Input vcf file directory location. Example: --VCFDir ./Example/input_vcfs/")
+requiredNamed.add_argument("-H", dest="hlafile", default=None, type=str, help="HLA file for vcf patient samples.")
+requiredNamed.add_argument("-o", dest="OutputDir", default=None, type=str, help="Output Directory Path")
+# parser.add_option('-r', dest='permute', default=False, action='store_true', help='Permute sequences [Default: %default]')
+Options = parser.parse_args() # main user args
+
+if not Options.vcfdir or not Options.hlafile or not Options.OutputDir:
+    sys.exit("Some of the required arguments were not provided. Please check required arguments.")
 
 def ConfigSectionMap(section):
     dict1 = {}
@@ -48,7 +53,8 @@ if __name__=="__main__":
     Config = ConfigParser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     annPaths =ConfigSectionMap(Config.sections()[0]) # get annovar script paths
-
+    print(Options.epitopes)
+    sys.exit()
     t = PrepClasses()
     print t[0].test
 

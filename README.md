@@ -22,13 +22,17 @@ python ./main_netMHCpan_pipe.py --help
 ```
    - Which produces the following:
 ```bash
-usage: main_netMHCpan_pipe.py [-h] InputCSV OutputDir
-
-positional arguments:
-  InputCSV    .csv file with Input VCF, normal BAM, semi-colon separated
-              epitope lengths, Polysolver HLA Type File
-  OutputDir   Output Directory Path
+usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-I VCFDIR]
+                              [-H HLAFILE] [-o OUTPUTDIR]
 
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -E EPITOPES [EPITOPES ...], --epitopes EPITOPES [EPITOPES ...]
+                        Epitope lengths for predictions. Default: 8 9 10
+
+Required arguments:
+  -I VCFDIR             Input vcf file directory location. Example: --VCFDir
+                        ./Example/input_vcfs/
+  -H HLAFILE            HLA file for vcf patient samples.
+  -o OUTPUTDIR          Output Directory Path
 ```
