@@ -4,7 +4,7 @@ This tool allows a user to process neoantigens predicted from vcf files using AN
 
 ## Dependencies
 
-1. Python >= 2.7 (Built using Python 2.7.13)
+1. Python == 2.7 (Built using Python 2.7.13, not compatible with python 3 due to OS processes)
    - argparse
    - ConfigParser
 2. ANNOVAR
@@ -22,16 +22,23 @@ python ./main_netMHCpan_pipe.py --help
 ```
    - Which produces the following:
 ```bash
-usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-I VCFDIR]
+usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-m]
+                              [-c COLREGIONS [COLREGIONS ...]] [-I VCFDIR]
                               [-H HLAFILE] [-o OUTPUTDIR]
 
 optional arguments:
   -h, --help            show this help message and exit
   -E EPITOPES [EPITOPES ...], --epitopes EPITOPES [EPITOPES ...]
                         Epitope lengths for predictions. Default: 8 9 10
+  -m                    Specifies if the vcf is a multiregion sample. Default:
+                        False.
+  -c COLREGIONS [COLREGIONS ...]
+                        Columns of regions within vcf that are not normal
+                        multiregion vcf file. 0 is normal in test samples. Can
+                        handle different number of regions per vcf file.
 
 Required arguments:
-  -I VCFDIR             Input vcf file directory location. Example: --VCFDir
+  -I VCFDIR             Input vcf file directory location. Example: -I
                         ./Example/input_vcfs/
   -H HLAFILE            HLA file for vcf patient samples.
   -o OUTPUTDIR          Output Directory Path
@@ -39,15 +46,14 @@ Required arguments:
 
 ## Input files
 1. VCF file. A standard vcf file with a patient identifier as the title of the .vcf.
-2. An hla file with the following format:
+2. An hla file with the following tab delimited format:
    - Note, patient identifier in the rows should match that in the vcf.
    - Headers are not required but the data should match the format in the table.
-   - NA are used when the HLA typing predicts the same HLA subtype for A, B, or C
+   - 'NA' is used when the HLA typing predicts the same HLA subtype for A, B, or C.
 
 | Patient | HLA-A_1 | HLA-A_2 | HLA-B_1 | HLA-B_2 | HLA-C_1 | HLA-C_2 |
 |  --- |  --- |  --- |  --- |  --- |  --- |  ---  |
 | test1 | hla_a_31_01_02 | hla_a_02_01_80 | hla_b_40_01_02 | hla_b_50_01_01 | hla_c_03_04_20 | hla_c_06_02_01_02 |
 | test2 | hla_a_01_01_01_01 | NA | hla_b_07_02_01 | NA | hla_c_01_02_01 | NA |
-
 
 ## UNDER DEVELOPMENT

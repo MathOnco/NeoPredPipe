@@ -104,6 +104,11 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+avready/
+avannotated/
+fastaFiles/
+
+logforannovarNeoPredPipe.txt
 
 .idea
 .DS_Store

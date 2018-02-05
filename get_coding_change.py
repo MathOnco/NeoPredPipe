@@ -39,5 +39,4 @@ def get_coding_change(arg1, arg2):
 
 		print 'Coding predictions complete'
 
-
 get_coding_change(arg1,arg2)
