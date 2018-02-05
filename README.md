@@ -42,6 +42,7 @@ Required arguments:
 2. An hla file with the following format:
    - Note, patient identifier in the rows should match that in the vcf.
    - Headers are not required but the data should match the format in the table.
+
 | Patient | HLA-A_1 | HLA-A_2 | HLA-B_1 | HLA-B_2 | HLA-C_1 | HLA-C_2 |
 |  --- |  --- |  --- |  --- |  --- |  --- |  ---  |
 | 12-N | hla_a_31_01_02 | hla_a_02_01_80 | hla_b_40_01_02 | hla_b_50_01_01 | hla_c_03_04_20 | hla_c_06_02_01_02 |
