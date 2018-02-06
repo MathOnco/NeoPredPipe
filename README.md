@@ -70,4 +70,7 @@ Required arguments:
 | test1 | hla_a_31_01_02 | hla_a_02_01_80 | hla_b_40_01_02 | hla_b_50_01_01 | hla_c_03_04_20 | hla_c_06_02_01_02 |
 | test2 | hla_a_01_01_01_01 | NA | hla_b_07_02_01 | NA | hla_c_01_02_01 | NA |
 
-## UNDER DEVELOPMENT
+## Example of how to run the script using the provided example vcf files and corresponding hla types
+```bash
+python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -m -c 1 2 -E 8 9 10
+```
