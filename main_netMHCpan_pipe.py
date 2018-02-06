@@ -17,7 +17,7 @@ def Parser():
     parser.add_argument("-m", dest="multiregion", default=False, action='store_true',
                         help="Specifies if the vcf is a multiregion sample. Default: False.")
     parser.add_argument("-c", dest="colRegions", default=None, nargs="+",
-                        help="Columns of regions within vcf that are not normal multiregion vcf file. 0 is normal in test samples. Can handle different number of regions per vcf file.")
+                        help="Columns of regions within vcf that are not normal within a multiregion vcf file. 0 is normal in test samples. Can handle different number of regions per vcf file.")
     parser.add_argument("-l", dest="cleanLog", default=True, action='store_false', help="Specifies whether to delete the ANNOVAR log file. Default: True. Note: Use for debugging.")
     parser.add_argument("-d", dest="deleteInt", default=True, action='store_false', help="Specified whether to delete intermediate files created by program. Default: True. Note: Set flag to resume job.")
     requiredNamed = parser.add_argument_group('Required arguments')

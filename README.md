@@ -3,6 +3,7 @@
 This tool allows a user to process neoantigens predicted from vcf files using ANNOVAR and netMHCpan.
 
 ## Dependencies
+##### Note: Should be compatible on Darwin and Linux systems, not Windows.
 
 1. Python == 2.7 (Built using Python 2.7.13, not compatible with python 3 due to OS processes)
    - biopython == 1.70
@@ -12,19 +13,23 @@ This tool allows a user to process neoantigens predicted from vcf files using AN
    - ANNOVAR hg19_refGeneMrna
 4. netMHCpan
    - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
+   - Follow their steps for installation on your platform.
 
-## Running
+## Getting Started
 1. Clone the repository:
 ```bash
 git clone https://github.com/rschenck/NeoPredPipe.git
 ```
+2. Configure the 'usr_path.ini' file for your environment.
+   - All paths within the annovar header should be where you installed annovar.
+   - Only one path is needed to the netMHCpan executible under netMHCpan
+##### Note: You need to provide the absolute path.
 3. You can see the options associated by running the following:
 ```bash
 python ./main_netMHCpan_pipe.py --help
 ```
    - Which produces the following:
 ```bash
-INFO: Begin.
 usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-m]
                               [-c COLREGIONS [COLREGIONS ...]] [-l] [-d]
                               [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR]
@@ -36,7 +41,7 @@ optional arguments:
   -m                    Specifies if the vcf is a multiregion sample. Default:
                         False.
   -c COLREGIONS [COLREGIONS ...]
-                        Columns of regions within vcf that are not normal
+                        Columns of regions within vcf that are not normal within a
                         multiregion vcf file. 0 is normal in test samples. Can
                         handle different number of regions per vcf file.
   -l                    Specifies whether to delete the ANNOVAR log file.
@@ -50,7 +55,6 @@ Required arguments:
                         ./Example/input_vcfs/
   -H HLAFILE            HLA file for vcf patient samples.
   -o OUTPUTDIR          Output Directory Path
-
 ```
 
 ## Input files
