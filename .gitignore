@@ -109,6 +109,7 @@ avannotated/
 fastaFiles/
 tmp/
 
+AllSamples.neoantigens.summarytable.txt
 AllSamples.neoantigens.txt
 logforannovarNeoPredPipe.txt
 
