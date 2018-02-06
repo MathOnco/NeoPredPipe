@@ -64,7 +64,7 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
 
         # Getting information from the genotype fields
         # Step 1: Determine the mutation location in the genotype field
-        # Step 2: Output a binary code for present absence in each region for heterogeneity measures
+        # Step 2: Output a binary code for present absence in each region for neoantigen heterogeneity
         vcfLine = avReadyLine.split('\t')[8:]
         genoTypeLines = vcfLine[9:] # Extract region specific information
 
@@ -74,11 +74,12 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
                 try:
                     # Only works if the only non-digit characters are base pairs
                     match = re.findall("\:[ACGT]*\:",genoTypeLines[int(i)])[0].replace(":","")
-                    if len(match) != 1:
-                        present = 0
-                    else:
+                    if len(match) > 1:
                         present = 1
+                    else:
+                        present = 0
                     genoTypes.update({'Region_%s'%(i):present})
+
                 except IndexError as e:
                     genoTypes.update({'Region_%s'%(i):0})
 

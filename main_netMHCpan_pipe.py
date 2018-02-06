@@ -29,7 +29,7 @@ def Parser():
     postProcess.add_argument("-c", dest="colRegions", default=None, nargs="+",
                         help="Columns of regions within vcf that are not normal within a multiregion vcf file after the format field. Example: 0 is normal in test samples, tumor are the other columns. Program can handle different number of regions per vcf file.")
     postProcess.add_argument("-a", dest="includeall", default=False, action='store_true', help="Flag to not filter neoantigen predictions and keep all regardless of prediction value.")
-    postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off summary table.")
+    postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off a neoantigen burden summary table. Default=True.")
 
     Options = parser.parse_args()  # main user args
     if Options.makeitclean:
@@ -37,9 +37,6 @@ def Parser():
         sys.exit("Process Complete")
     if not Options.vcfdir or not Options.hlafile or not Options.OutputDir:
         parser.error("Some of the required arguments were not provided. Please check required arguments.")
-    if Options.postprocess:
-        if Options.multiregion and Options.colRegions is None:
-            parser.error("-m requires -c to be specified.")
 
     return(Options)
 
@@ -72,6 +69,7 @@ class Sample():
         self.peptideFastas = None # Will be a dictionary of tmp files for predictions
         self.epcalls = None
         self.digestedEpitopes = None
+        self.appendedEpitopes = None
         self.ProcessAnnovar(FilePath, annovar)
         self.callNeoantigens(FilePath, netmhcpan, Options)
         if Options.postprocess:
@@ -185,6 +183,38 @@ def PrepClasses(FilePath, Options):
 
     return(allFiles, hlas)
 
+def FinalOut(sampleClasses, Options):
+    if Options.OutputDir[len(Options.OutputDir)-1]=="/":
+        pass
+    else:
+        Options.OutputDir = Options.OutputDir + "/"
+
+    if Options.includeall:
+        outFile = Options.OutputDir + Options.outName + ".neoantigens.unfiltered.txt"
+    else:
+        outFile = Options.OutputDir + Options.outName + ".neoantigens.txt"
+
+    outTable = Options.OutputDir + Options.outName + ".neoantigens.summarytable.txt"
+
+    summaryTable = []
+    with open(outFile, 'w') as pentultimateFile:
+        if Options.includeall==True:
+            for i in range(0, len(sampleClasses)):
+                pentultimateFile.write('\n'.join(sampleClasses[i].appendedEpitopes))
+                for line in sampleClasses[i].appendedEpitopes:
+                    if '<=' in line:
+                        summaryTable.append(line)
+        else:
+            for i in range(0, len(sampleClasses)):
+                for line in sampleClasses[i].appendedEpitopes:
+                    if '<=' in line:
+                        pentultimateFile.write(line+"\n")
+                        summaryTable.append(line)
+
+    with open(outTable, 'w') as finalFile:
+        #TODO make code so that it handles multiple regions to give overall burden and burden within each region...
+        pass
+
 def CleanUp(Options):
     if Options.cleanLog or Options.makeitclean:
         try:
@@ -230,6 +260,9 @@ def main():
     for patFile in allFiles:
         patname = patFile.rstrip(".vcf").split("/")[len(patFile.rstrip(".vcf").split("/")) - 1]
         t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, Options))
+
+    if Options.postprocess:
+        FinalOut(t, Options)
 
     CleanUp(Options)
 
