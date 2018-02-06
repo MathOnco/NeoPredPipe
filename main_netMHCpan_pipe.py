@@ -6,8 +6,10 @@ import glob
 import argparse
 import ConfigParser
 import shutil
+from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     predict_neoantigens, ReformatFasta, MakeTempFastas
+from postprocessing import DigestIndSample, AppendDigestedEps
 
 def Parser():
     # get user variables
@@ -22,15 +24,13 @@ def Parser():
                                help="Input vcf file directory location. Example: -I ./Example/input_vcfs/")
     requiredNamed.add_argument("-H", dest="hlafile", default=None, type=str, help="HLA file for vcf patient samples.")
     requiredNamed.add_argument("-o", dest="OutputDir", default=None, type=str, help="Output Directory Path")
-
+    requiredNamed.add_argument("-n", dest="outName", default="AllSamples", type=str, help="Name of the output file for neoantigen predictions")
     postProcess = parser.add_argument_group('Post Processing Options')
     postProcess.add_argument("-pp", dest="postprocess", default=True, action='store_false', help="Flag to perform post processing. Default=True.")
-    postProcess.add_argument("-m", dest="multiregion", default=False, action='store_true',
-                        help="Specifies if the vcf is a multiregion sample. Default: False.")
     postProcess.add_argument("-c", dest="colRegions", default=None, nargs="+",
-                        help="Columns of regions within vcf that are not normal within a multiregion vcf file. 0 is normal in test samples. Can handle different number of regions per vcf file.")
+                        help="Columns of regions within vcf that are not normal within a multiregion vcf file after the format field. Example: 0 is normal in test samples, tumor are the other columns. Program can handle different number of regions per vcf file.")
     postProcess.add_argument("-a", dest="includeall", default=False, action='store_true', help="Flag to not filter neoantigen predictions and keep all regardless of prediction value.")
-    postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off summary table.")
+    postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off a neoantigen burden summary table. Default=True.")
 
     Options = parser.parse_args()  # main user args
     if Options.makeitclean:
@@ -38,9 +38,6 @@ def Parser():
         sys.exit("Process Complete")
     if not Options.vcfdir or not Options.hlafile or not Options.OutputDir:
         parser.error("Some of the required arguments were not provided. Please check required arguments.")
-    if Options.postprocess:
-        if Options.multiregion and Options.colRegions is None:
-            parser.error("-m requires -c to be specified.")
 
     return(Options)
 
@@ -72,9 +69,13 @@ class Sample():
         self.fastaChangeFormat=None
         self.peptideFastas = None # Will be a dictionary of tmp files for predictions
         self.epcalls = None
+        self.digestedEpitopes = None
+        self.appendedEpitopes = None
+        self.regionsPresent = None
         self.ProcessAnnovar(FilePath, annovar)
         self.callNeoantigens(FilePath, netmhcpan, Options)
-
+        if Options.postprocess:
+            self.digestIndSample(Options)
 
     def ProcessAnnovar(self, FilePath, annovar):
         # Prepare ANNOVAR input files
@@ -107,8 +108,8 @@ class Sample():
 
         # Make tmp files.
         i = 0
+        pepTmp = {}
         for n in Options.epitopes:
-            pepTmp = {}
             if os.path.isfile(FilePath+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)):
                 pepTmp.update({n:FilePath+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
                 print("INFO: Tmp fasta files %s has already been created for netMHCpan length %s." % (self.patID,n))
@@ -120,8 +121,8 @@ class Sample():
 
         # Predict neoantigens
         i = 0
+        epTmp = []
         for n in Options.epitopes:
-            epTmp = []
             if os.path.isfile(FilePath + "tmp/%s.epitopes.%s.txt" % (self.patID,n)):
                 epTmp.append(FilePath + "tmp/%s.epitopes.%s.txt" % (self.patID,n))
                 print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
@@ -131,6 +132,9 @@ class Sample():
         if i!=len(Options.epitopes):
             self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hla, Options.epitopes, netmhcpan)
 
+    def digestIndSample(self, Options):
+        self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID)
+        self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
 
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
@@ -181,6 +185,167 @@ def PrepClasses(FilePath, Options):
 
     return(allFiles, hlas)
 
+def FinalOut(sampleClasses, Options):
+    if Options.OutputDir[len(Options.OutputDir)-1]=="/":
+        pass
+    else:
+        Options.OutputDir = Options.OutputDir + "/"
+
+    if Options.includeall:
+        outFile = Options.OutputDir + Options.outName + ".neoantigens.unfiltered.txt"
+    else:
+        outFile = Options.OutputDir + Options.outName + ".neoantigens.txt"
+
+    outTable = Options.OutputDir + Options.outName + ".neoantigens.summarytable.txt"
+
+    summaryTable = []
+    with open(outFile, 'w') as pentultimateFile:
+        if Options.includeall==True:
+            for i in range(0, len(sampleClasses)):
+                pentultimateFile.write('\n'.join(sampleClasses[i].appendedEpitopes))
+                for line in sampleClasses[i].appendedEpitopes:
+                    if '<=' in line:
+                        summaryTable.append(line)
+        else:
+            for i in range(0, len(sampleClasses)):
+                for line in sampleClasses[i].appendedEpitopes:
+                    if '<=' in line:
+                        pentultimateFile.write(line+"\n")
+                        summaryTable.append(line)
+
+    # TODO make code so that it handles multiple regions to give overall burden and burden within each region...
+    summaries = {}
+    for z in range(0, len(sampleClasses)):
+
+        total_count=0
+        wbind=0
+        sbind=0
+        if Options.colRegions is not None:
+
+            # Prep counts for multiregion data
+            region_count=[0 for k in Options.colRegions*3]
+
+            # Final Counters for each subtype of neoantigen
+            clonal=0
+            Wclonal = 0
+            Sclonal = 0
+            subclonal=0
+            Wsubclonal = 0
+            Ssubclonal=0
+            shared=0
+            Wshared = 0
+            Sshared = 0
+
+            regionsPesent = sampleClasses[z].regionsPresent
+            overallRegions = Counter(regionsPesent)
+
+        for line in sampleClasses[z].appendedEpitopes:
+            # Counter to assess clonality of neoantigen
+            r = 0
+            rw = 0
+            rs = 0
+
+            if '<=' in line:
+                total_count+=1
+                if Options.colRegions is not None:
+                    regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+
+                    for s in range(0,len(Options.colRegions)):
+                        if regions[s] != 0:
+                            region_count[s*3]+=1
+                            r +=1
+
+                if "<=\tWB" in line:
+                    wbind +=1
+
+                    if Options.colRegions is not None:
+                        regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+                        for s in range(0, len(Options.colRegions)):
+                            if regions[s] != 0:
+                                region_count[(s * 3)+1] += 1
+                                rw +=1
+
+                elif "<=\tSB" in line:
+                    sbind+=1
+
+                    if Options.colRegions is not None:
+                        regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+                        for s in range(0, len(Options.colRegions)):
+                            if regions[s] != 0:
+                                region_count[(s * 3)+2] += 1
+                                rs+=1
+
+            if Options.colRegions is not None:
+                if r == overallRegions['+']:
+                    clonal += 1
+                elif r == 1:
+                    subclonal += 1
+                elif r > 1 and overallRegions['+'] > 2:
+                    shared += 1
+                elif r==0:
+                    pass
+                else:
+                    sys.exit('Error with mutliregion counter.')
+
+                if rw == overallRegions['+']:
+                    Wclonal += 1
+                elif rw == 1:
+                    Wsubclonal += 1
+                elif rw > 1 and overallRegions['+'] > 2:
+                    Wshared += 1
+                elif rw==0:
+                    pass
+                else:
+                    sys.exit('Error with mutliregion counter.')
+
+                if rs == overallRegions['+']:
+                    Sclonal += 1
+                elif rs == 1:
+                    Ssubclonal += 1
+                elif rs > 1 and overallRegions['+'] > 2:
+                    Sshared += 1
+                elif rs==0:
+                    pass
+                else:
+                    sys.exit('Error with mutliregion counter.')
+
+        if Options.colRegions is not None:
+            summaries.update({sampleClasses[z].patID:{'Total':total_count,'WB':wbind,'SB':sbind,
+                                                    'Regions':region_count, 'Clonal':clonal, 'Subclonal':subclonal, 'Shared':shared,
+                                                    'clonal_w':Wclonal, 'clonal_s':Sclonal, 'subclonal_w':Wsubclonal, 'subclonal_s':Ssubclonal,
+                                                    'shared_w':Wshared,'shared_s':Sshared}})
+        else:
+            summaries.update({sampleClasses[z].patID:{'Total':total_count,'WB':wbind,'SB':sbind}})
+
+    with open(outTable, 'w') as finalFile:
+        if Options.colRegions is not None:
+            header = ['Patient','Total','Total_WB','Total_SB','\t'.join(["Total_Region_%s"%(n) for n in range(0,len(Options.colRegions))]),
+                      '\t'.join(["Total_WB_Region_%s" % (n) for n in range(0, len(Options.colRegions))]), '\t'.join(["Total_SB_Region_%s"%(n) for n in range(0,len(Options.colRegions))]),
+                      'Clonal','Subclonal','Shared','Clonal_WB','Clonal_SB','Subclonal_WB','Subclonal_SB','Shared_WB','Shared_SB']
+
+            finalFile.write('\t'.join(header) + '\n')
+
+            for patient in summaries:
+                line = [patient, summaries[patient]['Total'], summaries[patient]['WB'], summaries[patient]['SB'],
+                        '\t'.join([str(summaries[patient]['Regions'][i]) for i in range(0,len(region_count), 3)]), '\t'.join([str(summaries[patient]['Regions'][i]) for i in range(1,len(region_count), 3)]),
+                        '\t'.join([str(summaries[patient]['Regions'][i]) for i in range(2,len(region_count), 3)]),
+                        summaries[patient]['Clonal'],summaries[patient]['Subclonal'],summaries[patient]['Shared'],
+                        summaries[patient]['clonal_w'],summaries[patient]['clonal_s'],summaries[patient]['subclonal_w'],
+                        summaries[patient]['subclonal_s'],summaries[patient]['shared_w'],summaries[patient]['shared_s']
+                        ]
+                line = [str(i) for i in line]
+                finalFile.write('\t'.join(line) + '\n')
+        else:
+            header = ['Total','Total_WB','Total_SB']
+
+            finalFile.write('\t'.join(header) + '\n')
+
+            for patient in summaries:
+                line = [patient, summaries[patient]['Total'], summaries[patient]['WB'], summaries[patient]['SB']]
+                finalFile.write('\t'.join(line) + '\n')
+
+    print("INFO: Summary Tables Complete.")
+
 def CleanUp(Options):
     if Options.cleanLog or Options.makeitclean:
         try:
@@ -226,6 +391,12 @@ def main():
     for patFile in allFiles:
         patname = patFile.rstrip(".vcf").split("/")[len(patFile.rstrip(".vcf").split("/")) - 1]
         t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, Options))
+
+    if Options.postprocess:
+        FinalOut(t, Options)
+        print("INFO: Complete")
+    else:
+        print("INFO: Complete")
 
     CleanUp(Options)
 
