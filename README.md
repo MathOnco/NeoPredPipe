@@ -93,7 +93,10 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
    - TODO add an example of output with what is in each column
    - A file containing summaries of the neoantigen burdens in each sample (and regions if multiregion).
 3. If there are not multiple regions from a single patient the resulting summary table will appear as follows:
+
 | Patient | Total | Total_WB | Total_SB |
+
 4. If multiple regions are specified then the output will look as follows:
+
 | Patient | Total | Total_WB | Total_SB | Total_Region_1 | Total_Region_n | Total_WB_Region_1 | Total_WB_Region_n | Total_SB_Region_1 | Total_SB_Region_n | Clonal | Subclonal | Shared | Clonal_WB | Clonal_SB | Subclonal_WB | Subclonal_SB | Shared_WB | Shared_SB |
 
