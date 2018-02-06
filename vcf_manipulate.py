@@ -1,9 +1,7 @@
-import glob
-import ntpath
+#!/usr/bin/env python
+
 import sys
-import os
 import subprocess
-import shutil
 from Bio import SeqIO
 
 # Convert to annovar format

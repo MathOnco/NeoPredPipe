@@ -162,22 +162,22 @@ def PrepClasses(FilePath, Options):
     try:
         os.mkdir('avready')
     except OSError as e:
-        print("INFO: Proper directory already exist. Continue.")
+        print("INFO: Proper directory already exists. Continue.")
 
     try:
         os.mkdir('avannotated')
     except OSError as e:
-        print("INFO: Proper directory already exist. Continue.")
+        print("INFO: Proper directory already exists. Continue.")
 
     try:
         os.mkdir('fastaFiles')
     except OSError as e:
-        print("INFO: Proper directory already exist. Continue.")
+        print("INFO: Proper directory already exists. Continue.")
 
     try:
         os.mkdir('tmp')
     except OSError as e:
-        print("INFO: Proper directory already exist. Continue.")
+        print("INFO: Proper directory already exists. Continue.")
 
     return(allFiles, hlas)
 
@@ -228,7 +228,6 @@ def main():
         t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, Options))
 
     CleanUp(Options)
-
 
 if __name__=="__main__":
     main()

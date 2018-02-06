@@ -85,3 +85,6 @@ Post Processing Options:
 ```bash
 python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -m -c 1 2 -E 8 9 10
 ```
+
+## Data post processing
+1. Post processing is turned on by default. If you want it turned off set the '-pp' flag.
