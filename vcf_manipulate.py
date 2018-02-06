@@ -123,8 +123,13 @@ def MakeTempFastas(inFile, epitopeLens):
     for n in epitopeLens:
         mySeqs = []
         for seq_record in SeqIO.parse(inFile, 'fasta'):
-            if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'from;*;to;' not in seq_record.id.lower():
-                pos = int(seq_record.id.replace(";;",";").split(";")[5])-1
+            if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'from;*;to;' not in seq_record.id.lower() and 'silent' not in seq_record.id.lower():
+                # TODO: Add a regex expression to extract the position since it's variable with versions of ANNOVAR
+                # TODO: Regex code for this should be r"\w*((?i)position;\d+;(?-i))\W*"
+                try:
+                    pos = int(seq_record.id.replace(";;",";").split(";")[5])-1
+                except ValueError:
+                    pos = int(seq_record.id.replace(";;",";").split(";")[6])-1
 
                 miniseq = ExtractSeq(seq_record, pos, n)
                 mySeqs.append(">"+seq_record.id+"\n"+miniseq+"\n")
@@ -191,7 +196,7 @@ def predict_neoantigens(FilePath, patName, inFile, hlas, epitopeLens, netMHCpan)
         epcalls.append(output_file)
         with open(output_file, 'a') as epitope_pred:
             print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
-            cmd = ['netMHCpan', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+            cmd = [netMHCpan['netMHCpan'], '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
             netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
             netMHC_run.wait()
 

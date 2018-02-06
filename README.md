@@ -88,3 +88,6 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 
 ## Data post processing
 1. Post processing is turned on by default. If you want it turned off set the '-pp' flag.
+2. The output will yield a file with the following information:
+##### Insert line information here.
+##### Insert table here

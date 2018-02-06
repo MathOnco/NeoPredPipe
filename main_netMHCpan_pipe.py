@@ -8,6 +8,7 @@ import ConfigParser
 import shutil
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     predict_neoantigens, ReformatFasta, MakeTempFastas
+from postprocessing import DigestIndSample, AppendDigestedEps
 
 def Parser():
     # get user variables
@@ -22,13 +23,11 @@ def Parser():
                                help="Input vcf file directory location. Example: -I ./Example/input_vcfs/")
     requiredNamed.add_argument("-H", dest="hlafile", default=None, type=str, help="HLA file for vcf patient samples.")
     requiredNamed.add_argument("-o", dest="OutputDir", default=None, type=str, help="Output Directory Path")
-
+    requiredNamed.add_argument("-n", dest="outName", default="AllSamples", type=str, help="Name of the output file for neoantigen predictions")
     postProcess = parser.add_argument_group('Post Processing Options')
     postProcess.add_argument("-pp", dest="postprocess", default=True, action='store_false', help="Flag to perform post processing. Default=True.")
-    postProcess.add_argument("-m", dest="multiregion", default=False, action='store_true',
-                        help="Specifies if the vcf is a multiregion sample. Default: False.")
     postProcess.add_argument("-c", dest="colRegions", default=None, nargs="+",
-                        help="Columns of regions within vcf that are not normal within a multiregion vcf file. 0 is normal in test samples. Can handle different number of regions per vcf file.")
+                        help="Columns of regions within vcf that are not normal within a multiregion vcf file after the format field. Example: 0 is normal in test samples, tumor are the other columns. Program can handle different number of regions per vcf file.")
     postProcess.add_argument("-a", dest="includeall", default=False, action='store_true', help="Flag to not filter neoantigen predictions and keep all regardless of prediction value.")
     postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off summary table.")
 
@@ -72,9 +71,11 @@ class Sample():
         self.fastaChangeFormat=None
         self.peptideFastas = None # Will be a dictionary of tmp files for predictions
         self.epcalls = None
+        self.digestedEpitopes = None
         self.ProcessAnnovar(FilePath, annovar)
         self.callNeoantigens(FilePath, netmhcpan, Options)
-
+        if Options.postprocess:
+            self.digestIndSample(Options)
 
     def ProcessAnnovar(self, FilePath, annovar):
         # Prepare ANNOVAR input files
@@ -107,8 +108,8 @@ class Sample():
 
         # Make tmp files.
         i = 0
+        pepTmp = {}
         for n in Options.epitopes:
-            pepTmp = {}
             if os.path.isfile(FilePath+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)):
                 pepTmp.update({n:FilePath+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
                 print("INFO: Tmp fasta files %s has already been created for netMHCpan length %s." % (self.patID,n))
@@ -120,8 +121,8 @@ class Sample():
 
         # Predict neoantigens
         i = 0
+        epTmp = []
         for n in Options.epitopes:
-            epTmp = []
             if os.path.isfile(FilePath + "tmp/%s.epitopes.%s.txt" % (self.patID,n)):
                 epTmp.append(FilePath + "tmp/%s.epitopes.%s.txt" % (self.patID,n))
                 print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
@@ -131,6 +132,9 @@ class Sample():
         if i!=len(Options.epitopes):
             self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hla, Options.epitopes, netmhcpan)
 
+    def digestIndSample(self, Options):
+        self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID)
+        self.appendedEpitopes = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
 
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
