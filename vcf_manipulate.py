@@ -180,15 +180,17 @@ def predict_neoantigens(FilePath, patName, inFile, hlas, epitopeLens, netMHCpan)
     :param hlas: HLA types for the patient.
     :param epitopeLens: List of epitope lengths to predict
     :param netMHCpan: Dictionary housing netMHCpan specific script locations and data. See README.md.
-    :return: netMHCpan
+    :return: netMHCpan predictions for each file.
     '''
 
     hlasnormed = ConstructAlleles(hlas)
 
     print("INFO: Predicting neoantigens for %s" % (patName))
 
+    epcalls = []
     for n in epitopeLens:
         output_file = FilePath +'tmp/%s.epitopes.%s.txt' % (patName, n)
+        epcalls.append(output_file)
         with open(output_file, 'a') as epitope_pred:
             print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
             cmd = ['netMHCpan', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
@@ -197,3 +199,4 @@ def predict_neoantigens(FilePath, patName, inFile, hlas, epitopeLens, netMHCpan)
 
     print("INFO: Predictions complete for %s on epitopes of length %s" % (patName, n))
 
+    return(epcalls)

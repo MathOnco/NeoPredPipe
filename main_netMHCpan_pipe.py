@@ -14,24 +14,33 @@ def Parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-E", "--epitopes", dest="epitopes", nargs='+', type=int, default=[8, 9, 10],
                         help="Epitope lengths for predictions. Default: 8 9 10")
-    parser.add_argument("-m", dest="multiregion", default=False, action='store_true',
-                        help="Specifies if the vcf is a multiregion sample. Default: False.")
-    parser.add_argument("-c", dest="colRegions", default=None, nargs="+",
-                        help="Columns of regions within vcf that are not normal within a multiregion vcf file. 0 is normal in test samples. Can handle different number of regions per vcf file.")
     parser.add_argument("-l", dest="cleanLog", default=True, action='store_false', help="Specifies whether to delete the ANNOVAR log file. Default: True. Note: Use for debugging.")
     parser.add_argument("-d", dest="deleteInt", default=True, action='store_false', help="Specified whether to delete intermediate files created by program. Default: True. Note: Set flag to resume job.")
+    parser.add_argument("-r", "--cleanrun", dest="makeitclean", default=False, action='store_true', help="Specify this alone with no other options to clean-up a run. Be careful that you mean to do this!!")
     requiredNamed = parser.add_argument_group('Required arguments')
     requiredNamed.add_argument("-I", dest="vcfdir", default=None, type=str,
                                help="Input vcf file directory location. Example: -I ./Example/input_vcfs/")
     requiredNamed.add_argument("-H", dest="hlafile", default=None, type=str, help="HLA file for vcf patient samples.")
     requiredNamed.add_argument("-o", dest="OutputDir", default=None, type=str, help="Output Directory Path")
 
-    # parser.add_option('-r', dest='permute', default=False, action='store_true', help='Permute sequences [Default: %default]')
+    postProcess = parser.add_argument_group('Post Processing Options')
+    postProcess.add_argument("-pp", dest="postprocess", default=True, action='store_false', help="Flag to perform post processing. Default=True.")
+    postProcess.add_argument("-m", dest="multiregion", default=False, action='store_true',
+                        help="Specifies if the vcf is a multiregion sample. Default: False.")
+    postProcess.add_argument("-c", dest="colRegions", default=None, nargs="+",
+                        help="Columns of regions within vcf that are not normal within a multiregion vcf file. 0 is normal in test samples. Can handle different number of regions per vcf file.")
+    postProcess.add_argument("-a", dest="includeall", default=False, action='store_true', help="Flag to not filter neoantigen predictions and keep all regardless of prediction value.")
+    postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off summary table.")
+
     Options = parser.parse_args()  # main user args
+    if Options.makeitclean:
+        CleanUp(Options)
+        sys.exit("Process Complete")
     if not Options.vcfdir or not Options.hlafile or not Options.OutputDir:
         parser.error("Some of the required arguments were not provided. Please check required arguments.")
-    if Options.multiregion and Options.colRegions is None:
-        parser.error("-m requires -c to be specified.")
+    if Options.postprocess:
+        if Options.multiregion and Options.colRegions is None:
+            parser.error("-m requires -c to be specified.")
 
     return(Options)
 
@@ -49,6 +58,9 @@ def ConfigSectionMap(section, Config):
     return dict1
 
 class Sample():
+    '''
+    Use this to run and execute the pipeline on an individual patient vcf file.
+    '''
 
     def __init__(self, FilePath, patID, vcfFile, hla, annovar, netmhcpan, Options):
         self.patID = patID
@@ -59,8 +71,10 @@ class Sample():
         self.fastaChange=None
         self.fastaChangeFormat=None
         self.peptideFastas = None # Will be a dictionary of tmp files for predictions
+        self.epcalls = None
         self.ProcessAnnovar(FilePath, annovar)
         self.callNeoantigens(FilePath, netmhcpan, Options)
+
 
     def ProcessAnnovar(self, FilePath, annovar):
         # Prepare ANNOVAR input files
@@ -92,10 +106,31 @@ class Sample():
             self.fastaChangeFormat = ReformatFasta(self.fastaChange)
 
         # Make tmp files.
-        self.peptideFastas = MakeTempFastas(self.fastaChangeFormat, Options.epitopes)
+        i = 0
+        for n in Options.epitopes:
+            pepTmp = {}
+            if os.path.isfile(FilePath+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)):
+                pepTmp.update({n:FilePath+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
+                print("INFO: Tmp fasta files %s has already been created for netMHCpan length %s." % (self.patID,n))
+                i+=1
+                if i == len(Options.epitopes):
+                    self.peptideFastas = pepTmp
+        if i != len(Options.epitopes):
+            self.peptideFastas = MakeTempFastas(self.fastaChangeFormat, Options.epitopes)
 
         # Predict neoantigens
-        predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hla, Options.epitopes, netmhcpan)
+        i = 0
+        for n in Options.epitopes:
+            epTmp = []
+            if os.path.isfile(FilePath + "tmp/%s.epitopes.%s.txt" % (self.patID,n)):
+                epTmp.append(FilePath + "tmp/%s.epitopes.%s.txt" % (self.patID,n))
+                print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
+                i += 1
+                if i == len(Options.epitopes):
+                    self.epcalls = epTmp
+        if i!=len(Options.epitopes):
+            self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hla, Options.epitopes, netmhcpan)
+
 
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
@@ -147,12 +182,12 @@ def PrepClasses(FilePath, Options):
     return(allFiles, hlas)
 
 def CleanUp(Options):
-    if Options.cleanLog:
+    if Options.cleanLog or Options.makeitclean:
         try:
             os.remove('logforannovarNeoPredPipe.txt')
         except OSError:
             pass
-    if Options.deleteInt:
+    if Options.deleteInt or Options.makeitclean:
         try:
             shutil.rmtree("avready/")
         except OSError as e:
@@ -167,6 +202,11 @@ def CleanUp(Options):
             shutil.rmtree("fastaFiles/")
         except OSError as e:
             print("ERROR: Unable to clean intermediary files.")
+            print(e)
+        try:
+            shutil.rmtree("tmp/")
+        except OSError as e:
+            print("ERROR: Unable to clean tmp files.")
             print(e)
 
 def main():

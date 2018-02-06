@@ -11,6 +11,8 @@ This tool allows a user to process neoantigens predicted from vcf files using AN
    - Can be downloaded [here](http://annovar.openbioinformatics.org/en/latest/user-guide/download/).
    - ANNOVAR hg19_refGene
    - ANNOVAR hg19_refGeneMrna
+   - Other reference builds can be used. Simply change the usr_path.ini file to the appropriate reference (see below).
+     - Make sure to use the same one used to call variants.
 4. netMHCpan
    - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
    - Follow their steps for installation on your platform.
@@ -30,31 +32,40 @@ python ./main_netMHCpan_pipe.py --help
 ```
    - Which produces the following:
 ```bash
-usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-m]
-                              [-c COLREGIONS [COLREGIONS ...]] [-l] [-d]
-                              [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR]
+usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-l] [-d] [-r]
+                              [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR] [-pp]
+                              [-m] [-c COLREGIONS [COLREGIONS ...]] [-a] [-t]
 
 optional arguments:
   -h, --help            show this help message and exit
   -E EPITOPES [EPITOPES ...], --epitopes EPITOPES [EPITOPES ...]
                         Epitope lengths for predictions. Default: 8 9 10
-  -m                    Specifies if the vcf is a multiregion sample. Default:
-                        False.
-  -c COLREGIONS [COLREGIONS ...]
-                        Columns of regions within vcf that are not normal within a
-                        multiregion vcf file. 0 is normal in test samples. Can
-                        handle different number of regions per vcf file.
   -l                    Specifies whether to delete the ANNOVAR log file.
                         Default: True. Note: Use for debugging.
   -d                    Specified whether to delete intermediate files created
                         by program. Default: True. Note: Set flag to resume
                         job.
+  -r, --cleanrun        Specify this alone with no other options to clean-up a
+                        run. Be careful that you mean to do this!!
 
 Required arguments:
   -I VCFDIR             Input vcf file directory location. Example: -I
                         ./Example/input_vcfs/
   -H HLAFILE            HLA file for vcf patient samples.
   -o OUTPUTDIR          Output Directory Path
+
+Post Processing Options:
+  -pp                   Flag to perform post processing. Default=True.
+  -m                    Specifies if the vcf is a multiregion sample. Default:
+                        False.
+  -c COLREGIONS [COLREGIONS ...]
+                        Columns of regions within vcf that are not normal
+                        within a multiregion vcf file. 0 is normal in test
+                        samples. Can handle different number of regions per
+                        vcf file.
+  -a                    Flag to not filter neoantigen predictions and keep all
+                        regardless of prediction value.
+  -t                    Flag to turn off summary table.
 ```
 
 ## Input files
