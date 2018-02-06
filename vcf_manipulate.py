@@ -170,7 +170,6 @@ def ConstructAlleles(hlas):
 
     return(list(set(netMHCpanHLAS)))
 
-
 def predict_neoantigens(FilePath, patName, inFile, hlas, epitopeLens, netMHCpan):
     '''
     Strips out all WILDTYPE and IMMEDIATE-STOPGAIN from fasta file.

@@ -7,15 +7,18 @@ This tool allows a user to process neoantigens predicted from vcf files using AN
 1. Python == 2.7 (Built using Python 2.7.13, not compatible with python 3 due to OS processes)
    - biopython == 1.70
 2. ANNOVAR
-3. hg19 reference genome
+   - Can be downloaded [here](http://annovar.openbioinformatics.org/en/latest/user-guide/download/).
+   - ANNOVAR hg19_refGene
+   - ANNOVAR hg19_refGeneMrna
 4. netMHCpan
+   - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
 
 ## Running
 1. Clone the repository:
 ```bash
 git clone https://github.com/rschenck/NeoPredPipe.git
 ```
-2. You can see the options associated by running the following:
+3. You can see the options associated by running the following:
 ```bash
 python ./main_netMHCpan_pipe.py --help
 ```
@@ -53,9 +56,10 @@ Required arguments:
 ## Input files
 1. VCF file. A standard vcf file with a patient identifier as the title of the .vcf.
 2. An hla file with the following tab delimited format:
-   - Note, patient identifier in the rows should match that in the vcf.
+   - Note, patient identifier in the rows must match that preceding *.vcf
    - Headers are not required but the data should match the format in the table.
    - 'NA' is used when the HLA typing predicts the same HLA subtype for A, B, or C.
+   - The program will search for the appropriate allele within netMHCpan alleles list, but care should be taken to ensure accuracy.
 
 | Patient | HLA-A_1 | HLA-A_2 | HLA-B_1 | HLA-B_2 | HLA-C_1 | HLA-C_2 |
 |  --- |  --- |  --- |  --- |  --- |  --- |  ---  |
