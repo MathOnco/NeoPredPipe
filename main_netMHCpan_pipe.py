@@ -6,6 +6,7 @@ import glob
 import argparse
 import ConfigParser
 import shutil
+from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     predict_neoantigens, ReformatFasta, MakeTempFastas
 from postprocessing import DigestIndSample, AppendDigestedEps
@@ -70,6 +71,7 @@ class Sample():
         self.epcalls = None
         self.digestedEpitopes = None
         self.appendedEpitopes = None
+        self.regionsPresent = None
         self.ProcessAnnovar(FilePath, annovar)
         self.callNeoantigens(FilePath, netmhcpan, Options)
         if Options.postprocess:
@@ -132,7 +134,7 @@ class Sample():
 
     def digestIndSample(self, Options):
         self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID)
-        self.appendedEpitopes = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
+        self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
 
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
@@ -211,9 +213,138 @@ def FinalOut(sampleClasses, Options):
                         pentultimateFile.write(line+"\n")
                         summaryTable.append(line)
 
+    # TODO make code so that it handles multiple regions to give overall burden and burden within each region...
+    summaries = {}
+    for z in range(0, len(sampleClasses)):
+
+        total_count=0
+        wbind=0
+        sbind=0
+        if Options.colRegions is not None:
+
+            # Prep counts for multiregion data
+            region_count=[0 for k in Options.colRegions*3]
+
+            # Final Counters for each subtype of neoantigen
+            clonal=0
+            Wclonal = 0
+            Sclonal = 0
+            subclonal=0
+            Wsubclonal = 0
+            Ssubclonal=0
+            shared=0
+            Wshared = 0
+            Sshared = 0
+
+            regionsPesent = sampleClasses[z].regionsPresent
+            overallRegions = Counter(regionsPesent)
+
+        for line in sampleClasses[z].appendedEpitopes:
+            # Counter to assess clonality of neoantigen
+            r = 0
+            rw = 0
+            rs = 0
+
+            if '<=' in line:
+                total_count+=1
+                if Options.colRegions is not None:
+                    regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+
+                    for s in range(0,len(Options.colRegions)):
+                        if regions[s] != 0:
+                            region_count[s*3]+=1
+                            r +=1
+
+                if "<=\tWB" in line:
+                    wbind +=1
+
+                    if Options.colRegions is not None:
+                        regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+                        for s in range(0, len(Options.colRegions)):
+                            if regions[s] != 0:
+                                region_count[(s * 3)+1] += 1
+                                rw +=1
+
+                elif "<=\tSB" in line:
+                    sbind+=1
+
+                    if Options.colRegions is not None:
+                        regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+                        for s in range(0, len(Options.colRegions)):
+                            if regions[s] != 0:
+                                region_count[(s * 3)+2] += 1
+                                rs+=1
+
+            if Options.colRegions is not None:
+                if r == overallRegions['+']:
+                    clonal += 1
+                elif r == 1:
+                    subclonal += 1
+                elif r > 1 and overallRegions['+'] > 2:
+                    shared += 1
+                elif r==0:
+                    pass
+                else:
+                    sys.exit('Error with mutliregion counter.')
+
+                if rw == overallRegions['+']:
+                    Wclonal += 1
+                elif rw == 1:
+                    Wsubclonal += 1
+                elif rw > 1 and overallRegions['+'] > 2:
+                    Wshared += 1
+                elif rw==0:
+                    pass
+                else:
+                    sys.exit('Error with mutliregion counter.')
+
+                if rs == overallRegions['+']:
+                    Sclonal += 1
+                elif rs == 1:
+                    Ssubclonal += 1
+                elif rs > 1 and overallRegions['+'] > 2:
+                    Sshared += 1
+                elif rs==0:
+                    pass
+                else:
+                    sys.exit('Error with mutliregion counter.')
+
+        if Options.colRegions is not None:
+            summaries.update({sampleClasses[z].patID:{'Total':total_count,'WB':wbind,'SB':sbind,
+                                                    'Regions':region_count, 'Clonal':clonal, 'Subclonal':subclonal, 'Shared':shared,
+                                                    'clonal_w':Wclonal, 'clonal_s':Sclonal, 'subclonal_w':Wsubclonal, 'subclonal_s':Ssubclonal,
+                                                    'shared_w':Wshared,'shared_s':Sshared}})
+        else:
+            summaries.update({sampleClasses[z].patID:{'Total':total_count,'WB':wbind,'SB':sbind}})
+
     with open(outTable, 'w') as finalFile:
-        #TODO make code so that it handles multiple regions to give overall burden and burden within each region...
-        pass
+        if Options.colRegions is not None:
+            header = ['Patient','Total','Total_WB','Total_SB','\t'.join(["Total_Region_%s"%(n) for n in range(0,len(Options.colRegions))]),
+                      '\t'.join(["Total_WB_Region_%s" % (n) for n in range(0, len(Options.colRegions))]), '\t'.join(["Total_SB_Region_%s"%(n) for n in range(0,len(Options.colRegions))]),
+                      'Clonal','Subclonal','Shared','Clonal_WB','Clonal_SB','Subclonal_WB','Subclonal_SB','Shared_WB','Shared_SB']
+
+            finalFile.write('\t'.join(header) + '\n')
+
+            for patient in summaries:
+                line = [patient, summaries[patient]['Total'], summaries[patient]['WB'], summaries[patient]['SB'],
+                        '\t'.join([str(summaries[patient]['Regions'][i]) for i in range(0,len(region_count), 3)]), '\t'.join([str(summaries[patient]['Regions'][i]) for i in range(1,len(region_count), 3)]),
+                        '\t'.join([str(summaries[patient]['Regions'][i]) for i in range(2,len(region_count), 3)]),
+                        summaries[patient]['Clonal'],summaries[patient]['Subclonal'],summaries[patient]['Shared'],
+                        summaries[patient]['clonal_w'],summaries[patient]['clonal_s'],summaries[patient]['subclonal_w'],
+                        summaries[patient]['subclonal_s'],summaries[patient]['shared_w'],summaries[patient]['shared_s']
+                        ]
+                line = [str(i) for i in line]
+                finalFile.write('\t'.join(line) + '\n')
+        else:
+            header = ['Total','Total_WB','Total_SB']
+
+            finalFile.write('\t'.join(header) + '\n')
+
+            for patient in summaries:
+                line = [patient, summaries[patient]['Total'], summaries[patient]['WB'], summaries[patient]['SB']]
+                finalFile.write('\t'.join(line) + '\n')
+
+    print("INFO: Summary Tables Complete.")
 
 def CleanUp(Options):
     if Options.cleanLog or Options.makeitclean:
@@ -263,6 +394,9 @@ def main():
 
     if Options.postprocess:
         FinalOut(t, Options)
+        print("INFO: Complete")
+    else:
+        print("INFO: Complete")
 
     CleanUp(Options)
 

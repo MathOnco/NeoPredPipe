@@ -41,7 +41,6 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
     :param Options: ArgParse options for processing multiregion
     :return: List of new lines with appended information
     '''
-    bases = ['A','C','G','T']
 
     # Pull exonic_variant_function files into dictionary with line # as key
     with open(exonicVars, 'r') as exInfo:
@@ -68,7 +67,9 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         vcfLine = avReadyLine.split('\t')[8:]
         genoTypeLines = vcfLine[9:] # Extract region specific information
 
+
         if Options.colRegions is not None:
+            genoTypesPresent = []
             genoTypes = OrderedDict()
             for i in Options.colRegions:
                 try:
@@ -79,13 +80,14 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
                     else:
                         present = 0
                     genoTypes.update({'Region_%s'%(i):present})
-
+                    genoTypesPresent.append("+")
                 except IndexError as e:
                     genoTypes.update({'Region_%s'%(i):0})
+                    genoTypesPresent.append("-")
 
             regionInfo = '\t'.join([str(genoTypes[i]) for i in genoTypes])
             newLines.append('\t'.join([patName, regionInfo,'line%s' % (epID), chrom, pos, ref, alt, genes, ep]))
         else:
             newLines.append('\t'.join([patName, 'line%s' % (epID), chrom, pos, ref, alt, genes, ep]))
 
-    return(newLines)
+    return(newLines, genoTypesPresent)
