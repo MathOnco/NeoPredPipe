@@ -95,6 +95,7 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 3. If there are not multiple regions from a single patient the resulting summary table will appear as follows:
 
 | Patient | Total | Total_WB | Total_SB |
+|  --- |  --- |  --- |  --- |
 
 4. If multiple regions are specified then the output will look as follows:
 
