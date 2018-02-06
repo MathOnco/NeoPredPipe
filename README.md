@@ -1,4 +1,4 @@
-## Getting Started
+## Summary
 
 This tool allows a user to process neoantigens predicted from vcf files using ANNOVAR and netMHCpan.
 
