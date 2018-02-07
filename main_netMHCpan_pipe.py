@@ -6,7 +6,7 @@ import glob
 import argparse
 try:
     import ConfigParser as configparser
-except NameError:
+except:
     import configparser
 import shutil
 from collections import Counter
