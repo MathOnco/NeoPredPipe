@@ -327,7 +327,7 @@ def FinalOut(sampleClasses, Options):
 
     with open(outTable, 'w') as finalFile:
         if Options.colRegions is not None:
-            header = ['Patient','Total','Total_WB','Total_SB','\t'.join(["Total_Region_%s"%(n) for n in range(0,len(Options.colRegions))]),
+            header = ['Sample','Total','Total_WB','Total_SB','\t'.join(["Total_Region_%s"%(n) for n in range(0,len(Options.colRegions))]),
                       '\t'.join(["Total_WB_Region_%s" % (n) for n in range(0, len(Options.colRegions))]), '\t'.join(["Total_SB_Region_%s"%(n) for n in range(0,len(Options.colRegions))]),
                       'Clonal','Subclonal','Shared','Clonal_WB','Clonal_SB','Subclonal_WB','Subclonal_SB','Shared_WB','Shared_SB']
 
@@ -344,7 +344,7 @@ def FinalOut(sampleClasses, Options):
                 line = [str(i) for i in line]
                 finalFile.write('\t'.join(line) + '\n')
         else:
-            header = ['Total','Total_WB','Total_SB']
+            header = ['Sample','Total','Total_WB','Total_SB']
 
             finalFile.write('\t'.join(header) + '\n')
 
