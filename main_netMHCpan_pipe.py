@@ -384,8 +384,7 @@ def main():
     Config.read(localpath + "usr_paths.ini")
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
-    print netMHCpanPaths
-    sys.exit()
+
     Options = Parser()
     print("INFO: Begin.")
 
