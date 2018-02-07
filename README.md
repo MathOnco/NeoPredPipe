@@ -5,7 +5,7 @@ This tool allows a user to process neoantigens predicted from vcf files using AN
 ## Dependencies
 ##### Note: Should be compatible on Darwin and Linux systems, not Windows.
 
-1. Python == 2.7 (Built using Python 2.7.13, not compatible with python 3 due to OS processes)
+1. Python == 2.7 (Built using Python 2.7.13, not compatible with python 3 yet)
    - biopython == 1.70
 2. ANNOVAR
    - Can be downloaded [here](http://annovar.openbioinformatics.org/en/latest/user-guide/download/).
@@ -17,7 +17,7 @@ This tool allows a user to process neoantigens predicted from vcf files using AN
    - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
    - Follow their steps for installation on your platform.
 
-## Getting Started
+## Installing and preparing environment
 1. Clone the repository:
 ```bash
 git clone https://github.com/rschenck/NeoPredPipe.git
@@ -85,7 +85,7 @@ Post Processing Options:
 | test1 | hla_a_31_01_02 | hla_a_02_01_80 | hla_b_40_01_02 | hla_b_50_01_01 | hla_c_03_04_20 | hla_c_06_02_01_02 |
 | test2 | hla_a_01_01_01_01 | NA | hla_b_07_02_01 | NA | hla_c_01_02_01 | NA |
 
-## Example of how to run the script using the provided example vcf files and corresponding hla types
+## Run Using Example .vcf files
 ```bash
 # Run the Pipeline to only prepare the input files. Can be best to run this independent if working on a cluster.
 python main_netMHCpan_pipe.py --preponly -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -n TestRun -c 1 2 -E 8 9 10
@@ -97,10 +97,22 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 ## Data post processing
 1. Post processing is turned on by default. If you want it turned off set the '-pp' flag.
 2. The output files will yield files with the following information:
-   - A file containing the neoantigen predictions with appropriate identifer information
-   - TODO add an example of output with what is in each column
+   - A file containing the neoantigen predictions with appropriate identifier information and heterogeneity if multiregion.
    - A file containing summaries of the neoantigen burdens in each sample (and regions if multiregion).
-3. If there are not multiple regions from a single patient the resulting summary table will appear as follows:
+
+## Output Format
+1. The primary output file of neoantigens has the following format:
+   - Stuff
+
+| a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |  a |
+| --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |
+| test1 | 0 | 1 | 0 | line16 | chr1 | 153914523 | G | C | DENND4B:NM_014856 | 3 | HLA-B*40:01 | SERQAGAL | SERQAG-AL | 0 | 0 | 0 | 6 | 1 | SERQAGAL | line16_NM_01485 | 0.33670 | 1308.7 | 1.30 | <= | WB |
+| test1 | 1 | 1 | 0 | line8 | chr1 | 53608000 | C | T | SLC1A7:NM_001287597,SLC1A7:NM_001287595,SLC1A7:NM_006671,SLC1A7:NM_001287596 | 2 | HLA-C*06:02 | LGFFLRTRHL | LFFLRTRHL | 0 | 1 | 1 | 0 | 0 | LGFFLRTRHL | line8_NM_001287 | 0.24655 | 3470.8 | 1.20 | <= | WB |
+| test2 | 1 | 0 | 0 | line34 | chr1 | 248402593 | C | A | OR2M4:NM_017504 | 6 | HLA-C*01:02 | VMAYERYVAI | VAYERYVAI | 0 | 1 | 1 | 0 | 0 | VMAYERYVAI | line34_NM_01750 | 0.14917 | 9954.7 | 1.50 | <= | WB |
+| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | 2 | HLA-C*01:02 | FTHGPSSTPL | FTHPSSTPL | 0 | 3 | 1 | 0 | 0 | FTHGPSSTPL | line51_NM_00108 | 0.22570 | 4349.1 | 0.40 | <= | SB |
+| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | 7 | HLA-C*01:02 | SSTPLHPCPF | STPLHPCPF | 0 | 1 | 1 | 0 | 0 | SSTPLHPCPF | line51_NM_00108 | 0.13137 | 12068.7 | 2.00 | <= | WB |
+
+2. If there are not multiple regions from a single patient the resulting summary table will appear as follows:
 
 | Patient | Total | Total_WB | Total_SB |
 |  --- |  --- |  --- |  --- |
