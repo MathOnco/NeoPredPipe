@@ -102,7 +102,32 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 
 ## Output Format
 1. The primary output file of neoantigens has the following format:
-   - Stuff
+   - **Sample** vcf filename/patient identifier
+   - **R1** Region 1 of a multiregion sample, binary for presence (1) or absence (0). Can be *n* numbers of regions. **_Only present in multiregion samples_**.
+   - **R2** Region 2 of a multiregion sample, binary for presence (1) or absence (0). Can be *n* numbers of regions. **_Only present in multiregion samples_**.
+   - **R3** Region 3 of a multiregion sample, binary for presence (1) or absence (0). Can be *n* numbers of regions. **_Only present in multiregion samples_**.
+   - **Line** Line of within the *.avready file (same as the vcf) to identify mutation yielding corresponding neoantigen.
+   - **chr** Chromosome of mutation
+   - **allelepos** Position of the mutation
+   - **ref** Reference base at the position
+   - **alt** Alternative base at the location
+   - **GeneName:RefID** Gene name and RefSeq ID separated by a colon. Multiple genes/refseq IDs separated by a comma.
+   - **Candidate** Symbol (<=) used to denote a Strong or Week Binder in BindLevel
+   - **pos** Residue number (starting from 0)
+   - **hla** Molecule/allele name
+   - **peptide** Amino acid sequence of the potential ligand
+   - **core** The minimal 9 amino acid binding core directly in contact with the MHC
+   - **Of** The starting position of the Core within the Peptide (if > 0, the method predicts a N-terminal protrusion)
+   - **Gp** Position of the deletion, if any.
+   - **Gl** Length of the deletion.
+   - **Ip** Position of the insertions, if any.
+   - **Il** Length of the insertion.
+   - **Icore** Interaction core. This is the sequence of the binding core including eventual insertions of deletions.
+   - **Identity** Protein identifier, i.e. the name of the Fasta entry.
+   - **Score** The raw prediction score
+   - **Aff** Predicted binding affinity in nanoMolar units (if binding affinity predictions is selected).
+   - **Rank** Rank of the predicted affinity compared to a set of random natural peptides. This measure is not affected by inherent bias of certain molecules towards higher or lower mean predicted affinities. Strong binders are defined as having %rank<0.5, and weak binders with %rank<2. We advise to select candidate binders based on %Rank rather than nM Affinity
+   - **BindLevel** (SB: strong binder, WB: weak binder). The peptide will be identified as a strong binder if the % Rank is below the specified threshold for the strong binders, by default 0.5%. The peptide will be identified as a weak binder if the % Rank is above the threshold of the strong binders but below the specified threshold for the weak binders, by default 2%.
 
 | Sample |  R1 |  R2 |  R3 |  Line |  chr |  allelepos |  ref |  alt |  GeneName:RefSeqID |  pos |  hla |  peptide |  core |  Of |  Gp |  Gl |  Ip |  Il |  Icore |  Identity |  Score |  Aff |  Rank |  Candidate | BindLevel |
 | --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |
