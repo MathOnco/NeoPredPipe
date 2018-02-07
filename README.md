@@ -33,8 +33,9 @@ python ./main_netMHCpan_pipe.py --help
    - Which produces the following:
 ```bash
 usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-l] [-d] [-r]
-                              [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR] [-pp]
-                              [-m] [-c COLREGIONS [COLREGIONS ...]] [-a] [-t]
+                              [-p] [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR]
+                              [-n OUTNAME] [-pp]
+                              [-c COLREGIONS [COLREGIONS ...]] [-a] [-t]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -47,25 +48,28 @@ optional arguments:
                         job.
   -r, --cleanrun        Specify this alone with no other options to clean-up a
                         run. Be careful that you mean to do this!!
+  -p, --preponly        Prep files only without running neoantigen
+                        predictions. The prediction step takes the most time.
 
 Required arguments:
   -I VCFDIR             Input vcf file directory location. Example: -I
                         ./Example/input_vcfs/
   -H HLAFILE            HLA file for vcf patient samples.
   -o OUTPUTDIR          Output Directory Path
+  -n OUTNAME            Name of the output file for neoantigen predictions
 
 Post Processing Options:
   -pp                   Flag to perform post processing. Default=True.
-  -m                    Specifies if the vcf is a multiregion sample. Default:
-                        False.
   -c COLREGIONS [COLREGIONS ...]
                         Columns of regions within vcf that are not normal
-                        within a multiregion vcf file. 0 is normal in test
-                        samples. Can handle different number of regions per
-                        vcf file.
+                        within a multiregion vcf file after the format field.
+                        Example: 0 is normal in test samples, tumor are the
+                        other columns. Program can handle different number of
+                        regions per vcf file.
   -a                    Flag to not filter neoantigen predictions and keep all
                         regardless of prediction value.
-  -t                    Flag to turn off summary table.
+  -t                    Flag to turn off a neoantigen burden summary table.
+                        Default=True.
 ```
 
 ## Input files
