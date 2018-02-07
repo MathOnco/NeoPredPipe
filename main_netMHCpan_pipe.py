@@ -4,7 +4,10 @@ import sys
 import os
 import glob
 import argparse
-import ConfigParser
+try:
+    import ConfigParser as configparser
+except NameError:
+    import configparser
 import shutil
 from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
@@ -377,7 +380,7 @@ def CleanUp(Options):
 def main():
     # Pull information about usr system files
     localpath = os.path.abspath(__file__).rstrip('main_netMHCpan_pipe.py')  # path to scripts working directory
-    Config = ConfigParser.ConfigParser()
+    Config = configparser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
