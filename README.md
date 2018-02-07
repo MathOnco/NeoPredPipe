@@ -88,10 +88,10 @@ Post Processing Options:
 ## Example of how to run the script using the provided example vcf files and corresponding hla types
 ```bash
 # Run the Pipeline to only prepare the input files. Can be best to run this independent if working on a cluster.
-python main_netMHCpan_pipe.py --preponly -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -c 1 2 -E 8 9 10
+python main_netMHCpan_pipe.py --preponly -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -n TestRun -c 1 2 -E 8 9 10
 
 # Run the Pipeline
-python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -c 1 2 -E 8 9 10
+python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -n TestRun -c 1 2 -E 8 9 10
 ```
 
 ## Data post processing
