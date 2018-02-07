@@ -123,7 +123,7 @@ def MakeTempFastas(inFile, epitopeLens):
     for n in epitopeLens:
         mySeqs = []
         for seq_record in SeqIO.parse(inFile, 'fasta'):
-            if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'from;*;to;' not in seq_record.id.lower() and 'silent' not in seq_record.id.lower():
+            if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'from;*;to;' not in seq_record.id.lower() and 'silent' not in seq_record.id.lower() and 'fs*' not in seq_record.id.lower():
                 # TODO: Add a regex expression to extract the position since it's variable with versions of ANNOVAR
                 # TODO: Regex code for this should be r"\w*((?i)position;\d+;(?-i))\W*"
                 try:
