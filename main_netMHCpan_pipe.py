@@ -5,9 +5,9 @@ import os
 import glob
 import argparse
 try:
-    import ConfigParser as configparser
+    import ConfigParser as configparser # for python 2
 except:
-    import configparser
+    import configparser # for python 3
 import shutil
 from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
