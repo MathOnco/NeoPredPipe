@@ -402,13 +402,13 @@ def main():
         t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, Options))
 
     if Options.preponly:
+        print("INFO: Complete.")
+    else:
         if Options.postprocess:
             FinalOut(t, Options)
             print("INFO: Complete")
         else:
             print("INFO: Complete")
-    else:
-        print("INFO: Complete")
 
     CleanUp(Options)
 
