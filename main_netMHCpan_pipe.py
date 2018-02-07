@@ -82,30 +82,30 @@ class Sample():
 
     def ProcessAnnovar(self, FilePath, annovar):
         # Prepare ANNOVAR input files
-        if os.path.isfile(FilePath+"avready/"+self.patID+'.avinput'):
+        if os.path.isfile("avready/"+self.patID+'.avinput'):
             print("INFO: ANNOVAR Ready files for %s already present."%(self.patID))
-            self.avReadyFile = FilePath+"avready/"+self.patID+'.avinput'
+            self.avReadyFile = "avready/"+self.patID+'.avinput'
         else:
             self.avReadyFile = convert_to_annovar(FilePath, self.patID, self.vcfFile, annovar)
 
         # Prepare ANNOVAR annotated input files
-        if os.path.isfile(FilePath+"avannotated/"+self.patID+'.avannotated.exonic_variant_function'):
+        if os.path.isfile("avannotated/"+self.patID+'.avannotated.exonic_variant_function'):
             print("INFO: ANNOVAR Annotation files for %s already present." % (self.patID))
-            self.annotationReady = FilePath+"avannotated/"+self.patID+'.avannotated.exonic_variant_function'
+            self.annotationReady = "avannotated/"+self.patID+'.avannotated.exonic_variant_function'
         else:
             self.annotationReady = annovar_annotation(FilePath, self.patID, self.avReadyFile, annovar)
 
         # Get Coding Change
-        if os.path.isfile(FilePath+"fastaFiles/"+self.patID+'.fasta'):
+        if os.path.isfile("fastaFiles/"+self.patID+'.fasta'):
             print("INFO: Coding change fasta files for %s already present." % (self.patID))
-            self.fastaChange = FilePath+"fastaFiles/"+self.patID+'.fasta'
+            self.fastaChange = "fastaFiles/"+self.patID+'.fasta'
         else:
             self.fastaChange = get_coding_change(FilePath, self.patID, self.annotationReady, annovar)
 
     def callNeoantigens(self, FilePath, netmhcpan, Options):
-        if os.path.isfile(FilePath+"fastaFiles/"+self.patID+'.reformat.fasta'):
+        if os.path.isfile("fastaFiles/"+self.patID+'.reformat.fasta'):
             print("INFO: Coding change fasta files %s has already been reformatted." % (self.patID))
-            self.fastaChangeFormat = FilePath+"fastaFiles/"+self.patID+'.reformat.fasta'
+            self.fastaChangeFormat = "fastaFiles/"+self.patID+'.reformat.fasta'
         else:
             self.fastaChangeFormat = ReformatFasta(self.fastaChange)
 
@@ -113,8 +113,8 @@ class Sample():
         i = 0
         pepTmp = {}
         for n in Options.epitopes:
-            if os.path.isfile(FilePath+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)):
-                pepTmp.update({n:FilePath+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
+            if os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)):
+                pepTmp.update({n:"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
                 print("INFO: Tmp fasta files %s has already been created for netMHCpan length %s." % (self.patID,n))
                 i+=1
                 if i == len(Options.epitopes):
@@ -126,8 +126,8 @@ class Sample():
         i = 0
         epTmp = []
         for n in Options.epitopes:
-            if os.path.isfile(FilePath + "tmp/%s.epitopes.%s.txt" % (self.patID,n)):
-                epTmp.append(FilePath + "tmp/%s.epitopes.%s.txt" % (self.patID,n))
+            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,n)):
+                epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,n))
                 print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
                 i += 1
                 if i == len(Options.epitopes):

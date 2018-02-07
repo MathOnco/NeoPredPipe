@@ -16,7 +16,7 @@ def convert_to_annovar(FilePath, patName, inFile, annovar):
     print("INFO: Running convert2annovar.py on %s" % (inFile))
 
     # specify name for output file
-    outDir = FilePath + "avready/"
+    outDir = "avready/"
     annovar_out_ready = outDir + patName + '.avinput'
 
     with open("logforannovarNeoPredPipe.txt", 'a') as logFile:
@@ -25,7 +25,7 @@ def convert_to_annovar(FilePath, patName, inFile, annovar):
         runconvert = subprocess.Popen(cmd, stdout=logFile, stderr=logFile)
         runconvert.wait()
 
-    print('VCF Conversion Process complete %s'%(inFile))
+    print('INFO: VCF Conversion Process complete %s'%(inFile))
 
     return(annovar_out_ready)
 
@@ -41,7 +41,7 @@ def annovar_annotation(FilePath, patName, inFile, annovar):
     print("INFO: Running annotate_variation.pl on %s"%(inFile))
 
     # specify name for output file
-    outDir = FilePath + "avannotated/"
+    outDir = "avannotated/"
     annovar_out_ready = outDir + patName + '.avannotated'
 
     with open("logforannovarNeoPredPipe.txt", 'a') as logFile:
@@ -64,7 +64,7 @@ def get_coding_change(FilePath, patName, inFile, annovar):
     print("INFO: Running coding_change.pl on %s" % (inFile))
 
     # specify name for output file
-    outDir = FilePath + "fastaFiles/"
+    outDir = "fastaFiles/"
     coding_out_ready = outDir + patName + '.fasta'
 
     with open(coding_out_ready, 'a') as logfile:
@@ -192,7 +192,7 @@ def predict_neoantigens(FilePath, patName, inFile, hlas, epitopeLens, netMHCpan)
 
     epcalls = []
     for n in epitopeLens:
-        output_file = FilePath +'tmp/%s.epitopes.%s.txt' % (patName, n)
+        output_file = 'tmp/%s.epitopes.%s.txt' % (patName, n)
         epcalls.append(output_file)
         with open(output_file, 'a') as epitope_pred:
             print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
