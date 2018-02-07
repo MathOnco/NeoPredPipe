@@ -101,7 +101,7 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
    - A file containing summaries of the neoantigen burdens in each sample (and regions if multiregion).
 
 ## Output Format
-1. The primary output file of neoantigens has the following format:
+1. The primary output file of neoantigens has the following format (columns 12-26 are taken from [here](http://www.cbs.dtu.dk/services/NetMHCpan/output.php)):
    - **Sample** vcf filename/patient identifier
    - **R1** Region 1 of a multiregion sample, binary for presence (1) or absence (0). Can be *n* numbers of regions. **_Only present in multiregion samples_**.
    - **R2** Region 2 of a multiregion sample, binary for presence (1) or absence (0). Can be *n* numbers of regions. **_Only present in multiregion samples_**.
