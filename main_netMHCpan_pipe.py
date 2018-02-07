@@ -22,6 +22,7 @@ def Parser():
     parser.add_argument("-l", dest="cleanLog", default=True, action='store_false', help="Specifies whether to delete the ANNOVAR log file. Default: True. Note: Use for debugging.")
     parser.add_argument("-d", dest="deleteInt", default=True, action='store_false', help="Specified whether to delete intermediate files created by program. Default: True. Note: Set flag to resume job.")
     parser.add_argument("-r", "--cleanrun", dest="makeitclean", default=False, action='store_true', help="Specify this alone with no other options to clean-up a run. Be careful that you mean to do this!!")
+    parser.add_argument('-p', "--preponly", dest="preponly", default=False, action='store_true', help="Prep files only without running neoantigen predictions. The prediction step takes the most time.")
     requiredNamed = parser.add_argument_group('Required arguments')
     requiredNamed.add_argument("-I", dest="vcfdir", default=None, type=str,
                                help="Input vcf file directory location. Example: -I ./Example/input_vcfs/")
@@ -76,9 +77,13 @@ class Sample():
         self.appendedEpitopes = None
         self.regionsPresent = None
         self.ProcessAnnovar(FilePath, annovar)
-        self.callNeoantigens(FilePath, netmhcpan, Options)
-        if Options.postprocess:
-            self.digestIndSample(Options)
+
+        if Options.preponly:
+            print("INFO: Input files prepared and completed for %s" % (self.patID))
+        else:
+            self.callNeoantigens(FilePath, netmhcpan, Options)
+            if Options.postprocess:
+                self.digestIndSample(Options)
 
     def ProcessAnnovar(self, FilePath, annovar):
         # Prepare ANNOVAR input files
@@ -396,9 +401,12 @@ def main():
         patname = patFile.rstrip(".vcf").split("/")[len(patFile.rstrip(".vcf").split("/")) - 1]
         t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, Options))
 
-    if Options.postprocess:
-        FinalOut(t, Options)
-        print("INFO: Complete")
+    if Options.preponly:
+        if Options.postprocess:
+            FinalOut(t, Options)
+            print("INFO: Complete")
+        else:
+            print("INFO: Complete")
     else:
         print("INFO: Complete")
 
