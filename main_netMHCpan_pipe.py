@@ -227,7 +227,7 @@ def FinalOut(sampleClasses, Options):
 
     summaries = {}
     for z in range(0, len(sampleClasses)):
-        if sampleClasses[i].appendedEpitopes is not None:
+        if sampleClasses[z].appendedEpitopes is not None:
             total_count=0
             wbind=0
             sbind=0
