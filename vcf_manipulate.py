@@ -201,15 +201,26 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
 
     print("INFO: Predicting neoantigens for %s" % (patName))
 
+    # Verify that the fasta file has information in it to avoid any errors thrown from netMHCpan
+    checks = dict.fromkeys(inFile.keys())
+    for n in inFile:
+        cmd = "wc -l %s" % (inFile[n])
+        pipe = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
+        k = int(pipe.read().decode("utf-8").lstrip(" ").split(" ")[0])
+        checks[n]=k
+
     epcalls = []
     for n in epitopeLens:
-        output_file = 'tmp/%s.epitopes.%s.txt' % (patName, n)
-        epcalls.append(output_file)
-        with open(output_file, 'a') as epitope_pred:
-            print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
-            cmd = [netMHCpan['netmhcpan'], '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
-            netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
-            netMHC_run.wait()
+        if checks[n] > 0:
+            output_file = 'tmp/%s.epitopes.%s.txt' % (patName, n)
+            epcalls.append(output_file)
+            with open(output_file, 'a') as epitope_pred:
+                print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
+                cmd = [netMHCpan['netmhcpan'], '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
+                netMHC_run.wait()
+        else:
+            print("INFO: Skipping Sample! No peptides to predict for %s" % (patName))
 
     print("INFO: Predictions complete for %s on epitopes of length %s" % (patName, n))
 

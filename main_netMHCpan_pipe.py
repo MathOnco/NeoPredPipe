@@ -142,8 +142,9 @@ class Sample():
             self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan)
 
     def digestIndSample(self, Options):
-        self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID)
-        self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
+        if self.epcalls != []:
+            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID)
+            self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
 
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
@@ -211,119 +212,121 @@ def FinalOut(sampleClasses, Options):
     with open(outFile, 'w') as pentultimateFile:
         if Options.includeall==True:
             for i in range(0, len(sampleClasses)):
-                pentultimateFile.write('\n'.join(sampleClasses[i].appendedEpitopes))
-                for line in sampleClasses[i].appendedEpitopes:
-                    if '<=' in line:
-                        summaryTable.append(line)
+                if sampleClasses[i].appendedEpitopes is not None:
+                    pentultimateFile.write('\n'.join(sampleClasses[i].appendedEpitopes))
+                    for line in sampleClasses[i].appendedEpitopes:
+                        if '<=' in line:
+                            summaryTable.append(line)
         else:
             for i in range(0, len(sampleClasses)):
-                for line in sampleClasses[i].appendedEpitopes:
-                    if '<=' in line:
-                        pentultimateFile.write(line+"\n")
-                        summaryTable.append(line)
+                if sampleClasses[i].appendedEpitopes is not None:
+                    for line in sampleClasses[i].appendedEpitopes:
+                        if '<=' in line:
+                            pentultimateFile.write(line+"\n")
+                            summaryTable.append(line)
 
     summaries = {}
     for z in range(0, len(sampleClasses)):
+        if sampleClasses[i].appendedEpitopes is not None:
+            total_count=0
+            wbind=0
+            sbind=0
+            if Options.colRegions is not None:
 
-        total_count=0
-        wbind=0
-        sbind=0
-        if Options.colRegions is not None:
+                # Prep counts for multiregion data
+                region_count=[0 for k in Options.colRegions*3]
 
-            # Prep counts for multiregion data
-            region_count=[0 for k in Options.colRegions*3]
+                # Final Counters for each subtype of neoantigen
+                clonal=0
+                Wclonal = 0
+                Sclonal = 0
+                subclonal=0
+                Wsubclonal = 0
+                Ssubclonal=0
+                shared=0
+                Wshared = 0
+                Sshared = 0
 
-            # Final Counters for each subtype of neoantigen
-            clonal=0
-            Wclonal = 0
-            Sclonal = 0
-            subclonal=0
-            Wsubclonal = 0
-            Ssubclonal=0
-            shared=0
-            Wshared = 0
-            Sshared = 0
+                regionsPesent = sampleClasses[z].regionsPresent
+                overallRegions = Counter(regionsPesent)
 
-            regionsPesent = sampleClasses[z].regionsPresent
-            overallRegions = Counter(regionsPesent)
+            for line in sampleClasses[z].appendedEpitopes:
+                # Counter to assess clonality of neoantigen
+                r = 0
+                rw = 0
+                rs = 0
 
-        for line in sampleClasses[z].appendedEpitopes:
-            # Counter to assess clonality of neoantigen
-            r = 0
-            rw = 0
-            rs = 0
+                if '<=' in line:
+                    total_count+=1
+                    if Options.colRegions is not None:
+                        regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
 
-            if '<=' in line:
-                total_count+=1
+                        for s in range(0,len(Options.colRegions)):
+                            if regions[s] != 0:
+                                region_count[s*3]+=1
+                                r +=1
+
+                    if "<=\tWB" in line:
+                        wbind +=1
+
+                        if Options.colRegions is not None:
+                            regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+                            for s in range(0, len(Options.colRegions)):
+                                if regions[s] != 0:
+                                    region_count[(s * 3)+1] += 1
+                                    rw +=1
+
+                    elif "<=\tSB" in line:
+                        sbind+=1
+
+                        if Options.colRegions is not None:
+                            regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+                            for s in range(0, len(Options.colRegions)):
+                                if regions[s] != 0:
+                                    region_count[(s * 3)+2] += 1
+                                    rs+=1
+
                 if Options.colRegions is not None:
-                    regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
+                    if r == overallRegions['+']:
+                        clonal += 1
+                    elif r == 1:
+                        subclonal += 1
+                    elif r > 1 and overallRegions['+'] > 2:
+                        shared += 1
+                    elif r==0:
+                        pass
+                    else:
+                        sys.exit('Error with mutliregion counter.')
 
-                    for s in range(0,len(Options.colRegions)):
-                        if regions[s] != 0:
-                            region_count[s*3]+=1
-                            r +=1
+                    if rw == overallRegions['+']:
+                        Wclonal += 1
+                    elif rw == 1:
+                        Wsubclonal += 1
+                    elif rw > 1 and overallRegions['+'] > 2:
+                        Wshared += 1
+                    elif rw==0:
+                        pass
+                    else:
+                        sys.exit('Error with mutliregion counter.')
 
-                if "<=\tWB" in line:
-                    wbind +=1
-
-                    if Options.colRegions is not None:
-                        regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
-                        for s in range(0, len(Options.colRegions)):
-                            if regions[s] != 0:
-                                region_count[(s * 3)+1] += 1
-                                rw +=1
-
-                elif "<=\tSB" in line:
-                    sbind+=1
-
-                    if Options.colRegions is not None:
-                        regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
-                        for s in range(0, len(Options.colRegions)):
-                            if regions[s] != 0:
-                                region_count[(s * 3)+2] += 1
-                                rs+=1
+                    if rs == overallRegions['+']:
+                        Sclonal += 1
+                    elif rs == 1:
+                        Ssubclonal += 1
+                    elif rs > 1 and overallRegions['+'] > 2:
+                        Sshared += 1
+                    elif rs==0:
+                        pass
+                    else:
+                        sys.exit('Error with mutliregion counter.')
 
             if Options.colRegions is not None:
-                if r == overallRegions['+']:
-                    clonal += 1
-                elif r == 1:
-                    subclonal += 1
-                elif r > 1 and overallRegions['+'] > 2:
-                    shared += 1
-                elif r==0:
-                    pass
-                else:
-                    sys.exit('Error with mutliregion counter.')
-
-                if rw == overallRegions['+']:
-                    Wclonal += 1
-                elif rw == 1:
-                    Wsubclonal += 1
-                elif rw > 1 and overallRegions['+'] > 2:
-                    Wshared += 1
-                elif rw==0:
-                    pass
-                else:
-                    sys.exit('Error with mutliregion counter.')
-
-                if rs == overallRegions['+']:
-                    Sclonal += 1
-                elif rs == 1:
-                    Ssubclonal += 1
-                elif rs > 1 and overallRegions['+'] > 2:
-                    Sshared += 1
-                elif rs==0:
-                    pass
-                else:
-                    sys.exit('Error with mutliregion counter.')
-
-        if Options.colRegions is not None:
-            summaries.update({sampleClasses[z].patID:{'Total':total_count,'WB':wbind,'SB':sbind,
-                                                    'Regions':region_count, 'Clonal':clonal, 'Subclonal':subclonal, 'Shared':shared,
-                                                    'clonal_w':Wclonal, 'clonal_s':Sclonal, 'subclonal_w':Wsubclonal, 'subclonal_s':Ssubclonal,
-                                                    'shared_w':Wshared,'shared_s':Sshared}})
-        else:
-            summaries.update({sampleClasses[z].patID:{'Total':total_count,'WB':wbind,'SB':sbind}})
+                summaries.update({sampleClasses[z].patID:{'Total':total_count,'WB':wbind,'SB':sbind,
+                                                        'Regions':region_count, 'Clonal':clonal, 'Subclonal':subclonal, 'Shared':shared,
+                                                        'clonal_w':Wclonal, 'clonal_s':Sclonal, 'subclonal_w':Wsubclonal, 'subclonal_s':Ssubclonal,
+                                                        'shared_w':Wshared,'shared_s':Sshared}})
+            else:
+                summaries.update({sampleClasses[z].patID:{'Total':total_count,'WB':wbind,'SB':sbind}})
 
     with open(outTable, 'w') as finalFile:
         if Options.colRegions is not None:
