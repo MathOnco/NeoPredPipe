@@ -173,7 +173,7 @@ def ConstructAlleles(hlas, FilePath, patID):
             netMHCpanHLAS.append(hla.replace("_", "")[0:-4].upper())
         else:
             sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
-    print(netMHCpanHLAS)
+
     # for hla in hlas:
     #     if hla.replace("_","")[0:-2] in allAlleles:
     #         netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())

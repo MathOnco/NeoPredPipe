@@ -139,7 +139,7 @@ class Sample():
                 if i == len(Options.epitopes):
                     self.epcalls = epTmp
         if i!=len(Options.epitopes):
-            self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hla, Options.epitopes, netmhcpan)
+            self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan)
 
     def digestIndSample(self, Options):
         self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID)
