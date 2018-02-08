@@ -166,7 +166,6 @@ def ConstructAlleles(hlas, FilePath, patID):
     netMHCpanHLAS = []
     for hla in hlas:
         if hla.replace(" ","") in allAlleles:
-            print(hla)
             netMHCpanHLAS.append(hla.replace("_", "").upper())
         elif hla.replace("_","")[0:-2] in allAlleles:
             netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())
