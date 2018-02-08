@@ -148,7 +148,7 @@ def MakeTempFastas(inFile, epitopeLens):
 def ConstructAlleleHelper(s):
     return(s[:4].lower() + s[4:].capitalize())
 
-def ConstructAlleles(hlas, FilePath):
+def ConstructAlleles(hlas, FilePath, patID):
     '''
     Constructs the proper HLA input from HLA calls.
 
@@ -164,12 +164,13 @@ def ConstructAlleles(hlas, FilePath):
 
     netMHCpanHLAS = []
     for hla in hlas:
+        print(hla)
         if hla.replace("_","")[0:-2] in allAlleles:
             netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())
         elif hla.replace("_","")[0:-4] in allAlleles:
             netMHCpanHLAS.append(hla.replace("_", "")[0:-4].upper())
         else:
-            sys.exit("HLA type not found.")
+            sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
 
     return(list(set(netMHCpanHLAS)))
 

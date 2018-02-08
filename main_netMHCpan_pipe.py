@@ -77,7 +77,7 @@ class Sample():
         self.appendedEpitopes = None
         self.regionsPresent = None
         self.ProcessAnnovar(FilePath, annovar)
-        self.hlasnormed = ConstructAlleles(self.hla, FilePath)
+        self.hlasnormed = ConstructAlleles(self.hla, FilePath, self.patID)
 
         if Options.preponly:
             print("INFO: Input files prepared and completed for %s" % (self.patID))
