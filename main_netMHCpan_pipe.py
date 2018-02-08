@@ -11,7 +11,7 @@ except:
 import shutil
 from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
-    predict_neoantigens, ReformatFasta, MakeTempFastas
+    predict_neoantigens, ReformatFasta, MakeTempFastas, ConstructAlleles
 from postprocessing import DigestIndSample, AppendDigestedEps
 
 def Parser():
@@ -77,6 +77,7 @@ class Sample():
         self.appendedEpitopes = None
         self.regionsPresent = None
         self.ProcessAnnovar(FilePath, annovar)
+        self.hlasnormed = ConstructAlleles(self.hla, FilePath)
 
         if Options.preponly:
             print("INFO: Input files prepared and completed for %s" % (self.patID))

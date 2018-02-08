@@ -148,14 +148,14 @@ def MakeTempFastas(inFile, epitopeLens):
 def ConstructAlleleHelper(s):
     return(s[:4].lower() + s[4:].capitalize())
 
-def ConstructAlleles(hlas):
+def ConstructAlleles(hlas, FilePath):
     '''
     Constructs the proper HLA input from HLA calls.
 
     :param hlas: list of HLA types for the Patient
     :return: list of normalized HLA identifiers for netMHCpan
     '''
-    with open("netMHCpanAlleles.txt",'r') as alleles:
+    with open("%s/netMHCpanAlleles.txt"%(FilePath),'r') as alleles:
         allAlleles = [i.rstrip('\n').lower() for i in alleles.readlines()]
 
     hlas = [i.replace("hla_","hla-") for i in hlas]
@@ -173,7 +173,7 @@ def ConstructAlleles(hlas):
 
     return(list(set(netMHCpanHLAS)))
 
-def predict_neoantigens(FilePath, patName, inFile, hlas, epitopeLens, netMHCpan):
+def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netMHCpan):
     '''
     Strips out all WILDTYPE and IMMEDIATE-STOPGAIN from fasta file.
 
@@ -185,8 +185,6 @@ def predict_neoantigens(FilePath, patName, inFile, hlas, epitopeLens, netMHCpan)
     :param netMHCpan: Dictionary housing netMHCpan specific script locations and data. See README.md.
     :return: netMHCpan predictions for each file.
     '''
-
-    hlasnormed = ConstructAlleles(hlas)
 
     print("INFO: Predicting neoantigens for %s" % (patName))
 
