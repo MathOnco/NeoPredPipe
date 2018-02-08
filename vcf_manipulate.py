@@ -165,14 +165,24 @@ def ConstructAlleles(hlas, FilePath, patID):
 
     netMHCpanHLAS = []
     for hla in hlas:
-        if hla.replace(" ","") in allAlleles:
+        if len([h for h in allAlleles if hla == h]) == 1:
             netMHCpanHLAS.append(hla.replace("_", "").upper())
-        elif hla.replace("_","")[0:-2] in allAlleles:
+        elif len([h for h in allAlleles if hla.replace("_","")[0:-2] == h]) == 1:
             netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())
-        elif hla.replace("_","")[0:-4] in allAlleles:
+        elif len([h for h in allAlleles if hla.replace("_", "")[0:-4] == h]) == 1:
             netMHCpanHLAS.append(hla.replace("_", "")[0:-4].upper())
         else:
             sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
+
+    # for hla in hlas:
+    #     if hla.replace("_","")[0:-2] in allAlleles:
+    #         netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())
+    #     elif hla.replace("_","")[0:-4] in allAlleles:
+    #         netMHCpanHLAS.append(hla.replace("_", "")[0:-4].upper())
+    #     elif hla.replace(" ", "") in allAlleles:
+    #         netMHCpanHLAS.append(hla.replace("_", "").upper())
+    #     else:
+    #         sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
 
     return(list(set(netMHCpanHLAS)))
 
