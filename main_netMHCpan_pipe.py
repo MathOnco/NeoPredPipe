@@ -222,7 +222,6 @@ def FinalOut(sampleClasses, Options):
                         pentultimateFile.write(line+"\n")
                         summaryTable.append(line)
 
-    # TODO make code so that it handles multiple regions to give overall burden and burden within each region...
     summaries = {}
     for z in range(0, len(sampleClasses)):
 

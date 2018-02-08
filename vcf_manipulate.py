@@ -155,6 +155,7 @@ def ConstructAlleles(hlas, FilePath, patID):
     :param hlas: list of HLA types for the Patient
     :return: list of normalized HLA identifiers for netMHCpan
     '''
+    # TODO need a better way of verifying the format of the HLA alleles and matching in the list of those available...Some aren't working and should be...
     with open("%s/netMHCpanAlleles.txt"%(FilePath),'r') as alleles:
         allAlleles = [i.rstrip('\n').lower() for i in alleles.readlines()]
 
@@ -164,8 +165,10 @@ def ConstructAlleles(hlas, FilePath, patID):
 
     netMHCpanHLAS = []
     for hla in hlas:
-        print(hla)
-        if hla.replace("_","")[0:-2] in allAlleles:
+        if hla.replace(" ","") in allAlleles:
+            print(hla)
+            netMHCpanHLAS.append(hla.replace("_", "").upper())
+        elif hla.replace("_","")[0:-2] in allAlleles:
             netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())
         elif hla.replace("_","")[0:-4] in allAlleles:
             netMHCpanHLAS.append(hla.replace("_", "")[0:-4].upper())
