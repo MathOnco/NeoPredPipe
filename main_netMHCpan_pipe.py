@@ -213,7 +213,9 @@ def FinalOut(sampleClasses, Options):
         if Options.includeall==True:
             for i in range(0, len(sampleClasses)):
                 if sampleClasses[i].appendedEpitopes is not None:
-                    pentultimateFile.write('\n'.join(sampleClasses[i].appendedEpitopes))
+
+                    pentultimateFile.write('\n'.join(sampleClasses[i].appendedEpitopes) + '\n')
+
                     for line in sampleClasses[i].appendedEpitopes:
                         if '<=' in line:
                             summaryTable.append(line)
