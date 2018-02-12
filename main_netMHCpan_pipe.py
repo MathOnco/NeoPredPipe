@@ -376,11 +376,15 @@ def CleanUp(Options):
         except OSError as e:
             print("ERROR: Unable to clean intermediary files.")
             print(e)
-        try:
-            shutil.rmtree("fastaFiles/")
-        except OSError as e:
-            print("ERROR: Unable to clean intermediary files.")
-            print(e)
+        if Options.preponly:
+            print("INFO: Intermediary annovar-processed fasta files retrieved in fastaFiles.")
+            # TODO : Add proper handling of prep-only files, including saving them to desired output dir.
+        else:
+            try:
+                shutil.rmtree("fastaFiles/")
+            except OSError as e:
+                print("ERROR: Unable to clean intermediary files.")
+                print(e)
         try:
             shutil.rmtree("tmp/")
         except OSError as e:
