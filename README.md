@@ -125,7 +125,6 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
    - **Icore**: Interaction core. This is the sequence of the binding core including eventual insertions of deletions.
    - **Identity**: Protein identifier, i.e. the name of the Fasta entry.
    - **Score**: The raw prediction score
-   - **Aff**: Predicted binding affinity in nanoMolar units (if binding affinity predictions is selected).
    - **Rank**: Rank of the predicted affinity compared to a set of random natural peptides. This measure is not affected by inherent bias of certain molecules towards higher or lower mean predicted affinities. Strong binders are defined as having %rank<0.5, and weak binders with %rank<2. We advise to select candidate binders based on %Rank rather than nM Affinity
    - **BindLevel**: (SB: strong binder, WB: weak binder). The peptide will be identified as a strong binder if the % Rank is below the specified threshold for the strong binders, by default 0.5%. The peptide will be identified as a weak binder if the % Rank is above the threshold of the strong binders but below the specified threshold for the weak binders, by default 2%.
 
