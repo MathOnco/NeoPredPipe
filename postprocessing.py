@@ -8,7 +8,6 @@ import re
 def DigestIndSample(toDigest, patName):
     '''
     Filters the resulting file and strips all information within it down to individual calls.
-
     :param toDigest: A list of files to be digested for an individual patient.
     :param patName: Patient/sample identifier
     :return: All Neoantigen Prediction lines free of other information in prediction files.
@@ -30,10 +29,30 @@ def DigestIndSample(toDigest, patName):
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))
     return(lines)
 
+def DefineGenotypeFormat(testLine):
+    '''
+    Determines which element of genotype fields contains relevant information and in what format
+    Current options are NV (number of reads with variant allele) and A (alleles found in sample)
+    :param testLine: A single line from exonic_variant_function file
+    :return: Genotype format (allele or numvarreads) and the corresponding information's index in genotype info 
+    '''
+    genotypeFormat = 'unknown'
+    genotypeIndex = -1
+    formatInfo = testLine.split('\t')[19].split(':')
+    if 'NV' in formatInfo: #number of variant reads in sample
+        genotypeIndex = formatInfo.index('NV')
+        genotypeFormat = 'numvarreads'
+    elif 'A' in formatInfo: #alleles found in sample
+        genotypeIndex = formatInfo.index('A')
+        genotypeFormat = 'allele'
+    else:
+        print('INFO: Unknown format in VCF genotype fields, region specific information will probably be incorrect.')
+    return(genotypeFormat, genotypeIndex)
+
+
 def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
     '''
     Appends information to digested Eps for analysis.
-
     :param digestedEps: Lines from DigestIndSample from netMHCpan
     :param patName: Patient/sample identifier
     :param exonicVars: exonic_variant_function files from ANNOVAR
@@ -50,6 +69,10 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         lines = avIn.readlines()
         varInfo = {i+1:line.rstrip("\n") for i,line in enumerate(lines)}
 
+    # Test one line to determine FORMAT of genotype fields in vcf
+    testLine = exonicInfo[min(exonicInfo.keys())]
+    genotypeFormat, genotypeIndex = DefineGenotypeFormat(testLine)
+
     newLines = []
     for ep in digestedEps:
         epID = int(ep.split('\t')[10].split('_')[0].replace('line',''))
@@ -62,7 +85,7 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         genes = ','.join([':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != ''])
 
         # Getting information from the genotype fields
-        # Step 1: Determine the mutation location in the genotype field
+        # Step 1: Determine the mutation location in the genotype field (based on FORMAT info/ genotype index)
         # Step 2: Output a binary code for present absence in each region for neoantigen heterogeneity
         vcfLine = avReadyLine.split('\t')[8:]
         genoTypeLines = vcfLine[9:] # Extract region specific information
@@ -72,16 +95,15 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
             genoTypesPresent = []
             genoTypes = OrderedDict()
             for i in Options.colRegions:
-                try:
-                    # Only works if the only non-digit characters are base pairs
-                    match = re.findall("\:[ACGT]*\:",genoTypeLines[int(i)])[0].replace(":","")
-                    if len(match) > 1:
-                        present = 1
-                    else:
-                        present = 0
+                if genotypeFormat != 'unknown' and len(genoTypeLines)>int(i):
+                    match = genoTypeLines[int(i)].split(':')[genotypeIndex]
+                    if genotypeFormat == 'allele':                       
+                        present = int(len(match) > 1) #present if more than one allele at variant position
+                    if genotypeFormat == 'numvarreads':
+                        present = int(match > 0) #present if number of variant reads is > 0
                     genoTypes.update({'Region_%s'%(i):present})
                     genoTypesPresent.append("+")
-                except IndexError as e:
+                else:
                     genoTypes.update({'Region_%s'%(i):0})
                     genoTypesPresent.append("-")
 
