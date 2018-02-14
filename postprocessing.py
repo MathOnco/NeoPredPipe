@@ -100,7 +100,7 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
                     if genotypeFormat == 'allele':                       
                         present = int(len(match) > 1) #present if more than one allele at variant position
                     if genotypeFormat == 'numvarreads':
-                        present = int(match > 0) #present if number of variant reads is > 0
+                        present = int(int(match) > 0) #present if number of variant reads is > 0
                     genoTypes.update({'Region_%s'%(i):present})
                     genoTypesPresent.append("+")
                 else:
