@@ -34,7 +34,7 @@ def DefineGenotypeFormat(testLine):
     Determines which element of genotype fields contains relevant information and in what format
     Current options are NV (number of reads with variant allele) and A (alleles found in sample)
     :param testLine: A single line from exonic_variant_function file
-    :return: Genotype format (allele or numvarreads) and the corresponding information's index in genotype info 
+    :return: Genotype format (allele or numvarreads or alldepths) and the corresponding information's index in genotype info
     '''
     genotypeFormat = 'unknown'
     genotypeIndex = -1
@@ -45,6 +45,9 @@ def DefineGenotypeFormat(testLine):
     elif 'A' in formatInfo: #alleles found in sample
         genotypeIndex = formatInfo.index('A')
         genotypeFormat = 'allele'
+    elif 'AD' in formatInfo: #allele depth info for each allele in sample
+        genotypeIndex = formatInfo.index('AD')
+        genotypeFormat = 'alldepths'
     else:
         print('INFO: Unknown format in VCF genotype fields, region specific information will probably be incorrect.')
     return(genotypeFormat, genotypeIndex)
@@ -97,10 +100,12 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
             for i in Options.colRegions:
                 if genotypeFormat != 'unknown' and len(genoTypeLines)>int(i):
                     match = genoTypeLines[int(i)].split(':')[genotypeIndex]
-                    if genotypeFormat == 'allele':                       
+                    if genotypeFormat == 'allele': #match format: A or AG
                         present = int(len(match) > 1) #present if more than one allele at variant position
-                    if genotypeFormat == 'numvarreads':
+                    if genotypeFormat == 'numvarreads': #match format: 0 or 12
                         present = int(int(match) > 0) #present if number of variant reads is > 0
+                    if genotypeFormat == 'alldepths': #match format: 10,0 or 10,5
+                        present = int(int(match.split(',')[1]) > 0) #present if depth for variant allele > 0
                     genoTypes.update({'Region_%s'%(i):present})
                     genoTypesPresent.append("+")
                 else:
