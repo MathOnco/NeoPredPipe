@@ -82,7 +82,7 @@ def ReformatFasta(inFile):
     :param inFile: Fasta file created by coding_change.pl
     :return: Name of new fasta file.
     '''
-    newFasta = inFile.rstrip(".fasta") + ".reformat.fasta"
+    newFasta = inFile.replace(".fasta",".reformat.fasta")
     with open(inFile, 'r') as fasta:
         with open(newFasta, 'w') as outFasta:
             for line in fasta.readlines():
@@ -137,7 +137,7 @@ def MakeTempFastas(inFile, epitopeLens):
 
     tmpFiles = {}
     for n in epitopeLens:
-        tmpFasta = inFile.rstrip('.reformat.fasta') + ".tmp.%s.fasta"%(n)
+        tmpFasta = inFile.replace(".reformat.fasta",".tmp.%s.fasta"%(n))
         tmpFiles.update({n:tmpFasta})
         with open(tmpFasta, 'w') as outFile:
             for line in eps[n]:
