@@ -389,7 +389,7 @@ def CleanUp(Options):
 
 def main():
     # Pull information about usr system files
-    localpath = os.path.abspath(__file__).rstrip('main_netMHCpan_pipe.py')  # path to scripts working directory
+    localpath = os.path.abspath(__file__).replace('main_netMHCpan_pipe.py', '')  # path to scripts working directory
     Config = configparser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
@@ -403,7 +403,7 @@ def main():
     # Prepare samples
     t = []
     for patFile in allFiles:
-        patname = patFile.rstrip(".vcf").split("/")[len(patFile.rstrip(".vcf").split("/")) - 1]
+        patname = patFile.replace('.vcf', '').split("/")[len(patFile.replace('.vcf', '').split("/")) - 1]
         t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, Options))
 
     if Options.preponly:
