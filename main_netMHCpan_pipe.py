@@ -365,7 +365,7 @@ def CleanUp(Options):
             os.remove('logforannovarNeoPredPipe.txt')
         except OSError:
             pass
-    if Options.deleteInt or Options.makeitclean:
+    if (Options.deleteInt or Options.makeitclean) and not Options.preponly:
         try:
             shutil.rmtree("avready/")
         except OSError as e:
@@ -376,15 +376,11 @@ def CleanUp(Options):
         except OSError as e:
             print("ERROR: Unable to clean intermediary files.")
             print(e)
-        if Options.preponly:
-            print("INFO: Intermediary annovar-processed fasta files retrieved in fastaFiles.")
-            # TODO : Add proper handling of prep-only files, including saving them to desired output dir.
-        else:
-            try:
-                shutil.rmtree("fastaFiles/")
-            except OSError as e:
-                print("ERROR: Unable to clean intermediary files.")
-                print(e)
+        try:
+            shutil.rmtree("fastaFiles/")
+        except OSError as e:
+            print("ERROR: Unable to clean intermediary files.")
+            print(e)
         try:
             shutil.rmtree("tmp/")
         except OSError as e:
@@ -412,6 +408,7 @@ def main():
 
     if Options.preponly:
         print("INFO: Complete.")
+	print("INFO: Preprocessed intermediary files are in avready, avannotated and fastaFiles. If you wish to perform epitope prediction, run the pipeline again without the --preponly flag, intermediary files will be automatically detected.")
     else:
         if Options.postprocess:
             FinalOut(t, Options)
