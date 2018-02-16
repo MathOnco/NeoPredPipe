@@ -115,6 +115,7 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
             regionInfo = '\t'.join([str(genoTypes[i]) for i in genoTypes])
             newLines.append('\t'.join([patName, regionInfo,'line%s' % (epID), chrom, pos, ref, alt, genes, ep]))
         else:
+            genoTypesPresent = []
             newLines.append('\t'.join([patName, 'line%s' % (epID), chrom, pos, ref, alt, genes, ep]))
 
     return(newLines, genoTypesPresent)
