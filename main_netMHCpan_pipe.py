@@ -355,6 +355,7 @@ def FinalOut(sampleClasses, Options):
 
             for patient in summaries:
                 line = [patient, summaries[patient]['Total'], summaries[patient]['WB'], summaries[patient]['SB']]
+                line = [str(i) for i in line]
                 finalFile.write('\t'.join(line) + '\n')
 
     print("INFO: Summary Tables Complete.")
