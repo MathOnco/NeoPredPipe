@@ -37,7 +37,7 @@ class MyTestCase(unittest.TestCase):
         runcmd.wait()
         with open('test/Test_single.neoantigens.summarytable.txt', 'r') as testof:
             oflines = testof.readlines()
-        self.assertEqual( ['3', '2', '1'] , oflines[1].split('\t')[1:])
+        self.assertEqual( ['3', '2', '1'] , oflines[1].rstrip('\n').split('\t')[1:])
 
 
 if __name__ == '__main__':
