@@ -109,7 +109,7 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
                     genoTypes.update({'Region_%s'%(i):present})
                     genoTypesPresent.append("+")
                 else:
-                    genoTypes.update({'Region_%s'%(i):0})
+                    genoTypes.update({'Region_%s'%(i):-1})
                     genoTypesPresent.append("-")
 
             regionInfo = '\t'.join([str(genoTypes[i]) for i in genoTypes])

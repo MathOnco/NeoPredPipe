@@ -264,7 +264,7 @@ def FinalOut(sampleClasses, Options):
                         regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
 
                         for s in range(0,len(Options.colRegions)):
-                            if regions[s] != 0:
+                            if regions[s] > 0:
                                 region_count[s*3]+=1
                                 r +=1
 
@@ -274,7 +274,7 @@ def FinalOut(sampleClasses, Options):
                         if Options.colRegions is not None:
                             regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
                             for s in range(0, len(Options.colRegions)):
-                                if regions[s] != 0:
+                                if regions[s] > 0:
                                     region_count[(s * 3)+1] += 1
                                     rw +=1
 
@@ -284,7 +284,7 @@ def FinalOut(sampleClasses, Options):
                         if Options.colRegions is not None:
                             regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
                             for s in range(0, len(Options.colRegions)):
-                                if regions[s] != 0:
+                                if regions[s] > 0:
                                     region_count[(s * 3)+2] += 1
                                     rs+=1
 
