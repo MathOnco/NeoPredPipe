@@ -22,12 +22,18 @@ class MyTestCase(unittest.TestCase):
     def test_main_platypus(self):
         os.system("rm ./test/Test_platypus.*")
         cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
-               '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8' ]
+               '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8', '-d' ]
         runcmd = subprocess.Popen(cmd)
         runcmd.wait()
         with open('test/Test_platypus.neoantigens.txt', 'r') as testof:
             oflines = testof.readlines()
         self.assertEqual( ['1', '1', '0', '1', '0'] , oflines[0].split('\t')[1:6])
+        
+    def test_main_platypus_summaries(self):
+        with open('test/Test_platypus.neoantigens.summarytable.txt', 'r') as testsum:
+            sumlines = testsum.readlines()
+        summary = sumlines[1].rstrip('\n').split('\t')
+        self.assertEqual( (['3','3','2','2','2'], ['1','0','0','0','1','1']), (summary[4:9], summary[22:]))
 
     def test_main_single_region(self):
         os.system("rm ./test/Test_single.*")
