@@ -195,7 +195,7 @@ def PrepClasses(FilePath, Options):
 
     return(allFiles, hlas)
 
-def FinalOut(sampleClasses, Options):
+def FinalOut(sampleClasses, pepmatchPaths, Options):
     if Options.OutputDir[len(Options.OutputDir)-1]=="/":
         pass
     else:
@@ -209,8 +209,6 @@ def FinalOut(sampleClasses, Options):
     outTable = Options.OutputDir + Options.outName + ".neoantigens.summarytable.txt"
 
     checkpeptides = True
-    pmJar = "/data/home/hfx365/Software/PeptideMatchCMD_1.0.jar"
-    refInd = "/data/home/hfx365/Reference/Ensembl/index/"
 
     summaryTable = []
     with open(outFile, 'w') as pentultimateFile:
@@ -229,7 +227,7 @@ def FinalOut(sampleClasses, Options):
                     for line in sampleClasses[i].appendedEpitopes:
                         if '<=' in line:
                             if checkpeptides:
-                                novel = CheckPeptideNovelty(line, pmJar, refInd)
+                                novel = CheckPeptideNovelty(line, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'])
                                 pentultimateFile.write(line+'\t'+str(novel)+'\n')
                             else:
                                 pentultimateFile.write(line+"\n")
@@ -403,6 +401,10 @@ def main():
     Config.read(localpath + "usr_paths.ini")
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
+    try:
+        pepmatchPaths = ConfigSectionMap(Config.sections()[2], Config)  # get PeptideMatch paths
+    except IndexError as e:
+        pass
 
     Options = Parser()
     print("INFO: Begin.")
@@ -420,7 +422,7 @@ def main():
 	print("INFO: Preprocessed intermediary files are in avready, avannotated and fastaFiles. If you wish to perform epitope prediction, run the pipeline again without the --preponly flag, intermediary files will be automatically detected.")
     else:
         if Options.postprocess:
-            FinalOut(t, Options)
+            FinalOut(t, pepmathPaths, Options)
             print("INFO: Complete")
         else:
             print("INFO: Complete")
