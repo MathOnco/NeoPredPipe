@@ -35,6 +35,11 @@ class MyTestCase(unittest.TestCase):
         summary = sumlines[1].rstrip('\n').split('\t')
         self.assertEqual( (['3','3','2','2','2'], ['1','0','0','0','1','1']), (summary[4:9], summary[22:]))
 
+    def test_peptide_checking(self):
+        with open('test/Test_platypus.neoantigens.txt', 'r') as testof:
+            oflines = testof.readlines()
+        self.assertEqual( ('0', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1]))
+
     def test_main_single_region(self):
         os.system("rm ./test/Test_single.*")
         cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',

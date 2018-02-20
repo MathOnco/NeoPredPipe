@@ -3,6 +3,7 @@
 import sys
 import os
 from collections import OrderedDict
+import subprocess
 import re
 
 def DigestIndSample(toDigest, patName):
@@ -119,3 +120,16 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
             newLines.append('\t'.join([patName, 'line%s' % (epID), chrom, pos, ref, alt, genes, ep]))
 
     return(newLines, genoTypesPresent)
+
+def CheckPeptideNovelty(line, peptidematchJar, referenceIndex):
+    peptide = line.split('\t')[-13]
+    with open('peptidematch.tmp.log', 'w') as logFile:
+        cmd = ['java', '-jar', peptidematchJar, '-a', 'query', '-i', referenceIndex,'-q', peptide, '-o', 'tmp_peptidematch.out']
+        runcmd = subprocess.Popen(cmd, stdout=logFile)
+        runcmd.wait()
+
+    with open('tmp_peptidematch.out', 'r') as pmFile:
+        lines = pmFile.readlines()
+    match = lines[2].strip('\n').split('\t')[1]
+    novel = int(match =='No match')
+    return(novel)

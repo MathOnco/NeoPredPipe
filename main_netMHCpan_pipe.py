@@ -12,7 +12,7 @@ import shutil
 from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     predict_neoantigens, ReformatFasta, MakeTempFastas, ConstructAlleles
-from postprocessing import DigestIndSample, AppendDigestedEps
+from postprocessing import DigestIndSample, AppendDigestedEps, CheckPeptideNovelty
 
 def Parser():
     # get user variables
@@ -208,6 +208,10 @@ def FinalOut(sampleClasses, Options):
 
     outTable = Options.OutputDir + Options.outName + ".neoantigens.summarytable.txt"
 
+    checkpeptides = True
+    pmJar = "/data/home/hfx365/Software/PeptideMatchCMD_1.0.jar"
+    refInd = "/data/home/hfx365/Reference/Ensembl/index/"
+
     summaryTable = []
     with open(outFile, 'w') as pentultimateFile:
         if Options.includeall==True:
@@ -224,7 +228,11 @@ def FinalOut(sampleClasses, Options):
                 if sampleClasses[i].appendedEpitopes is not None:
                     for line in sampleClasses[i].appendedEpitopes:
                         if '<=' in line:
-                            pentultimateFile.write(line+"\n")
+                            if checkpeptides:
+                                novel = CheckPeptideNovelty(line, pmJar, refInd)
+                                pentultimateFile.write(line+'\t'+str(novel)+'\n')
+                            else:
+                                pentultimateFile.write(line+"\n")
                             summaryTable.append(line)
 
     summaries = {}
