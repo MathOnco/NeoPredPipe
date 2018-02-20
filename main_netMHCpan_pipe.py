@@ -404,7 +404,7 @@ def main():
     try:
         pepmatchPaths = ConfigSectionMap(Config.sections()[2], Config)  # get PeptideMatch paths
     except IndexError as e:
-        pass
+        pepmatchPaths = "none"
 
     Options = Parser()
     print("INFO: Begin.")
@@ -422,7 +422,7 @@ def main():
 	print("INFO: Preprocessed intermediary files are in avready, avannotated and fastaFiles. If you wish to perform epitope prediction, run the pipeline again without the --preponly flag, intermediary files will be automatically detected.")
     else:
         if Options.postprocess:
-            FinalOut(t, pepmathPaths, Options)
+            FinalOut(t, pepmatchPaths, Options)
             print("INFO: Complete")
         else:
             print("INFO: Complete")
