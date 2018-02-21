@@ -12,7 +12,7 @@ import shutil
 from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     predict_neoantigens, ReformatFasta, MakeTempFastas, ConstructAlleles
-from postprocessing import DigestIndSample, AppendDigestedEps, CheckPeptideNovelty
+from postprocessing import DigestIndSample, AppendDigestedEps
 
 def Parser():
     # get user variables
@@ -34,6 +34,8 @@ def Parser():
     postProcess.add_argument("-c", dest="colRegions", default=None, nargs="+",
                         help="Columns of regions within vcf that are not normal within a multiregion vcf file after the format field. Example: 0 is normal in test samples, tumor are the other columns. Program can handle different number of regions per vcf file.")
     postProcess.add_argument("-a", dest="includeall", default=False, action='store_true', help="Flag to not filter neoantigen predictions and keep all regardless of prediction value.")
+    postProcess.add_argument("-m", dest="checkPeptides", default=False, action='store_true',
+                             help="Specifies whether to perform check if predicted epitopes match any normal peptide. If set to True, output is added as a column to neoantigens file. Requires PeptideMatch specified in usr_paths.ini. Default=False")
     postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off a neoantigen burden summary table. Default=True.")
 
     Options = parser.parse_args()  # main user args
@@ -209,8 +211,6 @@ def FinalOut(sampleClasses, pepmatchPaths, Options):
 
     outTable = Options.OutputDir + Options.outName + ".neoantigens.summarytable.txt"
 
-    checkpeptides = False
-
     summaryTable = []
     with open(outFile, 'w') as pentultimateFile:
         if Options.includeall==True:
@@ -227,11 +227,7 @@ def FinalOut(sampleClasses, pepmatchPaths, Options):
                 if sampleClasses[i].appendedEpitopes is not None:
                     for line in sampleClasses[i].appendedEpitopes:
                         if '<=' in line:
-                            if checkpeptides:
-                                novel = CheckPeptideNovelty(line, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'])
-                                pentultimateFile.write(line+'\t'+str(novel)+'\n')
-                            else:
-                                pentultimateFile.write(line+"\n")
+                            pentultimateFile.write(line+"\n")
                             summaryTable.append(line)
 
     summaries = {}
@@ -409,7 +405,7 @@ def main():
     try:
         pepmatchPaths = ConfigSectionMap(Config.sections()[2], Config)  # get PeptideMatch paths
     except IndexError as e:
-        pepmatchPaths = "none"
+        pepmatchPaths = None
 
     Options = Parser()
     print("INFO: Begin.")
