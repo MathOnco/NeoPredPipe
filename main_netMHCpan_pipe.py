@@ -373,6 +373,10 @@ def CleanUp(Options):
             os.remove('logforannovarNeoPredPipe.txt')
         except OSError:
             pass
+        try:
+            os.remove('logForPeptideMatch.tmp')
+        except OSError:
+            pass
     if (Options.deleteInt or Options.makeitclean) and not Options.preponly:
         try:
             shutil.rmtree("avready/")

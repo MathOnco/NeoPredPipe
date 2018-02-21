@@ -17,7 +17,7 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
     # output_file = "%s%s.digested.txt" % (FilePath, toDigest[0].split('/')[len(toDigest[0].split('/')) - 1].split('.epitopes.')[0])
 
     lines = []
-    pmInputFile = patName+'.peptidematch.input'
+    pmInputFile = 'tmp/'+patName+'.epitopes.peptidematch.input'
     pmInput = open(pmInputFile,'w')
     for epFile in toDigest:
         print("INFO: Digesting neoantigens for %s" % (patName))
@@ -34,7 +34,7 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
                     pass
     pmInput.close()
     if checkPeptides:
-        pmOutFile = 'tmp/'+patName+'epitopes.peptidematch.out'
+        pmOutFile = 'tmp/'+patName+'.epitopes.peptidematch.out'
         RunPepmatch(pmInputFile, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'], pmOutFile)
         lines = ProcessPepmatch(pmOutFile, lines)
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))
@@ -145,7 +145,7 @@ def CheckPeptideNovelty(line, peptidematchJar, referenceIndex):
     return(novel)
 
 def RunPepmatch(pmInput, pepmatchJar, refIndex, pmfileName):
-    with open('logForPeptideMatch.tmp', 'w') as logFile:
+    with open('logForPeptideMatch.tmp', 'a') as logFile:
         cmd = ['java', '-jar', pepmatchJar, '-a', 'query', '-i', refIndex,'-Q', pmInput, '-o', pmfileName]
         runcmd = subprocess.Popen(cmd, stdout=logFile)
         runcmd.wait()
