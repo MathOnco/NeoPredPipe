@@ -143,7 +143,7 @@ class Sample():
 
     def digestIndSample(self, pmPaths, Options):
         if self.epcalls != []:
-            checkPeptides=False
+            checkPeptides=True
             self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID, checkPeptides, pmPaths)
             self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
 
@@ -209,7 +209,7 @@ def FinalOut(sampleClasses, pepmatchPaths, Options):
 
     outTable = Options.OutputDir + Options.outName + ".neoantigens.summarytable.txt"
 
-    checkpeptides = True
+    checkpeptides = False
 
     summaryTable = []
     with open(outFile, 'w') as pentultimateFile:
