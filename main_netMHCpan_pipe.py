@@ -145,8 +145,7 @@ class Sample():
 
     def digestIndSample(self, pmPaths, Options):
         if self.epcalls != []:
-            checkPeptides=True
-            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID, checkPeptides, pmPaths)
+            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID, Options.checkPeptides, pmPaths)
             self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
 
 def PrepClasses(FilePath, Options):
@@ -408,6 +407,11 @@ def main():
         pepmatchPaths = None
 
     Options = Parser()
+    #Check if PeptideMatch paths are provided, ignore -m if not
+    if Options.checkPeptides and pepmatchPaths is None:
+        print("WARNING: You chose to perform peptide match checking for epitopes, but did not provide paths for PeptideMatch. The pipeline will ignore the -m flag")
+        Options.checkPeptides = False
+
     print("INFO: Begin.")
 
     allFiles, hlas = PrepClasses(localpath, Options)
@@ -420,7 +424,7 @@ def main():
 
     if Options.preponly:
         print("INFO: Complete.")
-	print("INFO: Preprocessed intermediary files are in avready, avannotated and fastaFiles. If you wish to perform epitope prediction, run the pipeline again without the --preponly flag, intermediary files will be automatically detected.")
+        print("INFO: Preprocessed intermediary files are in avready, avannotated and fastaFiles. If you wish to perform epitope prediction, run the pipeline again without the --preponly flag, intermediary files will be automatically detected.")
     else:
         if Options.postprocess:
             FinalOut(t, pepmatchPaths, Options)

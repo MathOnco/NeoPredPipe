@@ -36,7 +36,7 @@ class MyTestCase(unittest.TestCase):
     def test_main_platypus(self):
         os.system("rm ./test/Test_platypus.*")
         cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
-               '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8', '-d' ]
+               '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8', '-d', '-m' ]
         runcmd = subprocess.Popen(cmd)
         runcmd.wait()
         with open('test/Test_platypus.neoantigens.txt', 'r') as testof:
