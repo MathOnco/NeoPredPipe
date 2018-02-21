@@ -6,7 +6,7 @@ from collections import OrderedDict
 import subprocess
 import re
 
-def DigestIndSample(toDigest, patName):
+def DigestIndSample(toDigest, patName, checkPeptides):
     '''
     Filters the resulting file and strips all information within it down to individual calls.
     :param toDigest: A list of files to be digested for an individual patient.
@@ -17,6 +17,7 @@ def DigestIndSample(toDigest, patName):
     # output_file = "%s%s.digested.txt" % (FilePath, toDigest[0].split('/')[len(toDigest[0].split('/')) - 1].split('.epitopes.')[0])
 
     lines = []
+    pmInput = open(patName+'.peptidematch.tmp.input','w')
     for epFile in toDigest:
         print("INFO: Digesting neoantigens for %s" % (patName))
         with open(epFile, 'r') as digest_in:
@@ -24,9 +25,13 @@ def DigestIndSample(toDigest, patName):
                 line = line.rstrip('\n')
                 try:
                     if line.strip()[0].isdigit():
-                        lines.append('\t'.join(line.split()))
+                        linespl = line.split()
+                        lines.append('\t'.join(linespl))
+                        if checkPeptides:
+                            pmInput.write('>' + linespl[10] + ';' + linespl[2] + '\n' + linespl[2] + '\n')
                 except IndexError as e:
                     pass
+    pmInput.close()
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))
     return(lines)
 
@@ -133,3 +138,27 @@ def CheckPeptideNovelty(line, peptidematchJar, referenceIndex):
     match = lines[2].strip('\n').split('\t')[1]
     novel = int(match =='No match')
     return(novel)
+
+def RunPepmatch(lines, pepmatchJar, refIndex, pmfileName):
+    with open('peptidematch.tmp.input', 'w') as pmInput:
+        for line in lines:
+            linespl = line.split('\t')
+            pmInput.write('>'+linespl[10]+';'+linespl[2]+'\n'+linespl[2]+'\n')
+
+    with open('peptidematch.tmp.log', 'w') as logFile:
+        cmd = ['java', '-jar', pepmatchJar, '-a', 'query', '-i', refIndex,'-Q', 'peptidematch.tmp.input', '-o', pmfileName]
+        runcmd = subprocess.Popen(cmd, stdout=logFile)
+        runcmd.wait()
+
+def ProcessPepmatch(pmfileName, epLines):
+    with open(pmfileName, 'r') as pmFile:
+        pmFile.readline()
+        pmFile.readline() #read first two header lines
+        pmDict = {line.split('\t')[0] : line.split('\t')[1].rstrip('\n') for line in pmFile.readlines() }
+    appendedLines = []
+    for line in epLines:
+        epkey = line.split('\t')[10]+';'+line.split('\t')[2]
+        novel = int(pmDict[epkey]=='No match')
+        appendedLines.append(line+'\t'+str(novel))
+
+    return(appendedLines)

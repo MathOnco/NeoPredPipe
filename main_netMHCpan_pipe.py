@@ -143,7 +143,8 @@ class Sample():
 
     def digestIndSample(self, Options):
         if self.epcalls != []:
-            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID)
+            checkPeptides=True
+            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID, checkPeptides)
             self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
 
 def PrepClasses(FilePath, Options):
