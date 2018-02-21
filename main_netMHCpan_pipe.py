@@ -63,7 +63,7 @@ class Sample():
     Use this to run and execute the pipeline on an individual patient vcf file.
     '''
 
-    def __init__(self, FilePath, patID, vcfFile, hla, annovar, netmhcpan, Options):
+    def __init__(self, FilePath, patID, vcfFile, hla, annovar, netmhcpan, pepmatchPaths, Options):
         self.patID = patID
         self.vcfFile = vcfFile
         self.hla = hla
@@ -84,7 +84,7 @@ class Sample():
         else:
             self.callNeoantigens(FilePath, netmhcpan, Options)
             if Options.postprocess:
-                self.digestIndSample(Options)
+                self.digestIndSample(pepmatchPaths, Options)
 
     def ProcessAnnovar(self, FilePath, annovar):
         # Prepare ANNOVAR input files
@@ -141,10 +141,10 @@ class Sample():
         if i!=len(Options.epitopes):
             self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan)
 
-    def digestIndSample(self, Options):
+    def digestIndSample(self, pmPaths, Options):
         if self.epcalls != []:
-            checkPeptides=True
-            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID, checkPeptides)
+            checkPeptides=False
+            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID, checkPeptides, pmPaths)
             self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
 
 def PrepClasses(FilePath, Options):
@@ -416,7 +416,7 @@ def main():
     t = []
     for patFile in allFiles:
         patname = patFile.replace('.vcf', '').split("/")[len(patFile.replace('.vcf', '').split("/")) - 1]
-        t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, Options))
+        t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, pepmatchPaths, Options))
 
     if Options.preponly:
         print("INFO: Complete.")

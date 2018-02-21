@@ -6,7 +6,7 @@ from collections import OrderedDict
 import subprocess
 import re
 
-def DigestIndSample(toDigest, patName, checkPeptides):
+def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
     '''
     Filters the resulting file and strips all information within it down to individual calls.
     :param toDigest: A list of files to be digested for an individual patient.
@@ -17,7 +17,8 @@ def DigestIndSample(toDigest, patName, checkPeptides):
     # output_file = "%s%s.digested.txt" % (FilePath, toDigest[0].split('/')[len(toDigest[0].split('/')) - 1].split('.epitopes.')[0])
 
     lines = []
-    pmInput = open(patName+'.peptidematch.tmp.input','w')
+    pmInputFile = patName+'.peptidematch.input'
+    pmInput = open(pmInputFile,'w')
     for epFile in toDigest:
         print("INFO: Digesting neoantigens for %s" % (patName))
         with open(epFile, 'r') as digest_in:
@@ -32,6 +33,10 @@ def DigestIndSample(toDigest, patName, checkPeptides):
                 except IndexError as e:
                     pass
     pmInput.close()
+    if checkPeptides:
+        pmOutFile = 'tmp/'+patName+'epitopes.peptidematch.out'
+        RunPepmatch(pmInputFile, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'], pmOutFile)
+        lines = ProcessPepmatch(pmOutFile, lines)
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))
     return(lines)
 
@@ -139,14 +144,9 @@ def CheckPeptideNovelty(line, peptidematchJar, referenceIndex):
     novel = int(match =='No match')
     return(novel)
 
-def RunPepmatch(lines, pepmatchJar, refIndex, pmfileName):
-    with open('peptidematch.tmp.input', 'w') as pmInput:
-        for line in lines:
-            linespl = line.split('\t')
-            pmInput.write('>'+linespl[10]+';'+linespl[2]+'\n'+linespl[2]+'\n')
-
-    with open('peptidematch.tmp.log', 'w') as logFile:
-        cmd = ['java', '-jar', pepmatchJar, '-a', 'query', '-i', refIndex,'-Q', 'peptidematch.tmp.input', '-o', pmfileName]
+def RunPepmatch(pmInput, pepmatchJar, refIndex, pmfileName):
+    with open('logForPeptideMatch.tmp', 'w') as logFile:
+        cmd = ['java', '-jar', pepmatchJar, '-a', 'query', '-i', refIndex,'-Q', pmInput, '-o', pmfileName]
         runcmd = subprocess.Popen(cmd, stdout=logFile)
         runcmd.wait()
 
