@@ -16,6 +16,10 @@ This tool allows a user to process neoantigens predicted from vcf files using AN
 4. netMHCpan
    - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
    - Follow their steps for installation on your platform.
+5. PeptideMatch (Only necessary if one wishes to check predicted epitopes for novelty against a reference proteome.)
+   - Requires Java.
+   - The runnable jar is available [here](https://research.bioinformatics.udel.edu/peptidematch/commandlinetool.jsp).
+   - Download a reference protein sequence in fasta format (e.g. from [Ensembl](ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/pep/) or [UniProt](ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/)) and index it according to the Tutorial.
 
 ## Installing and preparing environment
 1. Clone the repository:
@@ -25,7 +29,8 @@ git clone https://github.com/rschenck/NeoPredPipe.git
 2. Configure the 'usr_path.ini' file for your environment.
    - All paths within the annovar header should be where you installed annovar.
    - Only one path is needed to the netMHCpan executible under netMHCpan
-##### Note: You need to provide the absolute path.
+   - If you wish to use PeptideMatch, provide paths for both jar and reference index.
+   #### Note: You need to provide the absolute path.
 3. You can see the options associated by running the following:
 ```bash
 python ./main_netMHCpan_pipe.py --help
@@ -134,13 +139,13 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
    - **BindLevel**: (SB: strong binder, WB: weak binder). The peptide will be identified as a strong binder if the % Rank is below the specified threshold for the strong binders, by default 0.5%. The peptide will be identified as a weak binder if the % Rank is above the threshold of the strong binders but below the specified threshold for the weak binders, by default 2%.
    - **Novelty**: Binary value for indicating if the epitope is novel (1) or exists in the reference proteome (0). _Only present if -m flag is set to perform peptide matching in postprocessing_.
 
-| Sample |  R1 |  R2 |  R3 |  Line |  chr |  allelepos |  ref |  alt |  GeneName:RefSeqID |  pos |  hla |  peptide |  core |  Of |  Gp |  Gl |  Ip |  Il |  Icore |  Identity |  Score |  Aff |  Rank |  Candidate | BindLevel | Novelty |
+| Sample |  R1 |  R2 |  R3 |  Line |  chr |  allelepos |  ref |  alt |  GeneName:RefSeqID |  pos |  hla |  peptide |  core |  Of |  Gp |  Gl |  Ip |  Il |  Icore |  Identity |  Score |  Rank |  Candidate | BindLevel | Novelty |
 | --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- | --- |
-| test1 | 0 | 1 | 0 | line16 | chr1 | 153914523 | G | C | DENND4B:NM_014856 | 3 | HLA-B*40:01 | SERQAGAL | SERQAG-AL | 0 | 0 | 0 | 6 | 1 | SERQAGAL | line16_NM_01485 | 0.33670 | 1308.7 | 1.30 | <= | WB |  1 |
-| test1 | 1 | 1 | 0 | line8 | chr1 | 53608000 | C | T | SLC1A7:NM_001287597,SLC1A7:NM_001287595,SLC1A7:NM_006671,SLC1A7:NM_001287596 | 2 | HLA-C*06:02 | LGFFLRTRHL | LFFLRTRHL | 0 | 1 | 1 | 0 | 0 | LGFFLRTRHL | line8_NM_001287 | 0.24655 | 3470.8 | 1.20 | <= | WB | 1 |
-| test2 | 1 | 0 | 0 | line34 | chr1 | 248402593 | C | A | OR2M4:NM_017504 | 6 | HLA-C*01:02 | VMAYERYVAI | VAYERYVAI | 0 | 1 | 1 | 0 | 0 | VMAYERYVAI | line34_NM_01750 | 0.14917 | 9954.7 | 1.50 | <= | WB | 1 |
-| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | 2 | HLA-C*01:02 | FTHGPSSTPL | FTHPSSTPL | 0 | 3 | 1 | 0 | 0 | FTHGPSSTPL | line51_NM_00108 | 0.22570 | 4349.1 | 0.40 | <= | SB | 1 |
-| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | 7 | HLA-C*01:02 | SSTPLHPCPF | STPLHPCPF | 0 | 1 | 1 | 0 | 0 | SSTPLHPCPF | line51_NM_00108 | 0.13137 | 12068.7 | 2.00 | <= | WB | 1 |
+| test1 | 0 | 1 | 0 | line16 | chr1 | 153914523 | G | C | DENND4B:NM_014856 | 3 | HLA-B*40:01 | SERQAGAL | SERQAG-AL | 0 | 0 | 0 | 6 | 1 | SERQAGAL | line16_NM_01485 | 0.33670  | 1.30 | <= | WB |  1 |
+| test1 | 1 | 1 | 0 | line8 | chr1 | 53608000 | C | T | SLC1A7:NM_001287597,SLC1A7:NM_001287595,SLC1A7:NM_006671,SLC1A7:NM_001287596 | 2 | HLA-C*06:02 | LGFFLRTRHL | LFFLRTRHL | 0 | 1 | 1 | 0 | 0 | LGFFLRTRHL | line8_NM_001287 | 0.24655 | 1.20 | <= | WB | 1 |
+| test2 | 1 | 0 | 0 | line34 | chr1 | 248402593 | C | A | OR2M4:NM_017504 | 6 | HLA-C*01:02 | VMAYERYVAI | VAYERYVAI | 0 | 1 | 1 | 0 | 0 | VMAYERYVAI | line34_NM_01750 | 0.14917 | 1.50 | <= | WB | 1 |
+| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | 2 | HLA-C*01:02 | FTHGPSSTPL | FTHPSSTPL | 0 | 3 | 1 | 0 | 0 | FTHGPSSTPL | line51_NM_00108 | 0.22570 | 0.40 | <= | SB | 1 |
+| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | 7 | HLA-C*01:02 | SSTPLHPCPF | STPLHPCPF | 0 | 1 | 1 | 0 | 0 | SSTPLHPCPF | line51_NM_00108 | 0.13137 | 2.00 | <= | WB | 1 |
 
 2. If there are not multiple regions from a single patient the resulting summary table will appear as follows (the following are the same for both multiregion below and single region):
    - **Sample**: Sample identifier
