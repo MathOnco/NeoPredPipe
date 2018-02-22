@@ -85,7 +85,8 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
 
     # Test one line to determine FORMAT of genotype fields in vcf
     testLine = exonicInfo[min(exonicInfo.keys())]
-    genotypeFormat, genotypeIndex = DefineGenotypeFormat(testLine)
+    if Options.colRegions is not None:
+        genotypeFormat, genotypeIndex = DefineGenotypeFormat(testLine)
 
     newLines = []
     for ep in digestedEps:
