@@ -111,14 +111,19 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
             genoTypes = OrderedDict()
             for i in Options.colRegions:
                 if genotypeFormat != 'unknown' and len(genoTypeLines)>int(i):
-                    match = genoTypeLines[int(i)].split(':')[genotypeIndex]
-                    if genotypeFormat == 'allele': #match format: A or AG
-                        present = int(len(match) > 1) #present if more than one allele at variant position
-                    if genotypeFormat == 'numvarreads': #match format: 0 or 12
-                        present = int(int(match) > 0) #present if number of variant reads is > 0
-                    if genotypeFormat == 'alldepths': #match format: 10,0 or 10,5
-                        present = int(int(match.split(',')[1]) > 0) #present if depth for variant allele > 0
-                    genoTypes.update({'Region_%s'%(i):present})
+                    #first handle multiregion vcf where absence is indicated by .
+                    if genoTypeLines[int(i)]=='.':
+                        genoTypes.update({'Region_%s' % (i): 0})
+                    else:
+                    #otherwise take the corresponding piece of the genotype line
+                        match = genoTypeLines[int(i)].split(':')[genotypeIndex]
+                        if genotypeFormat == 'allele': #match format: A or AG
+                            present = int(len(match) > 1) #present if more than one allele at variant position
+                        if genotypeFormat == 'numvarreads': #match format: 0 or 12
+                            present = int(int(match) > 0) #present if number of variant reads is > 0
+                        if genotypeFormat == 'alldepths': #match format: 10,0 or 10,5
+                            present = int(int(match.split(',')[1]) > 0) #present if depth for variant allele > 0
+                        genoTypes.update({'Region_%s'%(i):present})
                     genoTypesPresent.append("+")
                 else:
                     genoTypes.update({'Region_%s'%(i):-1})
