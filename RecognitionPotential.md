@@ -9,7 +9,7 @@ This can only be done after following the procedure outlined [here](README.md), 
 Besides the dependencies outlined [here](README.md), the following are required for neoantigen recognition potential predictions.
 
 1. Python 2.7 modules:
-   - pass
+   - Nothing new yet...
    
 ## Running the model
 ```bash

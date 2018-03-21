@@ -112,6 +112,7 @@ tmp/
 *.neoantigens.summarytable.txt
 *.neoantigens.txt
 logforannovarNeoPredPipe.txt
+NeoRecoTMP/
 
 .idea
 .DS_Store
