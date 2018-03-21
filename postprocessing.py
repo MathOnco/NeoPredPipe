@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+'''
+@author: Ryan Schenck, ryan.schenck@univ.ox.ac.uk
+Contributions from: Eszter Lakatos
+'''
+
 import sys
 import os
 from collections import OrderedDict
