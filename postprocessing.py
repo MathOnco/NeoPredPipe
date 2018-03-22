@@ -14,6 +14,7 @@ import re
 def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
     '''
     Filters the resulting file and strips all information within it down to individual calls.
+
     :param toDigest: A list of files to be digested for an individual patient.
     :param patName: Patient/sample identifier
     :return: All Neoantigen Prediction lines free of other information in prediction files.
@@ -49,6 +50,7 @@ def DefineGenotypeFormat(testLine):
     '''
     Determines which element of genotype fields contains relevant information and in what format
     Current options are NV (number of reads with variant allele) and A (alleles found in sample)
+
     :param testLine: A single line from exonic_variant_function file
     :return: Genotype format (allele or numvarreads or alldepths) and the corresponding information's index in genotype info
     '''
@@ -72,6 +74,7 @@ def DefineGenotypeFormat(testLine):
 def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
     '''
     Appends information to digested Eps for analysis.
+
     :param digestedEps: Lines from DigestIndSample from netMHCpan
     :param patName: Patient/sample identifier
     :param exonicVars: exonic_variant_function files from ANNOVAR

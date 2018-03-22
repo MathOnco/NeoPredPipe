@@ -114,6 +114,7 @@ tmp/
 *.neoantigens.unfiltered.txt
 logforannovarNeoPredPipe.txt
 NeoRecoTMP/
+neorecopo.p
 
 .idea
 .DS_Store

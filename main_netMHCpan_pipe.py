@@ -421,6 +421,8 @@ def main():
 
     allFiles, hlas = PrepClasses(localpath, Options)
 
+    assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
+
     # Prepare samples
     t = []
     for patFile in allFiles:

@@ -230,3 +230,43 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
     print("INFO: Predictions complete for %s on epitopes of length %s" % (patName, n))
 
     return(epcalls)
+
+def predict_neoantigensWT(FilePath, patName, inFile, hlasnormed, epitopeLens, netMHCpan):
+    '''
+    Strips out all WILDTYPE and IMMEDIATE-STOPGAIN from fasta file.
+
+    :param FilePath: Primary path of working directory
+    :param patName: ID associated with a patient
+    :param inFile: Fasta file with reformatted coding changes.
+    :param hlas: HLA types for the patient.
+    :param epitopeLens: List of epitope lengths to predict
+    :param netMHCpan: Dictionary housing netMHCpan specific script locations and data. See README.md.
+    :return: netMHCpan predictions for each file.
+    '''
+
+    print("INFO: Predicting neoantigens for %s" % (patName))
+
+    # Verify that the fasta file has information in it to avoid any errors thrown from netMHCpan
+    checks = dict.fromkeys(inFile.keys())
+    for n in inFile:
+        cmd = "wc -l %s" % (inFile[n])
+        pipe = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout
+        k = int(pipe.read().decode("utf-8").lstrip(" ").split(" ")[0])
+        checks[n]=k
+
+    epcalls = []
+    for n in epitopeLens:
+        if checks[n] > 0:
+            output_file = '%s%s.wildtype.epitopes.%s.txt' % (FilePath, patName, n)
+            epcalls.append(output_file)
+            with open(output_file, 'a') as epitope_pred:
+                print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
+                cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
+                netMHC_run.wait()
+        else:
+            print("INFO: Skipping Sample! No peptides to predict for %s" % (patName))
+
+    print("INFO: Predictions complete for %s on epitopes of length %s" % (patName, n))
+
+    return(epcalls)
