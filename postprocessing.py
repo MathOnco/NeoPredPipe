@@ -94,6 +94,7 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         genotypeFormat, genotypeIndex = DefineGenotypeFormat(testLine)
 
     newLines = []
+    genoTypesPresent = []
     for ep in digestedEps:
         epID = int(ep.split('\t')[10].split('_')[0].replace('line',''))
         exonicLine = exonicInfo[epID]
@@ -109,7 +110,6 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         # Step 2: Output a binary code for present absence in each region for neoantigen heterogeneity
         vcfLine = avReadyLine.split('\t')[8:]
         genoTypeLines = vcfLine[9:] # Extract region specific information
-
 
         if Options.colRegions is not None:
             genoTypesPresent = []
