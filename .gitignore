@@ -111,6 +111,7 @@ tmp/
 
 *.neoantigens.summarytable.txt
 *.neoantigens.txt
+*.neoantigens.unfiltered.txt
 logforannovarNeoPredPipe.txt
 NeoRecoTMP/
 
