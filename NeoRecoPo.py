@@ -25,7 +25,7 @@ def Parser():
     parser.add_argument("-a", '--midpoint', dest='a', default=1., type=float, help="Midpoint parameter of the logistic function, alignment score threshold.")
     parser.add_argument("-k", '--slope', dest='k', default=1., type=float, help="Slope parameter of the logistic function")
     requiredNamed = parser.add_argument_group('Required arguments')
-    requiredNamed.add_argument("-i", '--neopred_in', dest="neoPredIn", default=None, type=str,help="Input neoantigen predictions. Example: -I ./AllSamples.neoantigens.txt")
+    requiredNamed.add_argument("-i", '--neopred_in', dest="neoPredIn", default=None, type=str,help="Input neoantigen predictions, must be unfiltered or filtered on binding affinity. Example: -I ./AllSamples.neoantigens.txt")
     requiredNamed.add_argument("-f", '--fastas', dest="fastaDir", default="fastaFiles/", type=str,help="Fasta files directory associated with the input.")
     Options = parser.parse_args()  # main user args
     if not Options.neoPredIn:
@@ -71,6 +71,9 @@ class StandardPreds:
         '''
         with open(self.filename, 'r') as inFile:
             lines = [line.replace('\n','') for line in inFile.readlines()]
+
+        lines = self.EnsureFiltered(lines)
+
         self.preds = lines
         self.samples = list(set([line.split('\t')[0] for line in lines]))
         self.hlas = {sam:[] for sam in self.samples}
@@ -81,6 +84,19 @@ class StandardPreds:
             hla = line.split('\t')[11]
             if hla not in self.hlas[sam]:
                 self.hlas[sam].append(hla)
+
+    def EnsureFiltered(self, data):
+        '''
+        Ensures that neoantigens are <= 500nM binding affinity based on predictions.
+
+        :param data: lines from the input file.
+        :return: filtered lines
+        '''
+        dataOut = []
+        for line in data:
+            line = line.split('\t')
+
+
 
 def GetWildTypePredictions():
     pass
@@ -99,6 +115,8 @@ def main():
 
     preds = StandardPreds(Options) # Create instance of StandardPreds Class
     preds.load() # Load the neoantigen predictions data
+
+    print(preds.fastas)
 
     if Options.Dirty:
         os.system('rm -r %s'%(tmpOut))

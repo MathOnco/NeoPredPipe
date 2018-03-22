@@ -221,7 +221,7 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
             epcalls.append(output_file)
             with open(output_file, 'a') as epitope_pred:
                 print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
-                cmd = [netMHCpan['netmhcpan'], '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                cmd = [netMHCpan['netmhcpan'], '-l', '-BA', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
                 netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
                 netMHC_run.wait()
         else:
