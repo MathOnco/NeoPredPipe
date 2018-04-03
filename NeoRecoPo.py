@@ -73,8 +73,11 @@ class StandardPreds:
         self.samples = []
         self.hlas = None
         self.fastas = None
-        self.filteredPreds = None
-        self.wildtypePreds = None
+        self.filteredPreds = None # Variable containing the predicitons of the mutated sequence
+        self.wildtypePreds = None # Variable containing the predictions of the wildtype sequences
+        self.tableOutReady = None # Variable containing the WT and MUT sequence table for recognition potential
+        self.chop_scores = None # Can be defined by the user by feeding chopscores into the DefinedChopScore function.
+        self.WTandMTtable = None # Table containing scores for WT and MT (part of the input of the recognition potential)
 
     def load(self):
         '''
@@ -124,8 +127,8 @@ class StandardPreds:
         were the MUT is a predicted neoantigen.
         Holds the following: recordsToGet which is a dictionary with sample : {index of neoantigen : identifier}}
 
-        :
-        :return: TBD
+        :netMHCpan: Variable containing the paths loaded from config for netMHCpan
+        :return: None, it sets the StandardPreds wildtypePreds variable
         '''
         tmpDir = self.OutDir + 'NeoRecoTMP/'
         if os.path.isdir(tmpDir):
@@ -204,6 +207,8 @@ class StandardPreds:
 
         self.wildtypePreds = wildtype_preds
 
+        return(None)
+
     def __extractSeq(self, sample, identifier, epitopeLength):
         '''
         Extracts the sequence from the *.tmp.epi.fasta file and reverts the sequence back.
@@ -236,6 +241,77 @@ class StandardPreds:
 
         return(WT[0], WTepiSeq)
 
+    def __buildwildtypedict(self):
+        '''
+        Constructs a dictionary for wildtype predictions to be extracted from to check for a match
+
+        :return: a dictionary of wildtype predictions to extract from
+        '''
+        outDict = {}
+        for pred in self.wildtypePreds:
+            item = pred.split('\t')
+            wtKey = ','.join([item[0],item[1],item[2],item[11],str(len(item[3]))])
+            outDict.update({wtKey:pred})
+        return(outDict)
+
+    def BuildFinalTable(self):
+        '''
+        Constructs the final table needed for the recognition potential calculations.
+
+        :return: a list of data needed for the neoantigen recognition potential.
+        '''
+        # Header for the table is as follows:
+        # ID,MUTATION_ID,Sample,WT.PEPTIDE,MT.PEPTIDE,MT.ALLELE (which is the hla for the peptide),WT.SCORE,MT.SCORE,HLA,CHOP_SCORE
+        if self.chop_scores is None:
+            self.SetChopScore(None)
+        else:
+            pass
+
+        wildtypeDict = self.__buildwildtypedict()
+
+        tableLines = []
+        count = 1
+        for MutPred in self.filteredPreds:
+            MutPred = MutPred.split('\t')
+
+            # Get Mut info
+            sample, frame, identifier, mutscore, mutpeptide, hla = MutPred[0], MutPred[10], MutPred[20], MutPred[22], MutPred[12], MutPred[11]
+
+            mutKey = ','.join([sample,frame,hla,identifier,str(len(mutpeptide))])
+
+            # Get wildtype info
+            wtPred = wildtypeDict[mutKey]
+
+            # Check if HLAs match and that the peptide only has one difference in AA
+            assert wtPred.split('\t')[2]==hla,"ERROR: HLA types do not match."
+            alignDiff = [1 for i in range(0,len(mutpeptide)) if mutpeptide[i] != wtPred.split('\t')[3][i]]
+            assert len(alignDiff)==1,"ERROR: Mismatched peptides between Wild Type and Mutant."
+
+            wtscore, wtpeptide = wtPred.split('\t')[13], wtPred.split('\t')[3]
+
+            # Get the HLAs for this sample
+            lineHLAs = '"' + ','.join([sampleHLA.replace("HLA-","").replace("*","").replace(":","") for sampleHLA in self.hlas[sample]]) + '"'
+
+            # Construct table line
+            lineOut = '\t'.join([str(count), identifier, sample, wtpeptide, mutpeptide, hla.replace("HLA-","").replace("*","").replace(":",""), wtscore, mutscore, lineHLAs, str(self.chop_scores[count-1])])
+            count += 1
+        tableLines.append(lineOut)
+
+        self.WTandMTtable = tableLines
+
+
+    def SetChopScore(self, chopscores):
+        '''
+        Adds chopscores for the final input if so desired. Data structure must be a list that matches the indices of StandardPreds.filteredPreds
+
+        :param chopscores: List of integer or floats that match the indices of StandardPreds.filteredPreds
+        :return: None, it sets StandardPreds.chop_scores
+        '''
+        if chopscores is None:
+            self.chop_scores = [1 for i in range(0,len(self.filteredPreds))]
+        else:
+            self.chop_scores=chopscores
+
 def main():
     print("INFO: Begin.")
     # Pull information about usr system files
@@ -246,20 +322,27 @@ def main():
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
 
     tmpOut = '%s/%s/NeoRecoTMP/'%(Options.neorecoOut, localpath)
+    pickleFile = '%s/neorecopo.p'%(tmpOut)
     if os.path.isdir(tmpOut)==False:
         os.system('mkdir %s'%(tmpOut))
 
-    if os.path.isfile('neorecopo.p') == False:
+    if os.path.isfile(pickleFile) == False:
         preds = StandardPreds(Options) # Create instance of StandardPreds Class
         preds.load() # Load the neoantigen predictions data
         preds.GetWildTypePredictions(netMHCpanPaths) # Extracts the proper WT 'neoantigen'
-        with open('neorecopo.p', 'wb') as outPickle:
+        preds.BuildFinalTable()
+        with open(pickleFile, 'wb') as outPickle:
             pickle.dump(preds, outPickle)
     else:
-        with open('neorecopo.p','rb') as inPickle:
+        with open(pickleFile,'rb') as inPickle:
             preds = pickle.load(inPickle)
+            if preds.wildtypePreds is None:
+                preds.GetWildTypePredictions(netMHCpanPaths)
+            elif preds.WTandMTtable is None:
+                preds.BuildFinalTable()
+            else:
+                pass
 
-    print(preds.wildtypePreds)
 
     if Options.Dirty:
         os.system('rm -r %s'%(tmpOut))

@@ -113,7 +113,7 @@ tmp/
 *.neoantigens.txt
 *.neoantigens.unfiltered.txt
 logforannovarNeoPredPipe.txt
-NeoRecoTMP/
+NeoRecoTMP/*
 neorecopo.p
 
 .idea
