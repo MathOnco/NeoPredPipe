@@ -8,9 +8,14 @@ This can only be done after following the procedure outlined [here](README.md), 
 
 Besides the dependencies outlined [here](README.md), the following are required for neoantigen recognition potential predictions.
 
-1. Python 2.7 modules:
-   - Nothing new yet...
-   
+1. [NCBI BlastX+](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+   - Fully install NCBI BlastX+ as per NCBI's instructions
+
+## Building Dependencies
+```bash
+
+```
+
 ## Running the model
 ```bash
 python ./NeoRecoPo.py

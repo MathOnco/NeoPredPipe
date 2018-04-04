@@ -25,6 +25,8 @@ def Parser():
     parser.add_argument("-o", '--neoreco_out', dest="neorecoOut", default="", type=str, help="Output Directory.")
     parser.add_argument("-a", '--midpoint', dest='a', default=1., type=float, help="Midpoint parameter of the logistic function, alignment score threshold.")
     parser.add_argument("-k", '--slope', dest='k', default=1., type=float, help="Slope parameter of the logistic function")
+    parser.add_argument("-p", '--perform_blasts', dest='PerformBlast', default=True, action="store_false", help="Flag to turn off alignments using blastp. If this is false then alignment directory must be specified") #TODO add ability to specify previously completed alignments.
+    parser.add_argument("--blastdir", dest="BlastDir", default=None, help="Directory where the blastp alignments are stored. Must be specified if -p is set.")
     parser.add_argument("-clean", dest="clean", default=False, action='store_true', help="Remove temporary directory. MAKE SURE YOU TRULY WANT TO DO THIS.")
     requiredNamed = parser.add_argument_group('Required arguments')
     requiredNamed.add_argument("-i", '--neopred_in', dest="neoPredIn", default=None, type=str,help="Input neoantigen predictions, must be unfiltered or filtered on binding affinity. Example: -I ./AllSamples.neoantigens.txt")
@@ -39,7 +41,10 @@ def Parser():
     if len(Options.fastaDir)!=0:
         if Options.fastaDir[len(Options.fastaDir)-1]!='/':
             Options.fastaDir = Options.fastaDir+'/'
-
+    if Options.PerformBlast==False:
+        if Options.BlastDir[len(Options.BlastDir)-1]!='/':
+            Options.BlastDir = Options.BlastDir+'/'
+        assert Options.BlastDir is not None, "ERROR: A directory must be specified with --blastdir if -p flag is set."
     if Options.clean:
         Clean(Options.neorecoOut)
         sys.exit()
@@ -299,7 +304,6 @@ class StandardPreds:
 
         self.WTandMTtable = tableLines
 
-
     def SetChopScore(self, chopscores):
         '''
         Adds chopscores for the final input if so desired. Data structure must be a list that matches the indices of StandardPreds.filteredPreds
@@ -312,6 +316,18 @@ class StandardPreds:
         else:
             self.chop_scores=chopscores
 
+    def PerformBlastPAlignments(self, blastp, outputDir):
+        '''
+        Performs alignments from IEDB sequences and predicted neoantigens. It constructs xml files that are stored in
+        the temporary directory.
+
+        :param blastp: usr_paths.ini executable for NCBI's blastp
+        :param outputDir: temporary directory where blastp xml result files are stored.
+        :return: TBD
+        '''
+        pass
+
+
 def main():
     print("INFO: Begin.")
     # Pull information about usr system files
@@ -320,6 +336,7 @@ def main():
     Config.read(localpath + "usr_paths.ini")
     Options = Parser()
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
+    blastp = ConfigSectionMap(Config.sections()[3], Config)['blastp'] # Get blastp from usr_paths file.
 
     tmpOut = '%s/%s/NeoRecoTMP/'%(Options.neorecoOut, localpath)
     pickleFile = '%s/neorecopo.p'%(tmpOut)
@@ -342,6 +359,19 @@ def main():
                 preds.BuildFinalTable()
             else:
                 pass
+
+    if Options.PerformBlast:
+        # TODO ensure this is only done once, but delete the temporary files if needed (ie store in NeoRecoTmp)
+        if os.path.isdir(tmpOut):
+            if os.path.isdir('%sblastp_results/' % (tmpOut))==False:
+                os.system('mkdir %sblastp_results/' % (tmpOut))
+        else:
+            sys.exit("ERROR: Unable to create blastp_results directory in NeoRecoTMP/")
+
+        preds.PerformBlastPAlignments(blastp, '%sblastp_results/' % (tmpOut))
+    else:
+        # TODO build this section for blastp already completed
+        pass
 
 
     if Options.Dirty:
