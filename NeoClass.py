@@ -3,6 +3,8 @@
 '''
 @author: Ryan Schenck, ryan.schenck@univ.ox.ac.uk
 Contributions from: Eszter Lakatos
+
+Adapted from Marta Luksza (see RecognitionPotential.md)
 '''
 
 class Neoantigen(object):
@@ -55,10 +57,9 @@ class Neoantigen(object):
         self.mtPeptide = mtPeptide
 
         [res1, res2] = filter(lambda el: el[0] != el[1], zip(self.wtPeptide, self.mtPeptide))[0]
-        self.residueChange = Neoantigen.residueChangeClass(res1, res2)
 
-        self.position = filter(lambda el: el[1],
-                               map(lambda i: [i, self.mtPeptide[i] != self.wtPeptide[i]], range(0, 9)))
+        self.residueChange = Neoantigen.residueChangeClass(res1, res2)
+        self.position = filter(lambda el: el[1], map(lambda i: [i, self.mtPeptide[i] != self.wtPeptide[i]], range(0, len(self.wtPeptide))))
         self.position = self.position[0][0] + 1
         self.allele = allele
         self.HLA = HLA

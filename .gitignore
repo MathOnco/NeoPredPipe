@@ -115,6 +115,7 @@ tmp/
 logforannovarNeoPredPipe.txt
 NeoRecoTMP/*
 neorecopo.p
+PredictedRecognitionPotentials.txt
 
 .idea
 .DS_Store
