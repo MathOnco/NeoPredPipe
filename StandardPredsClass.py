@@ -137,7 +137,7 @@ class StandardPreds:
         epcalls = [] # Returns a list of files
         for predictFile in filesToPredict:
             # print(predictFile)
-            patName = predictFile.split('/')[len(predictFile.split('/'))-1].split('.',1)[0]
+            patName = predictFile.split('/')[len(predictFile.split('/'))-1].split('.wildtype.',1)[0]
             hlasNormed = [hla.replace('*','') for hla in self.hlas[patName]]
             epitopeLengths = [predictFile.split('/')[len(predictFile.split('/'))-1].split('.')[3]]
             inFile = {epitopeLengths[0]:predictFile}
