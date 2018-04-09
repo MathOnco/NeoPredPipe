@@ -41,7 +41,7 @@ class StandardPreds:
 
         self.filteredPreds = lines
         self.samples = list(set([line.split('\t')[0] for line in lines]))
-        self.hlas = {sam:[] for sam in self.samples}
+        self.hlas = {sam.split('.')[0]:[] for sam in self.samples}
         self.fastas = {sam:'%s%s.reformat.fasta'%(self.fastaPath,sam) for sam in self.samples}
 
         for line in lines:
