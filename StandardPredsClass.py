@@ -41,15 +41,14 @@ class StandardPreds:
 
         self.filteredPreds = lines
         self.samples = list(set([line.split('\t')[0] for line in lines]))
-        self.hlas = {sam.split('.')[0]:[] for sam in self.samples}
+        self.hlas = {sam:[] for sam in self.samples}
         self.fastas = {sam:'%s%s.reformat.fasta'%(self.fastaPath,sam) for sam in self.samples}
 
         for line in lines:
-            sam = line.split('\t')[0].split('.')[0]
+            sam = line.split('\t')[0]
             hla = line.split('\t')[11]
             if hla not in self.hlas[sam]:
                 self.hlas[sam].append(hla)
-        print(self.hlas)
 
     def __ensureFiltered(self, data):
         '''
@@ -137,6 +136,7 @@ class StandardPreds:
 
         epcalls = [] # Returns a list of files
         for predictFile in filesToPredict:
+            # print(predictFile)
             patName = predictFile.split('/')[len(predictFile.split('/'))-1].split('.',1)[0]
             hlasNormed = [hla.replace('*','') for hla in self.hlas[patName]]
             epitopeLengths = [predictFile.split('/')[len(predictFile.split('/'))-1].split('.')[3]]
