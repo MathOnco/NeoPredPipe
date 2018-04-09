@@ -1,3 +1,7 @@
+'''
+@author: Eszter Lakatos
+'''
+
 import unittest
 import subprocess
 import os

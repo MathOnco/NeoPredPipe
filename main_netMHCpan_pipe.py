@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+'''
+@author: Ryan Schenck, ryan.schenck@univ.ox.ac.uk
+Contributions from: Eszter Lakatos
+'''
+
 import sys
 import os
 import glob
@@ -415,6 +420,8 @@ def main():
     print("INFO: Begin.")
 
     allFiles, hlas = PrepClasses(localpath, Options)
+
+    assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
 
     # Prepare samples
     t = []
