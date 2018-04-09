@@ -83,6 +83,8 @@ class StandardPreds:
         self.tableOutReady = None # Variable containing the WT and MUT sequence table for recognition potential
         self.chop_scores = None # Can be defined by the user by feeding chopscores into the DefinedChopScore function.
         self.WTandMTtable = None # Table containing scores for WT and MT (part of the input of the recognition potential)
+        self.ReadyForBlastpFastas = None # List containing fastas for each sample ready to be blasted against IEDB epitopes
+        self.blastpResults = None # List containing xml files for the blastp results from each patient epitopes to the IEDB database
 
     def load(self):
         '''
@@ -300,7 +302,7 @@ class StandardPreds:
             # Construct table line
             lineOut = '\t'.join([str(count), identifier, sample, wtpeptide, mutpeptide, hla.replace("HLA-","").replace("*","").replace(":",""), wtscore, mutscore, lineHLAs, str(self.chop_scores[count-1])])
             count += 1
-        tableLines.append(lineOut)
+            tableLines.append(lineOut)
 
         self.WTandMTtable = tableLines
 
@@ -323,9 +325,54 @@ class StandardPreds:
 
         :param blastp: usr_paths.ini executable for NCBI's blastp
         :param outputDir: temporary directory where blastp xml result files are stored.
-        :return: TBD
+        :return: None. It sets self.blastpResults to a list of xml files for each patient.
         '''
-        pass
+
+        blastpOut = []
+        for fasta in self.ReadyForBlastpFastas:
+            assert os.path.isfile(fasta), "ERROR: Unable to locate fasta file %s"%(fasta)
+            out = "%s.blastpResults.xml"%(fasta.replace('.readyForBlastp.fasta',''))
+            iedb = os.path.abspath('ncbi_epitope_db/IEDB_positive_T-cell_assays.fasta')
+
+            if os.path.isfile(out)==False:
+                cmd = ' '.join([blastp, '-evalue 100000000 -gapextend 1 -gapopen 11 -outfmt 5 -out', out, '-query', fasta, '-subject', iedb])
+                os.system(cmd)
+                blastpOut.append(out)
+            else:
+                pass
+
+        self.blastpResults = blastpOut
+
+    def PrepBlastPFastaFiles(self, outputDir):
+        '''
+        Constructs a fasta file for each patients neoantigens MUT and corresponding WT epitopes to feed into blast.
+
+        :param outputDir: Directory that houses the NeoReco information.
+        :return: None. It sets self.ReadyForBlastpFastas equal to the  Fasta file for each of the patients.
+        '''
+        sample_epitopes = dict.fromkeys([item.split('\t')[2] for item in self.WTandMTtable])
+        for sample in sample_epitopes:
+            sample_epitopes[sample]=[]
+
+        for entry in self.WTandMTtable:
+            sample_epitopes[entry.split('\t')[2]].append(entry)
+
+        fastaFiles = []
+        for sample in sample_epitopes:
+            outputFile = '%s%s.readyForBlastp.fasta'%(outputDir,sample)
+            fastaFiles.append(outputFile)
+            if os.path.isfile(outputFile) == False:
+                with open(outputFile, 'w') as usrOut:
+                    for entry in sample_epitopes[sample]:
+                        entry = entry.split('\t')
+                        usrOut.write('|'.join(['>%s'%(sample),entry[1],'WT',entry[0]]) + '\n')
+                        usrOut.write(entry[3] + '\n')
+                        usrOut.write('|'.join(['>%s'%(sample),entry[1],'MT',entry[0]]) + '\n')
+                        usrOut.write(entry[4] + '\n')
+            else:
+                pass
+
+        self.ReadyForBlastpFastas = fastaFiles
 
 
 def main():
@@ -335,10 +382,14 @@ def main():
     Config = configparser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     Options = Parser()
+    if Options.neorecoOut != "":
+        tmpOut = '%sNeoRecoTMP/' % (Options.neorecoOut)
+    else:
+        tmpOut = '%s%sNeoRecoTMP/' % (Options.neorecoOut, localpath)
+
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
     blastp = ConfigSectionMap(Config.sections()[3], Config)['blastp'] # Get blastp from usr_paths file.
 
-    tmpOut = '%s/%s/NeoRecoTMP/'%(Options.neorecoOut, localpath)
     pickleFile = '%s/neorecopo.p'%(tmpOut)
     if os.path.isdir(tmpOut)==False:
         os.system('mkdir %s'%(tmpOut))
@@ -368,6 +419,7 @@ def main():
         else:
             sys.exit("ERROR: Unable to create blastp_results directory in NeoRecoTMP/")
 
+        preds.PrepBlastPFastaFiles('%sblastp_results/' % (tmpOut))
         preds.PerformBlastPAlignments(blastp, '%sblastp_results/' % (tmpOut))
     else:
         # TODO build this section for blastp already completed

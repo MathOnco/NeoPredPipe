@@ -10,11 +10,7 @@ Besides the dependencies outlined [here](README.md), the following are required 
 
 1. [NCBI BlastX+](https://blast.ncbi.nlm.nih.gov/Blast.cgi?CMD=Web&PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
    - Fully install NCBI BlastX+ as per NCBI's instructions
-
-## Building Dependencies
-```bash
-
-```
+2. Full blastp executable added to usr_paths.ini
 
 ## Running the model
 ```bash
