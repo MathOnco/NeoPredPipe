@@ -45,7 +45,7 @@ class StandardPreds:
         self.fastas = {sam:'%s%s.reformat.fasta'%(self.fastaPath,sam) for sam in self.samples}
 
         for line in lines:
-            sam = line.split('\t')[0]
+            sam = line.split('\t')[0].split('.')[0]
             hla = line.split('\t')[11]
             if hla not in self.hlas[sam]:
                 self.hlas[sam].append(hla)
