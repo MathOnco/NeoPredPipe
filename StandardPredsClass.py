@@ -49,6 +49,7 @@ class StandardPreds:
             hla = line.split('\t')[11]
             if hla not in self.hlas[sam]:
                 self.hlas[sam].append(hla)
+        print(self.hlas)
 
     def __ensureFiltered(self, data):
         '''
@@ -138,7 +139,6 @@ class StandardPreds:
         for predictFile in filesToPredict:
             patName = predictFile.split('/')[len(predictFile.split('/'))-1].split('.',1)[0]
             hlasNormed = [hla.replace('*','') for hla in self.hlas[patName]]
-            print(self.hlas)
             epitopeLengths = [predictFile.split('/')[len(predictFile.split('/'))-1].split('.')[3]]
             inFile = {epitopeLengths[0]:predictFile}
             epcalls.append(predict_neoantigensWT(tmpDir, patName, inFile, hlasNormed, epitopeLengths, netMHCpan)[0])
