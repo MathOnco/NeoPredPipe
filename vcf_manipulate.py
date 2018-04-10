@@ -259,14 +259,16 @@ def predict_neoantigensWT(FilePath, patName, inFile, hlasnormed, epitopeLens, ne
         if checks[n] > 0:
             output_file = '%s%s.wildtype.epitopes.%s.txt' % (FilePath, patName, n)
             epcalls.append(output_file)
-            with open(output_file, 'a') as epitope_pred:
-                print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
-                cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
-                netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
-                netMHC_run.wait()
+            if os.path.isfile(output_file)==False:
+                with open(output_file, 'a') as epitope_pred:
+                    print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
+                    cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                    netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
+                    netMHC_run.wait()
+                    print("INFO: Predictions complete for %s on epitopes of length %s" % (patName, n))
+            else:
+                print("INFO: Neoantigen predictions already complete for %s epitopes of length %s" % (patName, n))
         else:
             print("INFO: Skipping Sample! No peptides to predict for %s" % (patName))
-
-    print("INFO: Predictions complete for %s on epitopes of length %s" % (patName, n))
 
     return(epcalls)

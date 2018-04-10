@@ -141,7 +141,12 @@ class StandardPreds:
             hlasNormed = [hla.replace('*','') for hla in self.hlas[patName]]
             epitopeLengths = [predictFile.split('/')[len(predictFile.split('/'))-1].split('.wildtype.')[1].split('.')[1]]
             inFile = {epitopeLengths[0]:predictFile}
-            epcalls.append(predict_neoantigensWT(tmpDir, patName, inFile, hlasNormed, epitopeLengths, netMHCpan)[0])
+            indCalls = predict_neoantigensWT(tmpDir, patName, inFile, hlasNormed, epitopeLengths, netMHCpan)
+            if indCalls != []:
+                indCalls = indCalls[0]
+            else:
+                pass
+            epcalls.append(indCalls)
 
         filesFromPredictions = {sam:[] for sam in self.samples}
         for rawPreds in epcalls:
