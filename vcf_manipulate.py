@@ -6,6 +6,7 @@ Contributions from: Eszter Lakatos
 '''
 
 import sys
+import os
 import subprocess
 from Bio import SeqIO
 
