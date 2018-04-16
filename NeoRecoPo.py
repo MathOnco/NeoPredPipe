@@ -94,6 +94,7 @@ def main():
         with open(pickleFile, 'wb') as outPickle:
             pickle.dump(preds, outPickle)
     else:
+        print("INFO: Temporary class file found (neorecopo.p), loading previously processed data.")
         with open(pickleFile,'rb') as inPickle:
             preds = pickle.load(inPickle)
             if preds.wildtypePreds is None:
@@ -113,7 +114,7 @@ def main():
         preds.PrepBlastPFastaFiles('%sblastp_results/' % (tmpOut))
         preds.PerformBlastPAlignments(blastp, '%sblastp_results/' % (tmpOut))
         preds.PerformCalculations(tmpOut, Options)
-
+        print("INFO: Final table constructed and written.")
 
 
     if Options.Dirty:

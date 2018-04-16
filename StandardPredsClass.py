@@ -81,8 +81,9 @@ class StandardPreds:
         '''
         tmpDir = self.OutDir + 'NeoRecoTMP/'
         if os.path.isdir(tmpDir):
-            os.system('rm -r %s' % (tmpDir))
-            os.system('mkdir %s' % (tmpDir))
+            # os.system('rm -r %s' % (tmpDir))
+            # os.system('mkdir %s' % (tmpDir))
+            pass
         else:
             os.system('mkdir %s' % (tmpDir))
 

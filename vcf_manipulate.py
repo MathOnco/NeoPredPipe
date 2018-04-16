@@ -245,8 +245,6 @@ def predict_neoantigensWT(FilePath, patName, inFile, hlasnormed, epitopeLens, ne
     :return: netMHCpan predictions for each file.
     '''
 
-    print("INFO: Predicting neoantigens for %s" % (patName))
-
     # Verify that the fasta file has information in it to avoid any errors thrown from netMHCpan
     checks = dict.fromkeys(inFile.keys())
     for n in inFile:
@@ -260,7 +258,10 @@ def predict_neoantigensWT(FilePath, patName, inFile, hlasnormed, epitopeLens, ne
         if checks[n] > 0:
             output_file = '%s%s.wildtype.epitopes.%s.txt' % (FilePath, patName, n)
             epcalls.append(output_file)
+
             if os.path.isfile(output_file)==False:
+                print("INFO: Predicting neoantigens for %s" % (patName))
+
                 with open(output_file, 'a') as epitope_pred:
                     print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
                     cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
