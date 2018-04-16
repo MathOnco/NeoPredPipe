@@ -224,7 +224,6 @@ class StandardPreds:
             pass
 
         wildtypeDict = self.__buildwildtypedict()
-        print(wildtypeDict.keys())
 
         tableLines = []
         count = 1
@@ -239,11 +238,7 @@ class StandardPreds:
             mutKey = ','.join([sample,frame,hla,identifier,str(len(mutpeptide))])
 
             # Get wildtype info
-            try:
-                wtPred = wildtypeDict[mutKey]
-            except KeyError:
-                print(mutKey)
-                keyerrors+=1
+            wtPred = wildtypeDict[mutKey]
 
 
             # Check if HLAs match and that the peptide only has one difference in AA
@@ -261,8 +256,6 @@ class StandardPreds:
             count += 1
             tableLines.append(lineOut)
 
-        print(count-1)
-        print(keyerrors)
         self.WTandMTtable = tableLines
 
     def SetChopScore(self, chopscores):
@@ -291,7 +284,7 @@ class StandardPreds:
         for fasta in self.ReadyForBlastpFastas:
             assert os.path.isfile(fasta), "ERROR: Unable to locate fasta file %s"%(fasta)
             out = "%s.blastpResults.xml"%(fasta.replace('.readyForBlastp.fasta',''))
-            iedb = os.path.abspath('ncbi_epitope_db/IEDB_positive_T-cell_assays.fasta')
+            iedb = os.path.realpath(__file__).replace('StandardPredsClass.py','ncbi_epitope_db/IEDB_positive_T-cell_assays.fasta')
 
             if os.path.isfile(out)==False:
                 print("INFO: Running blastp on %s"%(fasta))
