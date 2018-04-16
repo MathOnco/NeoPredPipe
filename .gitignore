@@ -116,6 +116,7 @@ logforannovarNeoPredPipe.txt
 NeoRecoTMP/*
 neorecopo.p
 PredictedRecognitionPotentials.txt
+AllSamples.neoantigens.filtered.txt
 
 .idea
 .DS_Store

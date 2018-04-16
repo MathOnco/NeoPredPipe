@@ -67,6 +67,13 @@ class StandardPreds:
             ba = float(tmpLine[len(tmpLine)-2])
             if ba <= 500.0:
                 dataOut.append('\t'.join(line))
+
+        if os.path.isfile(self.OutDir + self.filename.replace('.unfiltered.txt','.filtered.txt'))==False:
+            with open(self.OutDir + self.filename.replace('.unfiltered.txt','.filtered.txt'), 'w') as outFile:
+                outFile.write('\n'.join(dataOut))
+        else:
+            pass
+
         return(dataOut)
 
     def GetWildTypePredictions(self, netMHCpan):
