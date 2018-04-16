@@ -224,6 +224,7 @@ class StandardPreds:
             pass
 
         wildtypeDict = self.__buildwildtypedict()
+        print(wildtypeDict.keys())
 
         tableLines = []
         count = 1
@@ -241,6 +242,7 @@ class StandardPreds:
             try:
                 wtPred = wildtypeDict[mutKey]
             except KeyError:
+                print(mutKey)
                 keyerrors+=1
 
 
@@ -259,6 +261,8 @@ class StandardPreds:
             count += 1
             tableLines.append(lineOut)
 
+        print(count-1)
+        print(keyerrors)
         self.WTandMTtable = tableLines
 
     def SetChopScore(self, chopscores):
