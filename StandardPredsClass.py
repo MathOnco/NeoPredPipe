@@ -151,6 +151,7 @@ class StandardPreds:
 
         filesFromPredictions = {sam:[] for sam in self.samples}
         for rawPreds in epcalls:
+            print(rawPreds)
             filesFromPredictions[rawPreds.split('/')[len(rawPreds.split('/'))-1].split('.wildtype.',1)[0]].append(rawPreds)
 
         wildtype_preds = []
