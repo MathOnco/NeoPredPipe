@@ -46,6 +46,32 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))
     return(lines)
 
+def DigestIndSampleWT(toDigest, patName, checkPeptides, pepmatchPaths):
+    '''
+    Filters the resulting file and strips all information within it down to individual calls.
+
+    :param toDigest: A list of files to be digested for an individual patient.
+    :param patName: Patient/sample identifier
+    :return: All Neoantigen Prediction lines free of other information in prediction files.
+    '''
+    # temp_files = None
+    # output_file = "%s%s.digested.txt" % (FilePath, toDigest[0].split('/')[len(toDigest[0].split('/')) - 1].split('.epitopes.')[0])
+
+    lines = []
+    for epFile in toDigest:
+        print("INFO: Digesting neoantigens for %s" % (patName))
+        with open(epFile, 'r') as digest_in:
+            for line in digest_in:
+                line = line.rstrip('\n')
+                try:
+                    if line.strip()[0].isdigit():
+                        linespl = line.split()
+                        lines.append('\t'.join(linespl))
+                except IndexError as e:
+                    pass
+    print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))
+    return(lines)
+
 def DefineGenotypeFormat(testLine):
     '''
     Determines which element of genotype fields contains relevant information and in what format

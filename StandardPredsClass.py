@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+
+'''
+@author: Ryan Schenck, ryan.schenck@univ.ox.ac.uk
+Contributions from: Eszter Lakatos
+'''
+
 import os
 import sys
 from Bio import SeqIO
@@ -6,7 +13,7 @@ from NeoAlign import Aligner
 from NeoClass import Neoantigen
 
 from vcf_manipulate import ExtractSeq, predict_neoantigensWT
-from postprocessing import DigestIndSample
+from postprocessing import DigestIndSampleWT
 
 
 class StandardPreds:
@@ -105,8 +112,8 @@ class StandardPreds:
             sam = neo[0]
             toMatchFasta = tmpNeo[len(tmpNeo)-4]
             fasta_head = ';'.join(toMatchFasta.split('_',1))
-            epitope = tmpNeo[len(tmpNeo)-5]
-            epitopeLength = len(tmpNeo[len(tmpNeo)-5])
+            epitope = tmpNeo[len(tmpNeo)-12]
+            epitopeLength = len(tmpNeo[len(tmpNeo)-12])
             epitopeLengths[sam].append(epitopeLength)
 
         # Creates fasta files for wildtype epitopes
@@ -130,10 +137,9 @@ class StandardPreds:
             sam = neo[0]
             toMatchFasta = tmpNeo[len(tmpNeo)-4]
             fasta_head = ';'.join(toMatchFasta.split('_',1))
-            epitope = tmpNeo[len(tmpNeo)-5]
-            epitopeLength = len(tmpNeo[len(tmpNeo)-5])
+            epitope = tmpNeo[len(tmpNeo)-12]
+            epitopeLength = len(tmpNeo[len(tmpNeo)-12])
             seqID, seq = self.__extractSeq(sam, fasta_head, epitopeLength) # WT seqID and seq
-
             if seqID+seq+str(epitopeLength) in seen:
                 pass
             else:
@@ -162,7 +168,7 @@ class StandardPreds:
 
         wildtype_preds = []
         for sample in filesFromPredictions:
-            digestedLines = DigestIndSample(filesFromPredictions[sample], sample, False, None)
+            digestedLines = DigestIndSampleWT(filesFromPredictions[sample], sample, False, None)
             appendedLines = []
             for line in digestedLines:
                 appendedLines.append('\t'.join([sample,line]))
@@ -291,7 +297,7 @@ class StandardPreds:
         for fasta in self.ReadyForBlastpFastas:
             assert os.path.isfile(fasta), "ERROR: Unable to locate fasta file %s"%(fasta)
             out = "%s.blastpResults.xml"%(fasta.replace('.readyForBlastp.fasta',''))
-            iedb = os.path.realpath(__file__).replace('StandardPredsClass.py','ncbi_epitope_db/IEDB_positive_T-cell_assays.fasta')
+            iedb = os.path.realpath(__file__).split('StandardPredsClass')[0] + "ncbi_epitope_db/IEDB_positive_T-cell_assays.fasta"
 
             if os.path.isfile(out)==False:
                 print("INFO: Running blastp on %s"%(fasta))
@@ -300,7 +306,6 @@ class StandardPreds:
                 blastpOut.append(out)
             else:
                 print("INFO: Found blastp results %s. Nothing to be done."%(fasta))
-                pass
 
         self.blastpResults = blastpOut
 
