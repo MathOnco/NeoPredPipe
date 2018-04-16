@@ -227,6 +227,8 @@ class StandardPreds:
 
         tableLines = []
         count = 1
+        keyerrors = 0
+
         for MutPred in self.filteredPreds:
             MutPred = MutPred.split('\t')
 
@@ -236,7 +238,11 @@ class StandardPreds:
             mutKey = ','.join([sample,frame,hla,identifier,str(len(mutpeptide))])
 
             # Get wildtype info
-            wtPred = wildtypeDict[mutKey]
+            try:
+                wtPred = wildtypeDict[mutKey]
+            except KeyError:
+                keyerrors+=1
+
 
             # Check if HLAs match and that the peptide only has one difference in AA
             assert wtPred.split('\t')[2]==hla,"ERROR: HLA types do not match."
