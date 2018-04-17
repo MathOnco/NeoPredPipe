@@ -24,6 +24,7 @@ class StandardPreds:
         self.filename = Options.neoPredIn
         self.fastaPath = Options.fastaDir
         self.OutDir = Options.neorecoOut
+        self.tmpDir = None
         self.samples = []
         self.hlas = None
         self.fastas = None
@@ -34,7 +35,8 @@ class StandardPreds:
         self.WTandMTtable = None # Table containing scores for WT and MT (part of the input of the recognition potential)
         self.ReadyForBlastpFastas = None # List containing fastas for each sample ready to be blasted against IEDB epitopes
         self.blastpResults = None # List containing xml files for the blastp results from each patient epitopes to the IEDB database
-
+        self.filesToPredict = None
+        self.epitopeLengths = None
     def load(self):
         '''
         Loads the data class of neoantigen predictions to get the right information.
@@ -83,6 +85,99 @@ class StandardPreds:
 
         return(dataOut)
 
+    def __getEpitopeLengths(self):
+        '''
+        Gets the epitope lengths for all of the neoantigens within each sample to construct the fasta files.
+        :return: Dictionary of samples and the lengths of epitopes that predictions will be made on for the WT.
+        '''
+        epitopeLengths = {sam: [] for sam in self.samples}
+        for k, neo in enumerate(self.filteredPreds):
+            neo = neo.split('\t')
+            # Unknown number of genotype cols and length may have <= and 'SB'
+            if neo[len(neo) - 2] == '<=':
+                tmpNeo = neo[0:len(neo) - 2]
+            else:
+                tmpNeo = neo
+            sam = neo[0]
+            toMatchFasta = tmpNeo[len(tmpNeo) - 4]
+            fasta_head = ';'.join(toMatchFasta.split('_', 1))
+            epitope = tmpNeo[len(tmpNeo) - 12]
+            epitopeLength = len(tmpNeo[len(tmpNeo) - 12])
+            epitopeLengths[sam].append(epitopeLength)
+
+        self.epitopeLengths = epitopeLengths
+
+    def __prepWildtypeFastas(self, tmpDir):
+        '''
+        Removes and creates new fasta files for the wildtypes. Simple file I/O function.
+
+        :param epitopeLengths: Lengths of epitopes for each sample.
+        :param tmpDir: Directory where tempoorary files are stored
+        :return: A list of all of the fasta files.
+        '''
+        # Creates fasta files for wildtype epitopes
+        filesToPredict = []
+        for sam in self.samples:
+            self.epitopeLengths[sam] = list(set(self.epitopeLengths[sam]))
+            for epi in self.epitopeLengths[sam]:
+                if os.path.isfile('%s%s.wildtype.tmp.%s.fasta' % (tmpDir, sam, epi)):
+                    os.system('rm %s%s.wildtype.tmp.%s.fasta' % (tmpDir, sam, epi))
+                os.system('touch %s%s.wildtype.tmp.%s.fasta' % (tmpDir, sam, epi))
+                filesToPredict.append('%s%s.wildtype.tmp.%s.fasta' % (tmpDir, sam, epi))
+
+        self.filesToPredict = filesToPredict
+
+    def __addToFastaFile(self):
+        '''
+        Gets the sequence for the wildtype counterpart for the mutant.
+
+        :return:
+        '''
+        for k, neo in enumerate(self.filteredPreds):
+            neo = neo.split('\t')
+
+            # Unknown number of genotype cols and length may have <= and 'SB'
+            if neo[len(neo) - 2] == '<=':
+                tmpNeo = neo[0:len(neo) - 2]
+            else:
+                tmpNeo = neo
+
+            sam = neo[0]
+            toMatchFasta = tmpNeo[len(tmpNeo) - 4]
+            fasta_head = ';'.join(toMatchFasta.split('_', 1))
+            epitope = tmpNeo[len(tmpNeo) - 12]
+            epitopeLength = len(tmpNeo[len(tmpNeo) - 12])
+
+            seqID, seq = self.__extractSeq(sam, fasta_head, epitopeLength)  # WT seqID and seq
+
+            with open('%s%s.wildtype.tmp.%s.fasta' % (self.tmpDir, sam, epitopeLength), 'a') as tmpFastaOut:
+                # tmpFastaOut.write('>' + seqID + sam + ';MT_' + epitope + ";" + str(k) + '\n')
+                tmpFastaOut.write('>'+str(k)+';WT'+'\n')
+                tmpFastaOut.write(seq + '\n')
+
+        return(None)
+
+    def ConstructWTFastas(self):
+        '''
+        Orchestrates the creation of the wildtype fasta files.
+        :return:
+        '''
+
+        self.tmpDir = self.OutDir + 'NeoRecoTMP/'
+
+        if os.path.isdir(self.tmpDir):
+            # os.system('rm -r %s' % (tmpDir))
+            # os.system('mkdir %s' % (tmpDir))
+            pass
+        else:
+            os.system('mkdir %s' % (self.tmpDir))
+
+        self.__getEpitopeLengths()
+        self.__prepWildtypeFastas(self.tmpDir)
+        self.__addToFastaFile()
+
+
+
     def GetWildTypePredictions(self, netMHCpan):
         '''
         First it gets the sequence records for both the WT and the MUT AA. It then extracts the proper k-mer from the WT
@@ -93,69 +188,15 @@ class StandardPreds:
         :netMHCpan: Variable containing the paths loaded from config for netMHCpan
         :return: None, it sets the StandardPreds wildtypePreds variable
         '''
-        tmpDir = self.OutDir + 'NeoRecoTMP/'
-        if os.path.isdir(tmpDir):
-            # os.system('rm -r %s' % (tmpDir))
-            # os.system('mkdir %s' % (tmpDir))
-            pass
-        else:
-            os.system('mkdir %s' % (tmpDir))
-
-        epitopeLengths = {sam:[] for sam in self.samples}
-        for neo in self.filteredPreds:
-            neo = neo.split('\t')
-            # Unknown number of genotype cols and length may have <= and 'SB'
-            if neo[len(neo)-2]=='<=':
-                tmpNeo = neo[0:len(neo)-2]
-            else:
-                tmpNeo = neo
-            sam = neo[0]
-            toMatchFasta = tmpNeo[len(tmpNeo)-4]
-            fasta_head = ';'.join(toMatchFasta.split('_',1))
-            epitope = tmpNeo[len(tmpNeo)-12]
-            epitopeLength = len(tmpNeo[len(tmpNeo)-12])
-            epitopeLengths[sam].append(epitopeLength)
-
-        # Creates fasta files for wildtype epitopes
-        filesToPredict = []
-        for sam in self.samples:
-            epitopeLengths[sam] = list(set(epitopeLengths[sam]))
-            for epi in epitopeLengths[sam]:
-                if os.path.isfile('%s%s.wildtype.tmp.%s.fasta' % (tmpDir, sam, epi)):
-                    os.system('rm %s%s.wildtype.tmp.%s.fasta' % (tmpDir, sam, epi))
-                os.system('touch %s%s.wildtype.tmp.%s.fasta' % (tmpDir, sam, epi))
-                filesToPredict.append('%s%s.wildtype.tmp.%s.fasta' % (tmpDir, sam, epi))
-
-        seen = []
-        for neo in self.filteredPreds:
-            neo = neo.split('\t')
-            # Unknown number of genotype cols and length may have <= and 'SB'
-            if neo[len(neo)-2]=='<=':
-                tmpNeo = neo[0:len(neo)-2]
-            else:
-                tmpNeo = neo
-            sam = neo[0]
-            toMatchFasta = tmpNeo[len(tmpNeo)-4]
-            fasta_head = ';'.join(toMatchFasta.split('_',1))
-            epitope = tmpNeo[len(tmpNeo)-12]
-            epitopeLength = len(tmpNeo[len(tmpNeo)-12])
-            seqID, seq = self.__extractSeq(sam, fasta_head, epitopeLength) # WT seqID and seq
-            if seqID+seq+str(epitopeLength) in seen:
-                pass
-            else:
-                seen.append(seqID+seq+str(epitopeLength))
-                with open('%s%s.wildtype.tmp.%s.fasta'%(tmpDir,sam,epitopeLength), 'a') as tmpFastaOut:
-                    tmpFastaOut.write('>' + seqID + '\n')
-                    tmpFastaOut.write(seq + '\n')
 
         epcalls = [] # Returns a list of files
-        for predictFile in filesToPredict:
+        for predictFile in self.filesToPredict:
             # print(predictFile)
             patName = predictFile.split('/')[len(predictFile.split('/'))-1].split('.wildtype.',1)[0]
             hlasNormed = [hla.replace('*','') for hla in self.hlas[patName]]
             epitopeLengths = [predictFile.split('/')[len(predictFile.split('/'))-1].split('.wildtype.')[1].split('.')[1]]
             inFile = {epitopeLengths[0]:predictFile}
-            indCalls = predict_neoantigensWT(tmpDir, patName, inFile, hlasNormed, epitopeLengths, netMHCpan)
+            indCalls = predict_neoantigensWT(self.tmpDir, patName, inFile, hlasNormed, epitopeLengths, netMHCpan)
             if indCalls != []:
                 indCalls = indCalls[0]
                 epcalls.append(indCalls)
@@ -217,10 +258,14 @@ class StandardPreds:
         :return: a dictionary of wildtype predictions to extract from
         '''
         outDict = {}
+        # test = []
         for pred in self.wildtypePreds:
             item = pred.split('\t')
-            wtKey = ','.join([item[0],item[1],item[2],item[11],str(len(item[3]))])
+            wtKey = ','.join([item[0],item[1],item[2],item[11].split('_')[0],str(len(item[3]))])
             outDict.update({wtKey:pred})
+            # test.append(wtKey)
+        # print(len(test))
+        # print(len(list(set(test))))
         return(outDict)
 
     def BuildFinalTable(self):
@@ -240,15 +285,15 @@ class StandardPreds:
 
         tableLines = []
         count = 1
-        keyerrors = 0
+        k = 0
 
-        for MutPred in self.filteredPreds:
+        for i, MutPred in enumerate(self.filteredPreds):
             MutPred = MutPred.split('\t')
 
             # Get Mut info
             sample, frame, identifier, mutscore, mutpeptide, hla = MutPred[0], MutPred[10], MutPred[20], MutPred[22], MutPred[12], MutPred[11]
 
-            mutKey = ','.join([sample,frame,hla,identifier,str(len(mutpeptide))])
+            mutKey = ','.join([sample,frame,hla,str(i),str(len(mutpeptide))])
 
             # Get wildtype info
             wtPred = wildtypeDict[mutKey]

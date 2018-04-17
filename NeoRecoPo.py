@@ -89,6 +89,7 @@ def main():
     if os.path.isfile(pickleFile) == False:
         preds = StandardPreds(Options) # Create instance of StandardPreds Class
         preds.load() # Load the neoantigen predictions data
+        preds.ConstructWTFastas()
         preds.GetWildTypePredictions(netMHCpanPaths) # Extracts the proper WT 'neoantigen'
         preds.BuildFinalTable()
         with open(pickleFile, 'wb') as outPickle:
