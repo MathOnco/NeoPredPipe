@@ -29,7 +29,7 @@ def Parser():
     return(Options)
 
 def loadPreds(fileName):
-    refDict = {}
+    refDict = OrderedDict()
     with open(fileName, 'r') as inputFile:
         lines = [line.replace('\n', '').split('\t') for line in inputFile.readlines()]
 
@@ -52,7 +52,7 @@ def loadPreds(fileName):
             ['Sample', '\t'.join(['R' + str(i) for i in range(1, regionNums + 1)]), 'Line', 'Chr', 'AllelePos', 'Ref',
              'Alt', 'Symbol', 'Pos', 'hla', 'peptide', 'core', 'Of', 'Gp', 'Gl', 'lp', 'll', 'Icore', 'Identity',
              'Score', 'BA', 'Rank', 'Candidate', 'BindLevel']).split('\t')
-    data = [dict(zip(header, v)) for v in lines[0:]]
+    data = [OrderedDict(zip(header, v)) for v in lines[0:]]
     for neo in data:
         id = '.'.join([neo['Sample'], neo['Identity'], str(len(neo['peptide']))])
         refDict.update({id: neo})
@@ -87,15 +87,36 @@ def loadWTMutTable(fileName):
 
     return (header, refDict)
 
+def loadSamTypes(fileName):
+    lines = {}
+    with open(fileName, 'r') as inputFile:
+        for line in inputFile.readlines():
+            t = line.replace('\n','').split('\t')
+            lines.update({t[0]:t[1]})
+
+    return(lines)
+
 def BuildMasterTable(localpath, Options):
+    samDict = loadSamTypes(Options.SamTypes)
     predHeader, preds = loadPreds(Options.neoPredIn)
     recoHeader, reco = loadRecos(Options.recopreds)
     wtHeader, wtTab = loadWTMutTable(Options.wt_neo_table)
 
-    for neo in preds:
-        a = preds[neo]
-        b = reco[neo]
-        c = wtTab[neo]
+    outHead = predHeader[0:24] + ['SampleType','WT.PEPTIDE','WT.SCORE','MutatedPeptide','ResidueChangeClass','A','R','Excluded','NeoantigenRecognitionPotential']
+    with open(Options.neoPredIn.replace('.txt','.NeoRecoPo.txt'),'w') as outFile:
+        outFile.write('\t'.join(outHead) + '\n')
+        for neo in preds:
+            a = preds[neo]
+            b = reco[neo]
+            c = wtTab[neo]
+
+            outLine = [a[item] for item in predHeader][0:24]
+            additionalInfo = [samDict[a["Sample"]],c['WT.PEPTIDE'], c['WT.SCORE'], b['MutatedPeptide'],b['ResidueChangeClass'],b['A'],b['R'],b['Excluded'],b['NeoantigenRecognitionPotential']]
+
+            line = outLine + additionalInfo
+
+            outFile.write('\t'.join(line) + '\n')
+
 
 
 
@@ -109,6 +130,8 @@ def main():
     Options = Parser()
 
     BuildMasterTable(localpath, Options)
+
+    print("INFO: Complete.")
 
 
 if __name__=="__main__":

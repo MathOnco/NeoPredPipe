@@ -7,6 +7,8 @@ Contributions from: Eszter Lakatos
 
 import os
 import sys
+import multiprocessing
+
 from Bio import SeqIO
 
 from NeoAlign import Aligner
@@ -190,6 +192,7 @@ class StandardPreds:
         '''
 
         epcalls = [] # Returns a list of files
+
         for predictFile in self.filesToPredict:
             # print(predictFile)
             patName = predictFile.split('/')[len(predictFile.split('/'))-1].split('.wildtype.',1)[0]

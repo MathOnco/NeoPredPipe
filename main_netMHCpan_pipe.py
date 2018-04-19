@@ -115,13 +115,13 @@ class Sample():
         else:
             self.fastaChange = get_coding_change(FilePath, self.patID, self.annotationReady, annovar)
 
-    def callNeoantigens(self, FilePath, netmhcpan, Options):
         if os.path.isfile("fastaFiles/"+self.patID+'.reformat.fasta'):
             print("INFO: Coding change fasta files %s has already been reformatted." % (self.patID))
             self.fastaChangeFormat = "fastaFiles/"+self.patID+'.reformat.fasta'
         else:
             self.fastaChangeFormat = ReformatFasta(self.fastaChange)
 
+    def callNeoantigens(self, FilePath, netmhcpan, Options):
         # Make tmp files.
         i = 0
         pepTmp = {}
