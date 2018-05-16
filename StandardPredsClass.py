@@ -55,14 +55,12 @@ class StandardPreds:
         self.hlas = {sam:[] for sam in self.samples}
         self.fastas = {sam:'%s%s.reformat.fasta'%(self.fastaPath,sam) for sam in self.samples}
 
-        if lines[0].split('\t')[-1] in ['0','1']: #check if peptide-match information was added to the output file and set index of HLA allele accordingly
-            hla_ind = -16
-        else:
-            hla_ind = -15
-
         for line in lines:
             sam = line.split('\t')[0]
-            hla = line.split('\t')[hla_ind] #According to netMHCpan output with -BA setting; TODO: make non-hardcoded version
+            if '<=' in line.split('\t'):
+                hla = line.split('\t')[-15] #According to netMHCpan output with -BA setting; TODO: make non-hardcoded version
+            else:
+                hla = line.split('\t')[-13]
             if hla not in self.hlas[sam]:
                 self.hlas[sam].append(hla)
 
@@ -293,6 +291,7 @@ class StandardPreds:
             pass
 
         wildtypeDict = self.__buildwildtypedict()
+        print(wildtypeDict)        
 
         tableLines = []
         count = 1
@@ -300,9 +299,11 @@ class StandardPreds:
 
         for i, MutPred in enumerate(self.filteredPreds):
             MutPred = MutPred.split('\t')
+            print(MutPred)
 
             # Get Mut info
-            sample, frame, identifier, mutscore, mutpeptide, hla = MutPred[0], MutPred[10], MutPred[20], MutPred[22], MutPred[12], MutPred[11]
+            # Indexes are counted from the end, as number of regions is not fixed
+            sample, frame, identifier, mutscore, mutpeptide, hla = MutPred[0], MutPred[-16], MutPred[-6], MutPred[-4], MutPred[-14], MutPred[-15]
 
             mutKey = ','.join([sample,frame,hla,str(i),str(len(mutpeptide))])
 
