@@ -291,7 +291,6 @@ class StandardPreds:
             pass
 
         wildtypeDict = self.__buildwildtypedict()
-        print(wildtypeDict)        
 
         tableLines = []
         count = 1
@@ -299,7 +298,6 @@ class StandardPreds:
 
         for i, MutPred in enumerate(self.filteredPreds):
             MutPred = MutPred.split('\t')
-            print(MutPred)
 
             # Get Mut info
             # Indexes are counted from the end, as number of regions is not fixed

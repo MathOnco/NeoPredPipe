@@ -38,7 +38,8 @@ class MyTestCase(unittest.TestCase):
 
 
     def test_main_platypus(self):
-        os.system("rm ./test/Test_platypus.*")
+        if os.path.isfile("./test/Test_platypus.neoantigens.txt"):
+            os.system("rm ./test/Test_platypus.*")
         cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
                '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8', '-d', '-m' ]
         runcmd = subprocess.Popen(cmd)
@@ -60,8 +61,19 @@ class MyTestCase(unittest.TestCase):
        # self.assertEqual( ('0', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1])) #true for EL
         self.assertEqual( ('1', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1]))
 
+    def test_main_recopo(self):
+        if os.path.isfile("./test/PredictedRecognitionPotentials.txt"):
+            os.system("rm ./test/PredictedRecognitionPotentials.txt")
+        cmd = ['python', 'NeoRecoPo.py', '-i', './test/Test_platypus.neoantigens.txt', '-f', './fastaFiles/', '-o', './test/']
+        runcmd = subprocess.Popen(cmd)
+        runcmd.wait()
+        with open('test/PredictedRecognitionPotentials.txt', 'r') as testof:
+            oflines = testof.readlines()
+        self.assertEqual(['1', 'line3_NM_001005', 'Test_platypus', '3', 'HN', 'KPRHYLTI', 'KPLHYLTI', '7.54006501848'], oflines[1].split('\t')[:-3])
+
     def test_main_single_region(self):
-        os.system("rm ./test/Test_single.*")
+        if os.path.isfile("test/Test_single.neoantigens.summarytable.txt"):
+            os.system("rm ./test/Test_single.*")
         cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
                '-n', 'Test_single', '-E', '8' ]
         runcmd = subprocess.Popen(cmd)
