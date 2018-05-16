@@ -51,12 +51,14 @@ class MyTestCase(unittest.TestCase):
         with open('test/Test_platypus.neoantigens.summarytable.txt', 'r') as testsum:
             sumlines = testsum.readlines()
         summary = sumlines[1].rstrip('\n').split('\t')
-        self.assertEqual( (['3','3','2','2','2'], ['1','0','0','0','1','1']), (summary[4:9], summary[22:]))
+        #self.assertEqual( (['3','3','2','2','2'], ['1','0','0','0','1','1']), (summary[4:9], summary[22:])) #true for EL
+        self.assertEqual( (['3','3','2','1','2'], ['0','0','0','0','2','1']), (summary[4:9], summary[22:]))
 
     def test_peptide_checking(self):
         with open('test/Test_platypus.neoantigens.txt', 'r') as testof:
             oflines = testof.readlines()
-        self.assertEqual( ('0', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1]))
+       # self.assertEqual( ('0', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1])) #true for EL
+        self.assertEqual( ('1', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1]))
 
     def test_main_single_region(self):
         os.system("rm ./test/Test_single.*")
