@@ -55,9 +55,14 @@ class StandardPreds:
         self.hlas = {sam:[] for sam in self.samples}
         self.fastas = {sam:'%s%s.reformat.fasta'%(self.fastaPath,sam) for sam in self.samples}
 
+        if lines[0].split('\t')[-1] in ['0','1']: #check if peptide-match information was added to the output file and set index of HLA allele accordingly
+            hla_ind = -16
+        else:
+            hla_ind = -15
+
         for line in lines:
             sam = line.split('\t')[0]
-            hla = line.split('\t')[11]
+            hla = line.split('\t')[hla_ind] #According to netMHCpan output with -BA setting; TODO: make non-hardcoded version
             if hla not in self.hlas[sam]:
                 self.hlas[sam].append(hla)
 
@@ -69,8 +74,11 @@ class StandardPreds:
         :return: filtered lines
         '''
         dataOut = []
+        loose_last = data[0].split('\t')[-1] in ['1','0'] #check if pep-match column is added to the end
         for line in data:
             line = line.split('\t')
+            if loose_last:
+               line = line[0:-1]
             if line[len(line)-2]=='<=':
                 tmpLine = line[0:len(line)-2]
             else:
