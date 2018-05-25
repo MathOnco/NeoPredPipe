@@ -25,9 +25,11 @@ def Parser():
     parser.add_argument("-E", "--epitopes", dest="epitopes", nargs='+', type=int, default=[8, 9, 10],
                         help="Epitope lengths for predictions. Default: 8 9 10")
     parser.add_argument("-l", dest="cleanLog", default=True, action='store_false', help="Specifies whether to delete the ANNOVAR log file. Default: True. Note: Use for debugging.")
-    parser.add_argument("-d", dest="deleteInt", default=True, action='store_false', help="Specified whether to delete intermediate files created by program. Default: True. Note: Set flag to resume job.")
+    parser.add_argument("-d", dest="deleteInt", default=True, action='store_false', help="Specifies whether to delete intermediate files created by program. Default: True. Note: Set flag to resume job.")
     parser.add_argument("-r", "--cleanrun", dest="makeitclean", default=False, action='store_true', help="Specify this alone with no other options to clean-up a run. Be careful that you mean to do this!!")
-    parser.add_argument('-p', "--preponly", dest="preponly", default=False, action='store_true', help="Prep files only without running neoantigen predictions. The prediction step takes the most time.")
+    parser.add_argument('-p', "--preponly", dest="preponly", default=False, action='store_true',help="Prep files only without running neoantigen predictions. The prediction step takes the most time.")
+    parser.add_argument("--EL", dest="ELpred", default=False, action='store_true',
+        help="Flag to perform netMHCpan predictions with Eluted Ligand option (without the -BA flag). Please note that the output will NOT be compatible with downstream Recognition Potential analysis. Default=False (BA predictions)")
     requiredNamed = parser.add_argument_group('Required arguments')
     requiredNamed.add_argument("-I", dest="vcfdir", default=None, type=str,
                                help="Input vcf file directory location. Example: -I ./Example/input_vcfs/")
@@ -146,7 +148,7 @@ class Sample():
                 if i == len(Options.epitopes):
                     self.epcalls = epTmp
         if i!=len(Options.epitopes):
-            self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan)
+            self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan, Options.ELpred)
 
     def digestIndSample(self, pmPaths, Options):
         if self.epcalls != []:
@@ -405,6 +407,12 @@ def main():
     Config = configparser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
+    annPaths['build'] = annPaths['gene_table'].split('/')[-1][:4] # get build version from name of gene table (hg19/hg38_refGene...)
+    if annPaths['build'] not in ['hg19', 'hg38', 'hg18']:
+        print("WARNING: Unexpected genome build detected in annovar reference files: %s. Please check path for 'gene_table'. Build hg19 is used for analysis."%(annPaths['build']))
+        annPaths['build'] = 'hg19'
+    else:
+        print("INFO: Annovar reference files of build %s were given, using this build for all analysis."%(annPaths['build']))
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
     try:
         pepmatchPaths = ConfigSectionMap(Config.sections()[2], Config)  # get PeptideMatch paths

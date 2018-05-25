@@ -51,7 +51,7 @@ def annovar_annotation(FilePath, patName, inFile, annovar):
     annovar_out_ready = outDir + patName + '.avannotated'
 
     with open("logforannovarNeoPredPipe.txt", 'a') as logFile:
-        cmd = ['perl', annovar['annotatevariation'], '-out', annovar_out_ready, '-build', 'hg19', inFile, annovar['humandb'], '--comment']
+        cmd = ['perl', annovar['annotatevariation'], '-out', annovar_out_ready, '-build', annovar['build'], inFile, annovar['humandb'], '--comment']
         runannotate = subprocess.Popen(cmd, stdout=logFile, stderr=logFile)
         runannotate.wait()
 
@@ -192,7 +192,7 @@ def ConstructAlleles(hlas, FilePath, patID):
 
     return(list(set(netMHCpanHLAS)))
 
-def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netMHCpan):
+def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netMHCpan, ELpred):
     '''
     Strips out all WILDTYPE and IMMEDIATE-STOPGAIN from fasta file.
 
@@ -202,6 +202,7 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
     :param hlas: HLA types for the patient.
     :param epitopeLens: List of epitope lengths to predict
     :param netMHCpan: Dictionary housing netMHCpan specific script locations and data. See README.md.
+    :param ELpred: Logical for EL (true) or BA (false) predictions
     :return: netMHCpan predictions for each file.
     '''
 
@@ -222,7 +223,10 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
             epcalls.append(output_file)
             with open(output_file, 'a') as epitope_pred:
                 print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
-                cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                if ELpred:
+                    cmd = [netMHCpan['netmhcpan'], '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                else:
+                    cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
                 netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
                 netMHC_run.wait()
         else:
