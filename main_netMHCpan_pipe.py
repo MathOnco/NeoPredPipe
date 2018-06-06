@@ -169,7 +169,7 @@ def PrepClasses(FilePath, Options):
             pass
         else:
             sys.exit("Unable to locate vcf files.")
-
+    
     hlas = dict()
     try:
         with open(Options.hlafile, 'r') as hlaFile:
@@ -181,7 +181,7 @@ def PrepClasses(FilePath, Options):
         pat = line[0]
         del line[0]
         hlas.update({pat: line})
-
+    
     try:
         os.mkdir('avready')
     except OSError as e:
@@ -430,12 +430,15 @@ def main():
     allFiles, hlas = PrepClasses(localpath, Options)
 
     assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
+    if len(allFiles)>(len(hlas.keys())-1):
+        print("WARNING: Less samples are detected in HLA file than in VCF folder. Only samples included in HLA file will be processed.")
 
     # Prepare samples
     t = []
     for patFile in allFiles:
         patname = patFile.replace('.vcf', '').split("/")[len(patFile.replace('.vcf', '').split("/")) - 1]
-        t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, pepmatchPaths, Options))
+        if patname in hlas.keys():
+            t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, pepmatchPaths, Options))
 
     if Options.preponly:
         print("INFO: Complete.")
