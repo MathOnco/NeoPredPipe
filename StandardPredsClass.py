@@ -82,7 +82,9 @@ class StandardPreds:
             else:
                 tmpLine = line
             ba = float(tmpLine[len(tmpLine)-2])
-            if ba <= 500.0:
+            refall = tmpLine[4]
+            altall = tmpLine[5]
+            if ba <= 500.0 and refall!='-' and altall!='-':
                 dataOut.append('\t'.join(line))
 
         if os.path.isfile(self.filename.replace('.unfiltered.txt','.filtered.txt'))==False:
