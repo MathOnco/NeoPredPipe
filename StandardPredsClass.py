@@ -72,11 +72,13 @@ class StandardPreds:
         :return: filtered lines
         '''
         dataOut = []
-        loose_last = data[0].split('\t')[-1] in ['1','0'] #check if pep-match column is added to the end
+        has_novelty = data[0].split('\t')[-1] in ['1','0'] #check if pep-match column is added to the end
         for line in data:
+            novel = 1
             line = line.split('\t')
-            if loose_last:
-               line = line[0:-1]
+            if has_novelty:
+                novel = int(line[-1])
+                line = line[0:-1]
             if line[len(line)-2]=='<=':
                 tmpLine = line[0:len(line)-2]
             else:
@@ -84,7 +86,7 @@ class StandardPreds:
             ba = float(tmpLine[len(tmpLine)-2])
             refall = tmpLine[4]
             altall = tmpLine[5]
-            if ba <= 500.0 and refall!='-' and altall!='-':
+            if ba <= 500.0 and refall!='-' and altall!='-' and novel==1:
                 dataOut.append('\t'.join(line))
 
         if os.path.isfile(self.filename.replace('.unfiltered.txt','.filtered.txt'))==False:

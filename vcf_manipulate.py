@@ -164,11 +164,12 @@ def ConstructAlleles(hlas, FilePath, patID):
     # TODO need a better way of verifying the format of the HLA alleles and matching in the list of those available...Some aren't working and should be...
     with open("%s/netMHCpanAlleles.txt"%(FilePath),'r') as alleles:
         allAlleles = [i.rstrip('\n').lower() for i in alleles.readlines()]
-
+    
+    hlas = [hla.lower() for hla in hlas]
     hlas = [i.replace("hla_","hla-") for i in hlas]
     hlas = [hla.replace("_","",1) for hla in hlas if 'NA' not in hla]
     hlas = [hla.replace("_",":",1) for hla in hlas if 'NA' not in hla]
-
+    
     netMHCpanHLAS = []
     for hla in hlas:
         if len([h for h in allAlleles if hla == h]) == 1:
