@@ -165,7 +165,7 @@ def ConstructAlleles(hlas, FilePath, patID):
     with open("%s/netMHCpanAlleles.txt"%(FilePath),'r') as alleles:
         allAlleles = [i.rstrip('\n').lower() for i in alleles.readlines()]
     
-    hlas = [hla.lower() for hla in hlas]
+    hlas = [hla.lower() for hla in hlas if 'NA' not in hla]
     hlas = [i.replace("hla_","hla-") for i in hlas]
     hlas = [hla.replace("_","",1) for hla in hlas if 'NA' not in hla]
     hlas = [hla.replace("_",":",1) for hla in hlas if 'NA' not in hla]
