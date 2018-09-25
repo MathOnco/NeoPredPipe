@@ -16,5 +16,3 @@ Besides the dependencies outlined [here](README.md), the following are required 
 ```bash
 python ./NeoRecoPo.py
 ```
-1. asdf
-   - lorem ipsum and so on.
