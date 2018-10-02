@@ -172,4 +172,4 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 | test1 | 86 | 65 | 21 | 48 | 51 | 0 | 36 | 40 | 0 | 12 | 11 | 0 | 13 | 73 | 0 | 11 | 2 | 54 | 19 | 0 | 0 |
 | test2 | 86 | 66 | 20 | 57 | 43 | 0 | 46 | 30 | 0 | 11 | 13 | 0 | 14 | 72 | 0 | 10 | 4 | 56 | 16 | 0 | 0 |
 
-#### Important note. Currently filters out any and all indels. Will add indel inclusion soon.
+#### Important note. The inclusion of indels is still being fully evaluated. Full support for neoantigen prediction for indels will be integrated as an option at a later time. This is not an easy task due to the complex nature of how these variants are predicted to alter peptide sequences.
