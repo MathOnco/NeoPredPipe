@@ -14,7 +14,11 @@ Besides the dependencies outlined [here](README.md), the following are required 
 
 ## Running the model
 ```bash
-python ./NeoRecoPo.py
+# Use 'python ./NeoRecoPo.py --help' to view the full list of options'. 
+
+python ./NeoRecoPo.py --neopred_in=<predictions from NeoPredPipe> --neoreco_out=<output.txt> --fastas=<directory of fasta files for samples created in previous step>
 ```
-1. asdf
-   - lorem ipsum and so on.
+
+## Output
+
+The new output has a few additional columns. Most notable are A, R, Excluded, and a final calculated NeoantigenRecognitionPotential. Further information can be found in the publication in the Summary section for these outputs.
