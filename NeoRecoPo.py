@@ -23,8 +23,8 @@ def Parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--dirty", dest="Dirty", default=True, action='store_false', help="Flag to keep intermediate files. Default: False. Note: Use for debugging.")
     parser.add_argument("-o", '--neoreco_out', dest="neorecoOut", default="", type=str, help="Output Directory.")
-    parser.add_argument("-a", '--midpoint', dest='a', default=1., type=float, help="Midpoint parameter of the logistic function, alignment score threshold.")
-    parser.add_argument("-k", '--slope', dest='k', default=1., type=float, help="Slope parameter of the logistic function")
+    parser.add_argument("-a", '--midpoint', dest='a', default=26.0, type=float, help="Midpoint parameter of the logistic function, alignment score threshold.")
+    parser.add_argument("-k", '--slope', dest='k', default=4.86936, type=float, help="Slope parameter of the logistic function")
     parser.add_argument("-p", '--perform_blasts', dest='PerformBlast', default=True, action="store_false", help="Flag to turn off alignments using blastp. If this is false then alignment directory must be specified") #TODO add ability to specify previously completed alignments.
     parser.add_argument("--blastdir", dest="BlastDir", default=None, help="Directory where the blastp alignments are stored. Must be specified if -p is set.")
     parser.add_argument("-clean", dest="clean", default=False, action='store_true', help="Remove temporary directory. MAKE SURE YOU TRULY WANT TO DO THIS.")
