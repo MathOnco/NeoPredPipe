@@ -133,8 +133,10 @@ def MakeTempFastas(inFile, epitopeLens):
     :return: Not sure yet.
     '''
     eps = {n: 0 for n in epitopeLens}
+    epsIndels = {n: 0 for n in epitopeLens}
     for n in epitopeLens:
         mySeqs = []
+        mySeqsIndels = []
         for seq_record in SeqIO.parse(inFile, 'fasta'):
             if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'from;*;to;' not in seq_record.id.lower() and 'silent' not in seq_record.id.lower() and 'fs*' not in seq_record.id.lower() and 'delins' not in seq_record.id.lower():
                 # TODO: Add a regex expression to extract the position since it's variable with versions of ANNOVAR
@@ -146,17 +148,24 @@ def MakeTempFastas(inFile, epitopeLens):
 
                 if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower(): #if mutation is potentially frameshift
                     miniseq = ExtractSeq(seq_record, pos, n, True) # flag for frameshift
+                    mySeqsIndels.append(">"+seq_record.id+"\n"+miniseq+"\n")
                 else:
                     miniseq = ExtractSeq(seq_record, pos, n)
-                mySeqs.append(">"+seq_record.id+"\n"+miniseq+"\n")
+                    mySeqs.append(">"+seq_record.id+"\n"+miniseq+"\n")
+
         eps[n] = mySeqs
+        epsIndels[n] = mySeqsIndels
 
     tmpFiles = {}
     for n in epitopeLens:
         tmpFasta = inFile.replace(".reformat.fasta",".tmp.%s.fasta"%(n))
+        tmpFastaIndels = inFile.replace(".reformat.fasta",".tmp.%s.Indels.fasta"%(n))
         tmpFiles.update({n:tmpFasta})
         with open(tmpFasta, 'w') as outFile:
             for line in eps[n]:
+                outFile.write(line)
+        with open(tmpFastaIndels, 'w') as outFile:
+            for line in epsIndels[n]:
                 outFile.write(line)
 
     return(tmpFiles)
