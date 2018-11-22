@@ -99,7 +99,7 @@ def ReformatFasta(inFile):
 
     return(newFasta)
 
-def ExtractSeq(seq_record, pos, n):
+def ExtractSeq(seq_record, pos, n, frameshift=False):
     '''
     Extracts the proper range of amino acids from the sequence and the epitope length
 
@@ -115,6 +115,13 @@ def ExtractSeq(seq_record, pos, n):
         miniseq = seq[pos - (n - 1):len(seq)]
     else:
         miniseq = seq[pos-(n-1):pos+(n)]
+
+    if frameshift:
+        if pos<n:
+            miniseq = seq[0:len(seq)] # When start is not n away from pos, we go until the end of the sequence
+        else:
+            miniseq = seq[pos-(n-1):len(seq)] # All other cases, we still go until the end of the sequence
+
     return(miniseq)
 
 def MakeTempFastas(inFile, epitopeLens):
@@ -137,7 +144,10 @@ def MakeTempFastas(inFile, epitopeLens):
                 except ValueError:
                     pos = int(seq_record.id.replace(";;",";").split(";")[6])-1
 
-                miniseq = ExtractSeq(seq_record, pos, n)
+                if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower(): #if mutation is potentially frameshift
+                    miniseq = ExtractSeq(seq_record, pos, n, True) # flag for frameshift
+                else:
+                    miniseq = ExtractSeq(seq_record, pos, n)
                 mySeqs.append(">"+seq_record.id+"\n"+miniseq+"\n")
         eps[n] = mySeqs
 
