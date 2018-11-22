@@ -161,6 +161,7 @@ def MakeTempFastas(inFile, epitopeLens):
         tmpFasta = inFile.replace(".reformat.fasta",".tmp.%s.fasta"%(n))
         tmpFastaIndels = inFile.replace(".reformat.fasta",".tmp.%s.Indels.fasta"%(n))
         tmpFiles.update({n:tmpFasta})
+        tmpFiles.update({str(n)+'.Indels':tmpFastaIndels})
         with open(tmpFasta, 'w') as outFile:
             for line in eps[n]:
                 outFile.write(line)
@@ -239,7 +240,7 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
         checks[n]=k
 
     epcalls = []
-    for n in epitopeLens:
+    for n in inFile:
         if checks[n] > 0:
             output_file = 'tmp/%s.epitopes.%s.txt' % (patName, n)
             epcalls.append(output_file)
