@@ -204,41 +204,51 @@ def PrepClasses(FilePath, Options):
 
     return(allFiles, hlas)
 
-def FinalOut(sampleClasses, pepmatchPaths, Options):
+def FinalOut(sampleClasses, Options, indelProcess=False):
     if Options.OutputDir[len(Options.OutputDir)-1]=="/":
         pass
     else:
         Options.OutputDir = Options.OutputDir + "/"
 
-    if Options.includeall:
-        outFile = Options.OutputDir + Options.outName + ".neoantigens.unfiltered.txt"
+    if indelProcess:
+        epitopesToProcess = 'appendedEpitopesIndels' #Process this special set of predicted epitopes
+        filePostFix = '.neoantigens.Indels'
     else:
-        outFile = Options.OutputDir + Options.outName + ".neoantigens.txt"
+        epitopesToProcess = 'appendedEpitopes'
+        filePostFix = '.neoantigens'
 
-    outTable = Options.OutputDir + Options.outName + ".neoantigens.summarytable.txt"
+    if Options.includeall:
+        outFile = Options.OutputDir + Options.outName + filePostFix + ".unfiltered.txt"
+    else:
+        outFile = Options.OutputDir + Options.outName + filePostFix + ".txt"
+
+    outTable = Options.OutputDir + Options.outName + filePostFix + ".summarytable.txt"
 
     summaryTable = []
     with open(outFile, 'w') as pentultimateFile:
         if Options.includeall==True:
             for i in range(0, len(sampleClasses)):
-                if sampleClasses[i].appendedEpitopes is not None:
+                appendedEps = getattr(sampleClasses[i],epitopesToProcess)
+                if appendedEps is not None:
 
-                    pentultimateFile.write('\n'.join(sampleClasses[i].appendedEpitopes) + '\n')
+                    pentultimateFile.write('\n'.join(appendedEps) + '\n')
 
-                    for line in sampleClasses[i].appendedEpitopes:
+                    for line in appendedEps:
                         if '<=' in line:
                             summaryTable.append(line)
         else:
             for i in range(0, len(sampleClasses)):
-                if sampleClasses[i].appendedEpitopes is not None:
-                    for line in sampleClasses[i].appendedEpitopes:
+                appendedEps = getattr(sampleClasses[i],epitopesToProcess)
+                if appendedEps is not None:
+                    for line in appendedEps:
                         if '<=' in line:
                             pentultimateFile.write(line+"\n")
                             summaryTable.append(line)
 
     summaries = {}
     for z in range(0, len(sampleClasses)):
-        if sampleClasses[z].appendedEpitopes is not None:
+        appendedEps = getattr(sampleClasses[z],epitopesToProcess)
+        if appendedEps is not None:
             total_count=0
             wbind=0
             sbind=0
@@ -261,7 +271,7 @@ def FinalOut(sampleClasses, pepmatchPaths, Options):
                 regionsPesent = sampleClasses[z].regionsPresent
                 overallRegions = Counter(regionsPesent)
 
-            for line in sampleClasses[z].appendedEpitopes:
+            for line in appendedEps:
                 # Counter to assess clonality of neoantigen
                 r = 0
                 rw = 0
@@ -445,7 +455,7 @@ def main():
         print("INFO: Preprocessed intermediary files are in avready, avannotated and fastaFiles. If you wish to perform epitope prediction, run the pipeline again without the --preponly flag, intermediary files will be automatically detected.")
     else:
         if Options.postprocess:
-            FinalOut(t, pepmatchPaths, Options)
+            FinalOut(t, Options)
             print("INFO: Complete")
         else:
             print("INFO: Complete")
