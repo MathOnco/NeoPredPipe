@@ -11,7 +11,7 @@ from collections import OrderedDict
 import subprocess
 import re
 
-def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
+def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=False):
     '''
     Filters the resulting file and strips all information within it down to individual calls.
 
@@ -23,7 +23,13 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
     # output_file = "%s%s.digested.txt" % (FilePath, toDigest[0].split('/')[len(toDigest[0].split('/')) - 1].split('.epitopes.')[0])
 
     lines = []
-    pmInputFile = 'tmp/'+patName+'.epitopes.peptidematch.input'
+    if indels:
+        pmInputFile = 'tmp/'+patName+'.epitopes.Indels.peptidematch.input'
+        pmOutFile = 'tmp/'+patName+'.epitopes.Indels.peptidematch.out'
+    else:
+        pmInputFile = 'tmp/'+patName+'.epitopes.peptidematch.input'
+        pmOutFile = 'tmp/'+patName+'.epitopes.peptidematch.out'
+
     pmInput = open(pmInputFile,'w')
     for epFile in toDigest:
         print("INFO: Digesting neoantigens for %s" % (patName))
@@ -40,7 +46,6 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
                     pass
     pmInput.close()
     if checkPeptides:
-        pmOutFile = 'tmp/'+patName+'.epitopes.peptidematch.out'
         RunPepmatch(pmInputFile, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'], pmOutFile)
         lines = ProcessPepmatch(pmOutFile, lines)
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))

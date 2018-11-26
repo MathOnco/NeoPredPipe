@@ -152,8 +152,20 @@ class Sample():
 
     def digestIndSample(self, pmPaths, Options):
         if self.epcalls != []:
-            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID, Options.checkPeptides, pmPaths)
-            self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
+            toDigestSNVs = filter(lambda y: 'Indels.txt' not in y, self.epcalls)
+            toDigestIndels = filter(lambda y: 'Indels.txt' in y, self.epcalls)
+            if toDigestSNVs != []:
+                self.digestedEpitopes = DigestIndSample(toDigestSNVs, self.patID, Options.checkPeptides, pmPaths)
+                self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
+            else:
+                self.appendedEpitopes = None
+                self.regionsPresent = None
+            if toDigestIndels != []:
+                self.digestedEpitopesIndels = DigestIndSample(toDigestIndels, self.patID, Options.checkPeptides, pmPaths, True)
+                self.appendedEpitopesIndels, self.regionsPresentIndels = AppendDigestedEps(self.digestedEpitopesIndels, self.patID, self.annotationReady, self.avReadyFile, Options)
+            else:
+                self.appendedEpitopesIndels = None
+                self.regionsPresentIndels = None
 
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
@@ -212,9 +224,11 @@ def FinalOut(sampleClasses, Options, indelProcess=False):
 
     if indelProcess:
         epitopesToProcess = 'appendedEpitopesIndels' #Process this special set of predicted epitopes
+        regionsToProcess = 'regionsPresentIndels'
         filePostFix = '.neoantigens.Indels'
     else:
         epitopesToProcess = 'appendedEpitopes'
+        regionsToProcess = 'regionsPresent'
         filePostFix = '.neoantigens'
 
     if Options.includeall:
@@ -268,7 +282,7 @@ def FinalOut(sampleClasses, Options, indelProcess=False):
                 Wshared = 0
                 Sshared = 0
 
-                regionsPesent = sampleClasses[z].regionsPresent
+                regionsPesent = getattr(sampleClasses[z],regionsToProcess)
                 overallRegions = Counter(regionsPesent)
 
             for line in appendedEps:
@@ -456,6 +470,7 @@ def main():
     else:
         if Options.postprocess:
             FinalOut(t, Options)
+            FinalOut(t, Options, True)
             print("INFO: Complete")
         else:
             print("INFO: Complete")
