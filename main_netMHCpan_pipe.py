@@ -156,8 +156,6 @@ class Sample():
         if self.epcalls != []:
             toDigestSNVs = filter(lambda y: 'Indels.txt' not in y, self.epcalls)
             toDigestIndels = filter(lambda y: 'Indels.txt' in y, self.epcalls)
-            print(toDigestIndels)
-            print(toDigestSNVs)
             if toDigestSNVs != []:
                 self.digestedEpitopes = DigestIndSample(toDigestSNVs, self.patID, Options.checkPeptides, pmPaths)
                 self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)

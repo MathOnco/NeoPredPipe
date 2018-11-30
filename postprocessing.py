@@ -31,6 +31,7 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=Fals
         pmOutFile = 'tmp/'+patName+'.epitopes.peptidematch.out'
 
     pmInput = open(pmInputFile,'w')
+    pmInputLines = 0
     for epFile in toDigest:
         print("INFO: Digesting neoantigens for %s" % (patName))
         with open(epFile, 'r') as digest_in:
@@ -42,10 +43,11 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=Fals
                         lines.append('\t'.join(linespl))
                         if checkPeptides:
                             pmInput.write('>' + linespl[10] + ';' + linespl[2] + '\n' + linespl[2] + '\n')
+                            pmInputLines+=1
                 except IndexError as e:
                     pass
     pmInput.close()
-    if checkPeptides:
+    if checkPeptides and pmInputLines>0:
         RunPepmatch(pmInputFile, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'], pmOutFile)
         lines = ProcessPepmatch(pmOutFile, lines)
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))

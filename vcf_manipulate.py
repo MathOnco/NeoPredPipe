@@ -254,6 +254,11 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
                 netMHC_run.wait()
         else:
             print("INFO: Skipping Sample! No peptides to predict for %s" % (patName))
+            output_file = 'tmp/%s.epitopes.%s.txt' % (patName, n)
+            epcalls.append(output_file)
+            with open(output_file, 'a') as epitope_pred:
+                epitope_pred.write("# Sample skipped as no peptides were found.")
+
 
     print("INFO: Predictions complete for %s on epitopes of length %s" % (patName, n))
 
