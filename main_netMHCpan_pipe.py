@@ -128,8 +128,9 @@ class Sample():
         i = 0
         pepTmp = {}
         for n in Options.epitopes:
-            if os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)):
+            if os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)) and os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,str(n)+'.Indels')):
                 pepTmp.update({n:"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
+                pepTmp.update({str(n)+'.Indels':"fastaFiles/%s.tmp.%s.fasta"%(self.patID,str(n)+'.Indels')})
                 print("INFO: Tmp fasta files %s has already been created for netMHCpan length %s." % (self.patID,n))
                 i+=1
                 if i == len(Options.epitopes):
@@ -141,8 +142,9 @@ class Sample():
         i = 0
         epTmp = []
         for n in Options.epitopes:
-            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,n)):
+            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,n)) and os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels')):
                 epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,n))
+                epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels'))
                 print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
                 i += 1
                 if i == len(Options.epitopes):
@@ -154,6 +156,8 @@ class Sample():
         if self.epcalls != []:
             toDigestSNVs = filter(lambda y: 'Indels.txt' not in y, self.epcalls)
             toDigestIndels = filter(lambda y: 'Indels.txt' in y, self.epcalls)
+            print(toDigestIndels)
+            print(toDigestSNVs)
             if toDigestSNVs != []:
                 self.digestedEpitopes = DigestIndSample(toDigestSNVs, self.patID, Options.checkPeptides, pmPaths)
                 self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
