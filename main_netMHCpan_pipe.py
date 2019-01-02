@@ -428,6 +428,9 @@ def main():
     print("INFO: Begin.")
 
     allFiles, hlas = PrepClasses(localpath, Options)
+    # Eliminate header line and tailing empty rows
+    hlas.pop('', None)
+    hlas.pop('Patient', None)
 
     assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
     if len(allFiles)>(len(hlas.keys())-1):
@@ -439,6 +442,9 @@ def main():
         patname = patFile.replace('.vcf', '').split("/")[len(patFile.replace('.vcf', '').split("/")) - 1]
         if patname in hlas.keys():
             t.append(Sample(localpath, patname, patFile, hlas[patname], annPaths, netMHCpanPaths, pepmatchPaths, Options))
+
+    if len(t)<len(hlas.keys()):
+    	print("WARNING: Not all samples in HLA file have matching VCF files. Please check that HLA file is tab-separated and sample names match exactly with .vcf file names. Only matching samples will be included in analysis and output tables.")
 
     if Options.preponly:
         print("INFO: Complete.")
