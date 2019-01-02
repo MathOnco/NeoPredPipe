@@ -89,6 +89,7 @@ Post Processing Options:
 1. VCF file. A standard vcf file with a patient identifier as the title of the .vcf.
 2. An hla file with the following tab delimited format:
    - Note, patient identifier in the rows must match that preceding *.vcf
+   - Patient identifier and HLA types should be separated by tabulators.
    - Headers are not required but the data should match the format in the table.
    - 'NA' is used when the HLA typing predicts the same HLA subtype for A, B, or C.
    - The program will search for the appropriate allele within netMHCpan alleles list, but care should be taken to ensure accuracy.
@@ -172,4 +173,4 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 | test1 | 86 | 65 | 21 | 48 | 51 | 0 | 36 | 40 | 0 | 12 | 11 | 0 | 13 | 73 | 0 | 11 | 2 | 54 | 19 | 0 | 0 |
 | test2 | 86 | 66 | 20 | 57 | 43 | 0 | 46 | 30 | 0 | 11 | 13 | 0 | 14 | 72 | 0 | 10 | 4 | 56 | 16 | 0 | 0 |
 
-#### Important note. The inclusion of indels is still being fully evaluated. Full support for neoantigen prediction for indels will be integrated as an option at a later time. This is not an easy task due to the complex nature of how these variants are predicted to alter peptide sequences.
+#### Important note. The inclusion of indels is still being fully evaluated. Full support for neoantigen prediction for indels will be integrated as an option at a later time. Currently all indels are filtered out before passed on to netMHCpan for binding prediction.
