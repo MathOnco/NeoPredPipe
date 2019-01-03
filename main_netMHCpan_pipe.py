@@ -142,14 +142,17 @@ class Sample():
         i = 0
         epTmp = []
         for n in Options.epitopes:
-            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,n)) and os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels')):
+            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,n)):
                 epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,n))
-                epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels'))
-                print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
                 i += 1
-                if i == len(Options.epitopes):
-                    self.epcalls = epTmp
-        if i!=len(Options.epitopes):
+                print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
+            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels')):
+                epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels'))
+                i += 1
+                print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,str(n)+'.Indels'))
+            if i == 2*len(Options.epitopes):
+                self.epcalls = epTmp
+        if i!=2*len(Options.epitopes):
             if i>0:
                 os.system("rm tmp/"+self.patID+".epitopes.*.txt") # if doing predictions, remove existing files to ensure double predicting happens
             self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan, Options.ELpred)
