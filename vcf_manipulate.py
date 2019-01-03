@@ -138,15 +138,15 @@ def MakeTempFastas(inFile, epitopeLens):
         mySeqs = []
         mySeqsIndels = []
         for seq_record in SeqIO.parse(inFile, 'fasta'):
-            if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'from;*;to;' not in seq_record.id.lower() and 'silent' not in seq_record.id.lower() and 'fs*' not in seq_record.id.lower() and 'delins' not in seq_record.id.lower():
+            if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'silent' not in seq_record.id.lower():
                 # TODO: Add a regex expression to extract the position since it's variable with versions of ANNOVAR
                 # TODO: Regex code for this might be r"\w*((?i)position;\d+;(?-i))\W*"
                 try:
-                    pos = int(seq_record.id.replace(";;",";").split(";")[5])-1
+                    pos = int(seq_record.id.replace(";;",";").split(";")[5].split('-')[0])-1
                 except ValueError:
-                    pos = int(seq_record.id.replace(";;",";").split(";")[6])-1
+                    pos = int(seq_record.id.replace(";;",";").split(";")[6].split('-')[0])-1
 
-                if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower(): #if mutation is potentially frameshift
+                if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower() or 'from;*;to;' in seq_record.id.lower(): #if mutation is potentially frameshift
                     miniseq = ExtractSeq(seq_record, pos, n, True) # flag for frameshift
                     mySeqsIndels.append(">"+seq_record.id+"\n"+miniseq+"\n")
                 else:
@@ -254,11 +254,6 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
                 netMHC_run.wait()
         else:
             print("INFO: Skipping Sample! No peptides to predict for %s" % (patName))
-            output_file = 'tmp/%s.epitopes.%s.txt' % (patName, n)
-            epcalls.append(output_file)
-            with open(output_file, 'a') as epitope_pred:
-                epitope_pred.write("# Sample skipped as no peptides were found.")
-
 
     print("INFO: Predictions complete for %s on epitopes of length %s" % (patName, n))
 
