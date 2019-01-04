@@ -475,7 +475,7 @@ class StandardPreds:
 
         with open(Options.neorecoOut + "PredictedRecognitionPotentials.txt", "w") as outFile:
             header = ["NeoantigenID", "Mutation", "Sample", "MutatedPeptide", "ResidueChangeClass", "MutantPeptide",
-                      "WildtypePeptide", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
+                      "WildtypePeptide", "HLA", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
             header = "\t".join(header)
             outFile.write(header+'\n')
             for neo in neoantigens:
@@ -496,7 +496,7 @@ class StandardPreds:
 
                 fitnessCost = A * R * w
 
-                l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, A,
+                l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, neoantigen.allele, A,
                      R, 1 - w, fitnessCost]  # , neoAlignment, epitopeAlignment, score, species]
                 l = "\t".join(map(lambda s: str(s), l))
                 outFile.write(l+'\n')
