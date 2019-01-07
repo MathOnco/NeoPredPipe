@@ -298,7 +298,7 @@ def FinalOut(sampleClasses, Options, indelProcess=False):
                 rw = 0
                 rs = 0
 
-                if '<=' in line:
+                if '<=' in line and not (Options.checkPeptides and line[-1]=='0'):
                     total_count+=1
                     if Options.colRegions is not None:
                         regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]

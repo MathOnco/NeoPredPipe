@@ -16,7 +16,7 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
    - ANNOVAR hg19_refGeneMrna
    - Other reference builds can be used. Simply change the usr_path.ini file to the appropriate reference (see below).
      - Make sure to use the same one used to call variants.
-     **NOTE: For indel predictions, we highly recommend to use the latest (2018-04-16) release of ANNOVAR, as earlier version do not provide the appropriate support for protein-elongating frameshift mutations.**
+   - **NOTE: For indel predictions, we highly recommend to use the latest (2018-04-16) release of ANNOVAR, as earlier version do not provide the appropriate support for protein-elongating frameshift mutations.**
 4. netMHCpan
    - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
    - Follow their steps for installation on your platform.
@@ -24,7 +24,7 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
    - Requires Java.
    - The runnable jar is available [here](https://research.bioinformatics.udel.edu/peptidematch/commandlinetool.jsp).
    - Download a reference protein sequence in fasta format (e.g. from [Ensembl](ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/pep/) or [UniProt](ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/)) and index it according to the Tutorial.
-   **We advise the use of PeptideMatch for indel predictions,to filter out non-frameshift peptides and peptides that are novel to the genomic location, but coincidentally exists elsewhere.**
+   - **We advise the use of PeptideMatch for indel predictions,to filter out non-frameshift peptides and peptides that are novel to the genomic location, but coincidentally exists elsewhere.**
 
 ## Installing and preparing environment
 1. Clone the repository:
