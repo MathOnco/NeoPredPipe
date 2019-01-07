@@ -16,7 +16,7 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
    - ANNOVAR hg19_refGeneMrna
    - Other reference builds can be used. Simply change the usr_path.ini file to the appropriate reference (see below).
      - Make sure to use the same one used to call variants.
-   - **NOTE: For indel predictions, we highly recommend to use the latest (2018-04-16) release of ANNOVAR, as earlier version do not provide the appropriate support for protein-elongating frameshift mutations.**
+   - **NOTE: For indel predictions, we highly recommend to use the latest (2018-04-16) release of ANNOVAR, as earlier versions do not provide the appropriate support for protein-elongating frameshift mutations.**
 4. netMHCpan
    - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
    - Follow their steps for installation on your platform.
