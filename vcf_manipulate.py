@@ -148,7 +148,7 @@ def MakeTempFastas(inFile, epitopeLens):
 
                 if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower() or 'from;*;to;' in seq_record.id.lower(): #if mutation is potentially frameshift
                     miniseq = ExtractSeq(seq_record, pos, n, True) # flag for frameshift
-                    mySeqsIndels.append(">"+seq_record.id+"\n"+miniseq+"\n")
+                    mySeqsIndels.append(">"+seq_record.id[0:100]+"\n"+miniseq+"\n")
                 else:
                     miniseq = ExtractSeq(seq_record, pos, n)
                     mySeqs.append(">"+seq_record.id+"\n"+miniseq+"\n")
@@ -247,9 +247,9 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
             with open(output_file, 'a') as epitope_pred:
                 print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
                 if ELpred:
-                    cmd = [netMHCpan['netmhcpan'], '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                    cmd = [netMHCpan['netmhcpan'], '-l', str(n).split('.')[0], '-a', ','.join(hlasnormed), '-f', inFile[n]]
                 else:
-                    cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                    cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n).split('.')[0], '-a', ','.join(hlasnormed), '-f', inFile[n]]
                 netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
                 netMHC_run.wait()
         else:
