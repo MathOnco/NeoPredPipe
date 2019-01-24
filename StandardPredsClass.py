@@ -86,7 +86,7 @@ class StandardPreds:
             ba = float(tmpLine[len(tmpLine)-2])
             refall = tmpLine[4]
             altall = tmpLine[5]
-            if ba <= 500.0 and refall!='-' and altall!='-' and novel==1:
+            if ba <= 500.0 and novel==1:
                 dataOut.append('\t'.join(line))
 
         if os.path.isfile(self.filename.replace('.unfiltered.txt','.filtered.txt'))==False:
@@ -281,7 +281,7 @@ class StandardPreds:
         # print(len(list(set(test))))
         return(outDict)
 
-    def BuildFinalTable(self):
+    def BuildFinalTable(self, indels=False):
         '''
         Constructs the final table needed for the recognition potential calculations.
 
@@ -294,7 +294,8 @@ class StandardPreds:
         else:
             pass
 
-        wildtypeDict = self.__buildwildtypedict()
+        if indels==False:
+            wildtypeDict = self.__buildwildtypedict()
 
         tableLines = []
         count = 1
@@ -309,16 +310,18 @@ class StandardPreds:
 
             mutKey = ','.join([sample,frame,hla,str(i),str(len(mutpeptide))])
 
-            # Get wildtype info
-            wtPred = wildtypeDict[mutKey]
+            if indels==False:
+                # Get wildtype info
+                wtPred = wildtypeDict[mutKey]
+                # Check if HLAs match and that the peptide only has one difference in AA
+                assert wtPred.split('\t')[2]==hla,"ERROR: HLA types do not match."
+                alignDiff = [1 for i in range(0,len(mutpeptide)) if mutpeptide[i] != wtPred.split('\t')[3][i]]
+                assert len(alignDiff)==1,"ERROR: Mismatched peptides between Wild Type and Mutant."
 
-
-            # Check if HLAs match and that the peptide only has one difference in AA
-            assert wtPred.split('\t')[2]==hla,"ERROR: HLA types do not match."
-            alignDiff = [1 for i in range(0,len(mutpeptide)) if mutpeptide[i] != wtPred.split('\t')[3][i]]
-            assert len(alignDiff)==1,"ERROR: Mismatched peptides between Wild Type and Mutant."
-
-            wtscore, wtpeptide = wtPred.split('\t')[13], wtPred.split('\t')[3]
+                wtscore, wtpeptide = wtPred.split('\t')[13], wtPred.split('\t')[3]
+            else:
+                wtscore = "1000.0"
+                wtpeptide = "-"
 
             # Get the HLAs for this sample
             lineHLAs = '"' + ','.join([sampleHLA.replace("HLA-","").replace("*","").replace(":","") for sampleHLA in self.hlas[sample]]) + '"'
@@ -328,6 +331,8 @@ class StandardPreds:
             count += 1
             tableLines.append(lineOut)
 
+        if indels:
+            print("INFO: Wild-type affinity values for indels are fixed to %s."%wtscore)
         self.WTandMTtable = tableLines
 
     def SetChopScore(self, chopscores):
@@ -390,8 +395,6 @@ class StandardPreds:
                 with open(outputFile, 'w') as usrOut:
                     for entry in sample_epitopes[sample]:
                         entry = entry.split('\t')
-                        usrOut.write('|'.join(['>%s'%(sample),entry[1],'WT',entry[0]]) + '\n')
-                        usrOut.write(entry[3] + '\n')
                         usrOut.write('|'.join(['>%s'%(sample),entry[1],'MT',entry[0]]) + '\n')
                         usrOut.write(entry[4] + '\n')
             else:
@@ -415,7 +418,7 @@ class StandardPreds:
 
         return(filename)
 
-    def _compileNeoantigens(self, neofile):
+    def _compileNeoantigens(self, neofile, indels):
         '''
         Reads and builds NeoClass class
 
@@ -437,7 +440,7 @@ class StandardPreds:
                 if nparams[7] == "NA":
                     line = f.readline()
                     continue
-                neoantigen = Neoantigen(nparams)
+                neoantigen = Neoantigen(nparams, indels)
 
                 neoantigens[neoantigen.id] = neoantigen
                 neoantigen.setA()
@@ -461,7 +464,7 @@ class StandardPreds:
 
         outFile = Options.neorecoOut # Will output to working directory if no output directory specified
 
-        [neoantigens, samples] = self._compileNeoantigens(neofile)
+        [neoantigens, samples] = self._compileNeoantigens(neofile, Options.Indels)
 
         aligner = Aligner()
 
@@ -473,9 +476,14 @@ class StandardPreds:
 
         aligner.computeR(a, k)
 
-        with open(Options.neorecoOut + "PredictedRecognitionPotentials.txt", "w") as outFile:
+        if Options.Indels:
+            outputFile = "PredictedRecognitionPotentials.Indels"
+        else:
+            outputFile = "PredictedRecognitionPotentials"
+
+        with open(Options.neorecoOut + outputFile + ".txt", "w") as outFile:
             header = ["NeoantigenID", "Mutation", "Sample", "MutatedPeptide", "ResidueChangeClass", "MutantPeptide",
-                      "WildtypePeptide", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
+                      "WildtypePeptide", "HLA", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
             header = "\t".join(header)
             outFile.write(header+'\n')
             for neo in neoantigens:
@@ -496,7 +504,7 @@ class StandardPreds:
 
                 fitnessCost = A * R * w
 
-                l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, A,
+                l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, neoantigen.allele, A,
                      R, 1 - w, fitnessCost]  # , neoAlignment, epitopeAlignment, score, species]
                 l = "\t".join(map(lambda s: str(s), l))
                 outFile.write(l+'\n')

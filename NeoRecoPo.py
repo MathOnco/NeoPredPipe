@@ -21,6 +21,7 @@ from StandardPredsClass import StandardPreds
 def Parser():
     # get user variables
     parser = argparse.ArgumentParser()
+    parser.add_argument("-id", "--indel", dest="Indels", default=False, action='store_true', help="Treat inputted antigen predictions as indels/frameshifts. Wild-type peptide sequences will not be used for RecognitionPotential calculation.")
     parser.add_argument("-d", "--dirty", dest="Dirty", default=True, action='store_false', help="Flag to keep intermediate files. Default: False. Note: Use for debugging.")
     parser.add_argument("-o", '--neoreco_out', dest="neorecoOut", default="", type=str, help="Output Directory.")
     parser.add_argument("-a", '--midpoint', dest='a', default=26.0, type=float, help="Midpoint parameter of the logistic function, alignment score threshold.")
@@ -74,10 +75,14 @@ def main():
     Config = configparser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     Options = Parser()
-    if Options.neorecoOut != "":
-        tmpOut = '%sNeoRecoTMP/' % (Options.neorecoOut)
+    if Options.Indels:
+        tmpFolderName = "NeoRecoTMPIndels"
     else:
-        tmpOut = '%s%sNeoRecoTMP/' % (Options.neorecoOut, localpath)
+        tmpFolderName = "NeoRecoTMP"
+    if Options.neorecoOut != "":
+        tmpOut = '%s%s/' % (Options.neorecoOut, tmpFolderName)
+    else:
+        tmpOut = '%s%s%s/' % (Options.neorecoOut, localpath, tmpFolderName)
 
     netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
     blastp = ConfigSectionMap(Config.sections()[3], Config)['blastp'] # Get blastp from usr_paths file.
@@ -89,19 +94,21 @@ def main():
     if os.path.isfile(pickleFile) == False:
         preds = StandardPreds(Options) # Create instance of StandardPreds Class
         preds.load() # Load the neoantigen predictions data
-        preds.ConstructWTFastas()
-        preds.GetWildTypePredictions(netMHCpanPaths) # Extracts the proper WT 'neoantigen'
-        preds.BuildFinalTable()
+        if Options.Indels==False:
+            preds.ConstructWTFastas()
+            preds.GetWildTypePredictions(netMHCpanPaths) # Extracts the proper WT 'neoantigen'
+
+        preds.BuildFinalTable(Options.Indels)
         with open(pickleFile, 'wb') as outPickle:
             pickle.dump(preds, outPickle)
     else:
         print("INFO: Temporary class file found (neorecopo.p), loading previously processed data.")
         with open(pickleFile,'rb') as inPickle:
             preds = pickle.load(inPickle)
-            if preds.wildtypePreds is None:
+            if preds.wildtypePreds is None and Options.Indels==False:
                 preds.GetWildTypePredictions(netMHCpanPaths)
             elif preds.WTandMTtable is None:
-                preds.BuildFinalTable()
+                preds.BuildFinalTable(Options.Indels)
             else:
                 pass
 
