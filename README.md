@@ -91,6 +91,7 @@ Post Processing Options:
 1. VCF file. A standard vcf file with a patient identifier as the title of the .vcf.
 2. An hla file with the following tab delimited format:
    - Note, patient identifier in the rows must match that preceding *.vcf
+   - Patient identifier and HLA types should be separated by tabulators.
    - Headers are not required but the data should match the format in the table.
    - 'NA' is used when the HLA typing predicts the same HLA subtype for A, B, or C.
    - The program will search for the appropriate allele within netMHCpan alleles list, but care should be taken to ensure accuracy.
@@ -177,3 +178,4 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 4. The above two files are reported separately for single nucleotide changes and indels (and/or other genetic alterations resulting in more than 1 amino acid change).
 - _ExperimentName_.neoantigens.txt and _ExperimentName_.neoantigens.summarytable.txt contain single amino acid changes.
 -_ExperimentName_.neoantigens.Indels.txt and _ExperimentName_.neoantigens.Indels.summarytable.txt contain neoantigen information arising from indel/frameshift/stop-loss events.
+
