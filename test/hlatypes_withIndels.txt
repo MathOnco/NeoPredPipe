@@ -1,0 +1,2 @@
+Patient	HLA-A_1	HLA-A_2	HLA-B_1	HLA-B_2	HLA-C_1	HLA-C_2
+Test_withIndels	hla_a_74_01	hla_a_02_01_01_01	hla_b_52_01_02	hla_b_58_02	hla_c_16_01_01	hla_c_02_10

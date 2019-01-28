@@ -16,6 +16,7 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
    - ANNOVAR hg19_refGeneMrna
    - Other reference builds can be used. Simply change the usr_path.ini file to the appropriate reference (see below).
      - Make sure to use the same one used to call variants.
+   - **NOTE: For indel predictions, we highly recommend to use the latest (2018-04-16) release of ANNOVAR, as earlier versions do not provide the appropriate support for protein-elongating frameshift mutations.**
 4. netMHCpan
    - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
    - Follow their steps for installation on your platform.
@@ -23,6 +24,7 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
    - Requires Java.
    - The runnable jar is available [here](https://research.bioinformatics.udel.edu/peptidematch/commandlinetool.jsp).
    - Download a reference protein sequence in fasta format (e.g. from [Ensembl](ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/pep/) or [UniProt](ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/)) and index it according to the Tutorial.
+   - **We advise the use of PeptideMatch for indel predictions,to filter out non-frameshift peptides and peptides that are novel to the genomic location, but coincidentally exists elsewhere.**
 
 ## Installing and preparing environment
 1. Clone the repository:
@@ -163,7 +165,7 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 |  Pat1 |  72 |  72 |  0 |
 |  Pat2 |  33 |  23 |  10 |
 
-4. If multiple regions are specified then the output will look as follows (scroll left or right to view all):
+3. If multiple regions are specified then the output will look as follows (scroll left or right to view all):
    - For cases of multiregion samples, the same information for totals are given, but also for each region in the vcf.
    - Heterogeneity (e.g. clonal, subclonal, and shared) information is also measured and printed out. This yields counts of clonal subclonal and shared.
      - For _shared_ neoantigens there must be >2 regions present, otherwise shared will be 0. **This pipeline can handle samples with different numbers of regions**.
@@ -173,4 +175,7 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 | test1 | 86 | 65 | 21 | 48 | 51 | 0 | 36 | 40 | 0 | 12 | 11 | 0 | 13 | 73 | 0 | 11 | 2 | 54 | 19 | 0 | 0 |
 | test2 | 86 | 66 | 20 | 57 | 43 | 0 | 46 | 30 | 0 | 11 | 13 | 0 | 14 | 72 | 0 | 10 | 4 | 56 | 16 | 0 | 0 |
 
-#### Important note. The inclusion of indels is still being fully evaluated. Full support for neoantigen prediction for indels will be integrated as an option at a later time. Currently all indels are filtered out before passed on to netMHCpan for binding prediction.
+4. The above two files are reported separately for single nucleotide changes and indels (and/or other genetic alterations resulting in more than 1 amino acid change).
+- _ExperimentName_.neoantigens.txt and _ExperimentName_.neoantigens.summarytable.txt contain single amino acid changes.
+-_ExperimentName_.neoantigens.Indels.txt and _ExperimentName_.neoantigens.Indels.summarytable.txt contain neoantigen information arising from indel/frameshift/stop-loss events.
+

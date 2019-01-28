@@ -99,7 +99,7 @@ def ReformatFasta(inFile):
 
     return(newFasta)
 
-def ExtractSeq(seq_record, pos, n):
+def ExtractSeq(seq_record, pos, n, frameshift=False):
     '''
     Extracts the proper range of amino acids from the sequence and the epitope length
 
@@ -115,6 +115,13 @@ def ExtractSeq(seq_record, pos, n):
         miniseq = seq[pos - (n - 1):len(seq)]
     else:
         miniseq = seq[pos-(n-1):pos+(n)]
+
+    if frameshift:
+        if pos<n:
+            miniseq = seq[0:len(seq)] # When start is not n away from pos, we go until the end of the sequence
+        else:
+            miniseq = seq[pos-(n-1):len(seq)] # All other cases, we still go until the end of the sequence
+
     return(miniseq)
 
 def MakeTempFastas(inFile, epitopeLens):
@@ -126,27 +133,40 @@ def MakeTempFastas(inFile, epitopeLens):
     :return: Not sure yet.
     '''
     eps = {n: 0 for n in epitopeLens}
+    epsIndels = {n: 0 for n in epitopeLens}
     for n in epitopeLens:
         mySeqs = []
+        mySeqsIndels = []
         for seq_record in SeqIO.parse(inFile, 'fasta'):
-            if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'from;*;to;' not in seq_record.id.lower() and 'silent' not in seq_record.id.lower() and 'fs*' not in seq_record.id.lower() and 'ins' not in seq_record.id.lower() and 'del' not in seq_record.id.lower():
+            if 'wildtype' not in seq_record.id.lower() and 'immediate-stopgain' not in seq_record.id.lower() and 'silent' not in seq_record.id.lower():
                 # TODO: Add a regex expression to extract the position since it's variable with versions of ANNOVAR
                 # TODO: Regex code for this might be r"\w*((?i)position;\d+;(?-i))\W*"
                 try:
-                    pos = int(seq_record.id.replace(";;",";").split(";")[5])-1
+                    pos = int(seq_record.id.replace(";;",";").split(";")[5].split('-')[0])-1
                 except ValueError:
-                    pos = int(seq_record.id.replace(";;",";").split(";")[6])-1
+                    pos = int(seq_record.id.replace(";;",";").split(";")[6].split('-')[0])-1
 
-                miniseq = ExtractSeq(seq_record, pos, n)
-                mySeqs.append(">"+seq_record.id+"\n"+miniseq+"\n")
+                if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower() or 'from;*;to;' in seq_record.id.lower(): #if mutation is potentially frameshift
+                    miniseq = ExtractSeq(seq_record, pos, n, True) # flag for frameshift
+                    mySeqsIndels.append(">"+seq_record.id[0:100]+"\n"+miniseq+"\n")
+                else:
+                    miniseq = ExtractSeq(seq_record, pos, n)
+                    mySeqs.append(">"+seq_record.id+"\n"+miniseq+"\n")
+
         eps[n] = mySeqs
+        epsIndels[n] = mySeqsIndels
 
     tmpFiles = {}
     for n in epitopeLens:
         tmpFasta = inFile.replace(".reformat.fasta",".tmp.%s.fasta"%(n))
+        tmpFastaIndels = inFile.replace(".reformat.fasta",".tmp.%s.Indels.fasta"%(n))
         tmpFiles.update({n:tmpFasta})
+        tmpFiles.update({str(n)+'.Indels':tmpFastaIndels})
         with open(tmpFasta, 'w') as outFile:
             for line in eps[n]:
+                outFile.write(line)
+        with open(tmpFastaIndels, 'w') as outFile:
+            for line in epsIndels[n]:
                 outFile.write(line)
 
     return(tmpFiles)
@@ -220,16 +240,16 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
         checks[n]=k
 
     epcalls = []
-    for n in epitopeLens:
+    for n in inFile:
         if checks[n] > 0:
             output_file = 'tmp/%s.epitopes.%s.txt' % (patName, n)
             epcalls.append(output_file)
             with open(output_file, 'a') as epitope_pred:
                 print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
                 if ELpred:
-                    cmd = [netMHCpan['netmhcpan'], '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                    cmd = [netMHCpan['netmhcpan'], '-l', str(n).split('.')[0], '-a', ','.join(hlasnormed), '-f', inFile[n]]
                 else:
-                    cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n), '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                    cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n).split('.')[0], '-a', ','.join(hlasnormed), '-f', inFile[n]]
                 netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
                 netMHC_run.wait()
         else:

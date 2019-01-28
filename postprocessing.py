@@ -11,7 +11,7 @@ from collections import OrderedDict
 import subprocess
 import re
 
-def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
+def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=False):
     '''
     Filters the resulting file and strips all information within it down to individual calls.
 
@@ -23,8 +23,15 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
     # output_file = "%s%s.digested.txt" % (FilePath, toDigest[0].split('/')[len(toDigest[0].split('/')) - 1].split('.epitopes.')[0])
 
     lines = []
-    pmInputFile = 'tmp/'+patName+'.epitopes.peptidematch.input'
-    pmInput = open(pmInputFile,'w')
+    if indels:
+        pmInputFile = 'tmp/'+patName+'.epitopes.Indels.peptidematch.input'
+        pmOutFile = 'tmp/'+patName+'.epitopes.Indels.peptidematch.out'
+    else:
+        pmInputFile = 'tmp/'+patName+'.epitopes.peptidematch.input'
+        pmOutFile = 'tmp/'+patName+'.epitopes.peptidematch.out'
+
+    pmInputDict = {}
+    pmInputLines = 0
     for epFile in toDigest:
         print("INFO: Digesting neoantigens for %s" % (patName))
         with open(epFile, 'r') as digest_in:
@@ -35,13 +42,14 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths):
                         linespl = line.split()
                         lines.append('\t'.join(linespl))
                         if checkPeptides:
-                            pmInput.write('>' + linespl[10] + ';' + linespl[2] + '\n' + linespl[2] + '\n')
+                            pep = linespl[2]
+                            pmInputDict['>'+pep] = pep
+                            pmInputLines+=1
                 except IndexError as e:
                     pass
-    pmInput.close()
-    if checkPeptides:
-        pmOutFile = 'tmp/'+patName+'.epitopes.peptidematch.out'
-        RunPepmatch(pmInputFile, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'], pmOutFile)
+                    
+    if checkPeptides and pmInputLines>0:
+        RunPepmatch(pmInputDict,pmInputFile, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'], pmOutFile)
         lines = ProcessPepmatch(pmOutFile, lines)
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))
     return(lines)
@@ -172,7 +180,11 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
     return(newLines, genoTypesPresent)
 
 
-def RunPepmatch(pmInput, pepmatchJar, refIndex, pmfileName):
+def RunPepmatch(pmInputDict, pmInput, pepmatchJar, refIndex, pmfileName):
+    with open(pmInput, 'w') as inputFile:
+        for k in pmInputDict.keys():
+            inputFile.write(k+'\n'+pmInputDict[k]+'\n')
+
     with open('logForPeptideMatch.tmp', 'a') as logFile:
         cmd = ['java', '-jar', pepmatchJar, '-a', 'query', '-i', refIndex,'-Q', pmInput, '-o', pmfileName]
         runcmd = subprocess.Popen(cmd, stdout=logFile)
@@ -185,7 +197,7 @@ def ProcessPepmatch(pmfileName, epLines):
         pmDict = {line.split('\t')[0] : line.split('\t')[1].rstrip('\n') for line in pmFile.readlines() }
     appendedLines = []
     for line in epLines:
-        epkey = line.split('\t')[10]+';'+line.split('\t')[2]
+        epkey = line.split('\t')[2]
         novel = int(pmDict[epkey]=='No match')
         appendedLines.append(line+'\t'+str(novel))
 

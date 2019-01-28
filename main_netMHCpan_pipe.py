@@ -128,8 +128,9 @@ class Sample():
         i = 0
         pepTmp = {}
         for n in Options.epitopes:
-            if os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)):
+            if os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)) and os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,str(n)+'.Indels')):
                 pepTmp.update({n:"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
+                pepTmp.update({str(n)+'.Indels':"fastaFiles/%s.tmp.%s.fasta"%(self.patID,str(n)+'.Indels')})
                 print("INFO: Tmp fasta files %s has already been created for netMHCpan length %s." % (self.patID,n))
                 i+=1
                 if i == len(Options.epitopes):
@@ -143,17 +144,35 @@ class Sample():
         for n in Options.epitopes:
             if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,n)):
                 epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,n))
-                print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
                 i += 1
-                if i == len(Options.epitopes):
-                    self.epcalls = epTmp
-        if i!=len(Options.epitopes):
+                print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
+            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels')):
+                epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels'))
+                i += 1
+                print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,str(n)+'.Indels'))
+            if i == 2*len(Options.epitopes):
+                self.epcalls = epTmp
+        if i!=2*len(Options.epitopes):
+            if i>0:
+                os.system("rm tmp/"+self.patID+".epitopes.*.txt") # if doing predictions, remove existing files to ensure double predicting happens
             self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan, Options.ELpred)
 
     def digestIndSample(self, pmPaths, Options):
         if self.epcalls != []:
-            self.digestedEpitopes = DigestIndSample(self.epcalls, self.patID, Options.checkPeptides, pmPaths)
-            self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
+            toDigestSNVs = filter(lambda y: 'Indels.txt' not in y, self.epcalls)
+            toDigestIndels = filter(lambda y: 'Indels.txt' in y, self.epcalls)
+            if toDigestSNVs != []:
+                self.digestedEpitopes = DigestIndSample(toDigestSNVs, self.patID, Options.checkPeptides, pmPaths)
+                self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
+            else:
+                self.appendedEpitopes = None
+                self.regionsPresent = None
+            if toDigestIndels != []:
+                self.digestedEpitopesIndels = DigestIndSample(toDigestIndels, self.patID, Options.checkPeptides, pmPaths, True)
+                self.appendedEpitopesIndels, self.regionsPresentIndels = AppendDigestedEps(self.digestedEpitopesIndels, self.patID, self.annotationReady, self.avReadyFile, Options)
+            else:
+                self.appendedEpitopesIndels = None
+                self.regionsPresentIndels = None
 
 def PrepClasses(FilePath, Options):
     if Options.vcfdir[len(Options.vcfdir)-1] != "/":
@@ -204,41 +223,53 @@ def PrepClasses(FilePath, Options):
 
     return(allFiles, hlas)
 
-def FinalOut(sampleClasses, pepmatchPaths, Options):
+def FinalOut(sampleClasses, Options, indelProcess=False):
     if Options.OutputDir[len(Options.OutputDir)-1]=="/":
         pass
     else:
         Options.OutputDir = Options.OutputDir + "/"
 
-    if Options.includeall:
-        outFile = Options.OutputDir + Options.outName + ".neoantigens.unfiltered.txt"
+    if indelProcess:
+        epitopesToProcess = 'appendedEpitopesIndels' #Process this special set of predicted epitopes
+        regionsToProcess = 'regionsPresentIndels'
+        filePostFix = '.neoantigens.Indels'
     else:
-        outFile = Options.OutputDir + Options.outName + ".neoantigens.txt"
+        epitopesToProcess = 'appendedEpitopes'
+        regionsToProcess = 'regionsPresent'
+        filePostFix = '.neoantigens'
 
-    outTable = Options.OutputDir + Options.outName + ".neoantigens.summarytable.txt"
+    if Options.includeall:
+        outFile = Options.OutputDir + Options.outName + filePostFix + ".unfiltered.txt"
+    else:
+        outFile = Options.OutputDir + Options.outName + filePostFix + ".txt"
+
+    outTable = Options.OutputDir + Options.outName + filePostFix + ".summarytable.txt"
 
     summaryTable = []
     with open(outFile, 'w') as pentultimateFile:
         if Options.includeall==True:
             for i in range(0, len(sampleClasses)):
-                if sampleClasses[i].appendedEpitopes is not None:
+                appendedEps = getattr(sampleClasses[i],epitopesToProcess)
+                if appendedEps is not None:
 
-                    pentultimateFile.write('\n'.join(sampleClasses[i].appendedEpitopes) + '\n')
+                    pentultimateFile.write('\n'.join(appendedEps) + '\n')
 
-                    for line in sampleClasses[i].appendedEpitopes:
+                    for line in appendedEps:
                         if '<=' in line:
                             summaryTable.append(line)
         else:
             for i in range(0, len(sampleClasses)):
-                if sampleClasses[i].appendedEpitopes is not None:
-                    for line in sampleClasses[i].appendedEpitopes:
+                appendedEps = getattr(sampleClasses[i],epitopesToProcess)
+                if appendedEps is not None:
+                    for line in appendedEps:
                         if '<=' in line:
                             pentultimateFile.write(line+"\n")
                             summaryTable.append(line)
 
     summaries = {}
     for z in range(0, len(sampleClasses)):
-        if sampleClasses[z].appendedEpitopes is not None:
+        appendedEps = getattr(sampleClasses[z],epitopesToProcess)
+        if appendedEps is not None:
             total_count=0
             wbind=0
             sbind=0
@@ -258,16 +289,16 @@ def FinalOut(sampleClasses, pepmatchPaths, Options):
                 Wshared = 0
                 Sshared = 0
 
-                regionsPesent = sampleClasses[z].regionsPresent
+                regionsPesent = getattr(sampleClasses[z],regionsToProcess)
                 overallRegions = Counter(regionsPesent)
 
-            for line in sampleClasses[z].appendedEpitopes:
+            for line in appendedEps:
                 # Counter to assess clonality of neoantigen
                 r = 0
                 rw = 0
                 rs = 0
 
-                if '<=' in line:
+                if '<=' in line and not (Options.checkPeptides and line[-1]=='0'):
                     total_count+=1
                     if Options.colRegions is not None:
                         regions = [int(g) for g in line.split('\t')[1:len(Options.colRegions) + 1]]
@@ -451,7 +482,8 @@ def main():
         print("INFO: Preprocessed intermediary files are in avready, avannotated and fastaFiles. If you wish to perform epitope prediction, run the pipeline again without the --preponly flag, intermediary files will be automatically detected.")
     else:
         if Options.postprocess:
-            FinalOut(t, pepmatchPaths, Options)
+            FinalOut(t, Options)
+            FinalOut(t, Options, True)
             print("INFO: Complete")
         else:
             print("INFO: Complete")
