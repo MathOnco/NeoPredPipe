@@ -42,6 +42,7 @@ class StandardPreds:
     def load(self):
         '''
         Loads the data class of neoantigen predictions to get the right information.
+
         :return: None
         '''
         with open(self.filename, 'r') as inFile:
@@ -66,6 +67,7 @@ class StandardPreds:
     def __ensureFiltered(self, data):
         '''
         Ensures that neoantigens are <= 500nM binding affinity based on predictions.
+
         :param data: lines from the input file.
         :return: filtered lines
         '''
@@ -120,6 +122,7 @@ class StandardPreds:
     def __prepWildtypeFastas(self, tmpDir):
         '''
         Removes and creates new fasta files for the wildtypes. Simple file I/O function.
+
         :param epitopeLengths: Lengths of epitopes for each sample.
         :param tmpDir: Directory where tempoorary files are stored
         :return: A list of all of the fasta files.
@@ -139,6 +142,7 @@ class StandardPreds:
     def __addToFastaFile(self):
         '''
         Gets the sequence for the wildtype counterpart for the mutant.
+
         :return:
         '''
         for k, neo in enumerate(self.filteredPreds):
@@ -192,6 +196,7 @@ class StandardPreds:
         for the corresponding mut. Once completed, this is then put into a tmp file for predictions on only the WT
         were the MUT is a predicted neoantigen.
         Holds the following: recordsToGet which is a dictionary with sample : {index of neoantigen : identifier}}
+
         :netMHCpan: Variable containing the paths loaded from config for netMHCpan
         :return: None, it sets the StandardPreds wildtypePreds variable
         '''
@@ -230,6 +235,7 @@ class StandardPreds:
     def __extractSeq(self, sample, identifier, epitopeLength):
         '''
         Extracts the sequence from the *.tmp.epi.fasta file and reverts the sequence back.
+
         :return: the wildtype sequence and header
         '''
         WT = []
@@ -261,6 +267,7 @@ class StandardPreds:
     def __buildwildtypedict(self):
         '''
         Constructs a dictionary for wildtype predictions to be extracted from to check for a match
+
         :return: a dictionary of wildtype predictions to extract from
         '''
         outDict = {}
@@ -277,6 +284,7 @@ class StandardPreds:
     def BuildFinalTable(self, indels=False):
         '''
         Constructs the final table needed for the recognition potential calculations.
+
         :return: a list of data needed for the neoantigen recognition potential.
         '''
         # Header for the table is as follows:
@@ -330,6 +338,7 @@ class StandardPreds:
     def SetChopScore(self, chopscores):
         '''
         Adds chopscores for the final input if so desired. Data structure must be a list that matches the indices of StandardPreds.filteredPreds
+
         :param chopscores: List of integer or floats that match the indices of StandardPreds.filteredPreds
         :return: None, it sets StandardPreds.chop_scores
         '''
@@ -342,6 +351,7 @@ class StandardPreds:
         '''
         Performs alignments from IEDB sequences and predicted neoantigens. It constructs xml files that are stored in
         the temporary directory.
+
         :param blastp: usr_paths.ini executable for NCBI's blastp
         :param outputDir: temporary directory where blastp xml result files are stored.
         :return: None. It sets self.blastpResults to a list of xml files for each patient.
@@ -366,6 +376,7 @@ class StandardPreds:
     def PrepBlastPFastaFiles(self, outputDir):
         '''
         Constructs a fasta file for each patients neoantigens MUT and corresponding WT epitopes to feed into blast.
+
         :param outputDir: Directory that houses the NeoReco information.
         :return: None. It sets self.ReadyForBlastpFastas equal to the  Fasta file for each of the patients.
         '''
@@ -394,6 +405,7 @@ class StandardPreds:
     def _buildNeoFile(self, tmpDir):
         '''
         Writes the neoantigen table for the calculations of the neoantigen recognition potential. Writes the information to the tmp directory.
+
         :param tmpDir: Directory housing the temporary files.
         :return: None
         '''
@@ -409,6 +421,7 @@ class StandardPreds:
     def _compileNeoantigens(self, neofile, indels):
         '''
         Reads and builds NeoClass class
+
         :param neofile: File constructed with _buildNeoFile
         :return: neoantigens, samples
         '''
@@ -439,6 +452,7 @@ class StandardPreds:
     def PerformCalculations(self, tmpDir, Options):
         '''
         Main orchestration for performing the neoantigen recognition potential.
+
         :param tmpDir: Directory of the temporary files
         :param Options: Config class holding the outputdir and parameters for a and k
         :return: None. Writes the final output.

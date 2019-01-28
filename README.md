@@ -179,4 +179,3 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 - _ExperimentName_.neoantigens.txt and _ExperimentName_.neoantigens.summarytable.txt contain single amino acid changes.
 -_ExperimentName_.neoantigens.Indels.txt and _ExperimentName_.neoantigens.Indels.summarytable.txt contain neoantigen information arising from indel/frameshift/stop-loss events.
 
-
