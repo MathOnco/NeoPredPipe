@@ -42,7 +42,6 @@ class StandardPreds:
     def load(self):
         '''
         Loads the data class of neoantigen predictions to get the right information.
-
         :return: None
         '''
         with open(self.filename, 'r') as inFile:
@@ -67,7 +66,6 @@ class StandardPreds:
     def __ensureFiltered(self, data):
         '''
         Ensures that neoantigens are <= 500nM binding affinity based on predictions.
-
         :param data: lines from the input file.
         :return: filtered lines
         '''
@@ -86,7 +84,7 @@ class StandardPreds:
             ba = float(tmpLine[len(tmpLine)-2])
             refall = tmpLine[4]
             altall = tmpLine[5]
-            if ba <= 500.0 and refall!='-' and altall!='-' and novel==1:
+            if ba <= 500.0 and novel==1:
                 dataOut.append('\t'.join(line))
 
         if os.path.isfile(self.filename.replace('.unfiltered.txt','.filtered.txt'))==False:
@@ -122,7 +120,6 @@ class StandardPreds:
     def __prepWildtypeFastas(self, tmpDir):
         '''
         Removes and creates new fasta files for the wildtypes. Simple file I/O function.
-
         :param epitopeLengths: Lengths of epitopes for each sample.
         :param tmpDir: Directory where tempoorary files are stored
         :return: A list of all of the fasta files.
@@ -142,7 +139,6 @@ class StandardPreds:
     def __addToFastaFile(self):
         '''
         Gets the sequence for the wildtype counterpart for the mutant.
-
         :return:
         '''
         for k, neo in enumerate(self.filteredPreds):
@@ -196,7 +192,6 @@ class StandardPreds:
         for the corresponding mut. Once completed, this is then put into a tmp file for predictions on only the WT
         were the MUT is a predicted neoantigen.
         Holds the following: recordsToGet which is a dictionary with sample : {index of neoantigen : identifier}}
-
         :netMHCpan: Variable containing the paths loaded from config for netMHCpan
         :return: None, it sets the StandardPreds wildtypePreds variable
         '''
@@ -235,7 +230,6 @@ class StandardPreds:
     def __extractSeq(self, sample, identifier, epitopeLength):
         '''
         Extracts the sequence from the *.tmp.epi.fasta file and reverts the sequence back.
-
         :return: the wildtype sequence and header
         '''
         WT = []
@@ -267,7 +261,6 @@ class StandardPreds:
     def __buildwildtypedict(self):
         '''
         Constructs a dictionary for wildtype predictions to be extracted from to check for a match
-
         :return: a dictionary of wildtype predictions to extract from
         '''
         outDict = {}
@@ -281,10 +274,9 @@ class StandardPreds:
         # print(len(list(set(test))))
         return(outDict)
 
-    def BuildFinalTable(self):
+    def BuildFinalTable(self, indels=False):
         '''
         Constructs the final table needed for the recognition potential calculations.
-
         :return: a list of data needed for the neoantigen recognition potential.
         '''
         # Header for the table is as follows:
@@ -294,7 +286,8 @@ class StandardPreds:
         else:
             pass
 
-        wildtypeDict = self.__buildwildtypedict()
+        if indels==False:
+            wildtypeDict = self.__buildwildtypedict()
 
         tableLines = []
         count = 1
@@ -309,16 +302,18 @@ class StandardPreds:
 
             mutKey = ','.join([sample,frame,hla,str(i),str(len(mutpeptide))])
 
-            # Get wildtype info
-            wtPred = wildtypeDict[mutKey]
+            if indels==False:
+                # Get wildtype info
+                wtPred = wildtypeDict[mutKey]
+                # Check if HLAs match and that the peptide only has one difference in AA
+                assert wtPred.split('\t')[2]==hla,"ERROR: HLA types do not match."
+                alignDiff = [1 for i in range(0,len(mutpeptide)) if mutpeptide[i] != wtPred.split('\t')[3][i]]
+                assert len(alignDiff)==1,"ERROR: Mismatched peptides between Wild Type and Mutant."
 
-
-            # Check if HLAs match and that the peptide only has one difference in AA
-            assert wtPred.split('\t')[2]==hla,"ERROR: HLA types do not match."
-            alignDiff = [1 for i in range(0,len(mutpeptide)) if mutpeptide[i] != wtPred.split('\t')[3][i]]
-            assert len(alignDiff)==1,"ERROR: Mismatched peptides between Wild Type and Mutant."
-
-            wtscore, wtpeptide = wtPred.split('\t')[13], wtPred.split('\t')[3]
+                wtscore, wtpeptide = wtPred.split('\t')[13], wtPred.split('\t')[3]
+            else:
+                wtscore = "1000.0"
+                wtpeptide = "-"
 
             # Get the HLAs for this sample
             lineHLAs = '"' + ','.join([sampleHLA.replace("HLA-","").replace("*","").replace(":","") for sampleHLA in self.hlas[sample]]) + '"'
@@ -328,12 +323,13 @@ class StandardPreds:
             count += 1
             tableLines.append(lineOut)
 
+        if indels:
+            print("INFO: Wild-type affinity values for indels are fixed to %s."%wtscore)
         self.WTandMTtable = tableLines
 
     def SetChopScore(self, chopscores):
         '''
         Adds chopscores for the final input if so desired. Data structure must be a list that matches the indices of StandardPreds.filteredPreds
-
         :param chopscores: List of integer or floats that match the indices of StandardPreds.filteredPreds
         :return: None, it sets StandardPreds.chop_scores
         '''
@@ -346,7 +342,6 @@ class StandardPreds:
         '''
         Performs alignments from IEDB sequences and predicted neoantigens. It constructs xml files that are stored in
         the temporary directory.
-
         :param blastp: usr_paths.ini executable for NCBI's blastp
         :param outputDir: temporary directory where blastp xml result files are stored.
         :return: None. It sets self.blastpResults to a list of xml files for each patient.
@@ -371,7 +366,6 @@ class StandardPreds:
     def PrepBlastPFastaFiles(self, outputDir):
         '''
         Constructs a fasta file for each patients neoantigens MUT and corresponding WT epitopes to feed into blast.
-
         :param outputDir: Directory that houses the NeoReco information.
         :return: None. It sets self.ReadyForBlastpFastas equal to the  Fasta file for each of the patients.
         '''
@@ -390,8 +384,6 @@ class StandardPreds:
                 with open(outputFile, 'w') as usrOut:
                     for entry in sample_epitopes[sample]:
                         entry = entry.split('\t')
-                        usrOut.write('|'.join(['>%s'%(sample),entry[1],'WT',entry[0]]) + '\n')
-                        usrOut.write(entry[3] + '\n')
                         usrOut.write('|'.join(['>%s'%(sample),entry[1],'MT',entry[0]]) + '\n')
                         usrOut.write(entry[4] + '\n')
             else:
@@ -402,7 +394,6 @@ class StandardPreds:
     def _buildNeoFile(self, tmpDir):
         '''
         Writes the neoantigen table for the calculations of the neoantigen recognition potential. Writes the information to the tmp directory.
-
         :param tmpDir: Directory housing the temporary files.
         :return: None
         '''
@@ -415,10 +406,9 @@ class StandardPreds:
 
         return(filename)
 
-    def _compileNeoantigens(self, neofile):
+    def _compileNeoantigens(self, neofile, indels):
         '''
         Reads and builds NeoClass class
-
         :param neofile: File constructed with _buildNeoFile
         :return: neoantigens, samples
         '''
@@ -437,7 +427,7 @@ class StandardPreds:
                 if nparams[7] == "NA":
                     line = f.readline()
                     continue
-                neoantigen = Neoantigen(nparams)
+                neoantigen = Neoantigen(nparams, indels)
 
                 neoantigens[neoantigen.id] = neoantigen
                 neoantigen.setA()
@@ -449,7 +439,6 @@ class StandardPreds:
     def PerformCalculations(self, tmpDir, Options):
         '''
         Main orchestration for performing the neoantigen recognition potential.
-
         :param tmpDir: Directory of the temporary files
         :param Options: Config class holding the outputdir and parameters for a and k
         :return: None. Writes the final output.
@@ -461,7 +450,7 @@ class StandardPreds:
 
         outFile = Options.neorecoOut # Will output to working directory if no output directory specified
 
-        [neoantigens, samples] = self._compileNeoantigens(neofile)
+        [neoantigens, samples] = self._compileNeoantigens(neofile, Options.Indels)
 
         aligner = Aligner()
 
@@ -473,9 +462,14 @@ class StandardPreds:
 
         aligner.computeR(a, k)
 
-        with open(Options.neorecoOut + "PredictedRecognitionPotentials.txt", "w") as outFile:
+        if Options.Indels:
+            outputFile = "PredictedRecognitionPotentials.Indels"
+        else:
+            outputFile = "PredictedRecognitionPotentials"
+
+        with open(Options.neorecoOut + outputFile + ".txt", "w") as outFile:
             header = ["NeoantigenID", "Mutation", "Sample", "MutatedPeptide", "ResidueChangeClass", "MutantPeptide",
-                      "WildtypePeptide", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
+                      "WildtypePeptide", "HLA", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
             header = "\t".join(header)
             outFile.write(header+'\n')
             for neo in neoantigens:
@@ -496,7 +490,7 @@ class StandardPreds:
 
                 fitnessCost = A * R * w
 
-                l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, A,
+                l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, neoantigen.allele, A,
                      R, 1 - w, fitnessCost]  # , neoAlignment, epitopeAlignment, score, species]
                 l = "\t".join(map(lambda s: str(s), l))
                 outFile.write(l+'\n')
