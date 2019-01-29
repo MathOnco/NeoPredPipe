@@ -22,6 +22,10 @@ class MyTestCase(unittest.TestCase):
         line_nv = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tMQ;badReads\tAC=5;AF=0.500;AN=10;BRF=0.97;FR=0.4556;HP=6;HapScore=2;MGOF=39;MMLQ=26;MQ=0.36;NF=4;NR=2;PP=111;QD=24.2952020912;SC=CAGATAGTGGAGGGGCTTACA;SbPval=0.65;Source=Platypus;TC=14;TCF=10;TCR=4;TR=6;WE=621651;WS=621636;set=FilteredInAll\tGT:GOF:GQ:NR:NV:PL\t0/1:4:15:2:1:33,0,15"
         self.assertEqual(('numvarreads', 4), DefineGenotypeFormat(line_nv))
 
+    def test_genotypeformat_freq(self):
+        line_freq = testLine = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tECNT=1;HCNT=22;MAX_ED=.;MIN_ED=.;NLOD=27.62;TLOD=10.35\tGT:GQ:DP:RD:AD:FREQ:DP4\t0/0:.:21:21:0:0%:20,1,0,0\t0/1:.:28:23:5:17.86%:22,1,5,0"
+        self.assertEqual(('varscanfreq',5), DefineGenotypeFormat(line_freq))
+
     def test_read_in_pepmatch(self):
         pmfileName = 'test/Test_pepmatch.out'
         eplines = ['6\tHLA-C*07:02\tTLASKITGM\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline195_NM_0025\t0.1744960\t1.6035',
