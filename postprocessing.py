@@ -97,11 +97,14 @@ def DefineGenotypeFormat(testLine):
     elif 'A' in formatInfo: #alleles found in sample
         genotypeIndex = formatInfo.index('A')
         genotypeFormat = 'allele'
+    elif 'FREQ' in formatInfo: #varscan2 allele frequency
+        genotypeIndex = formatInfo.index('FREQ')
+        genotypeFormat = 'varscanfreq'
     elif 'AD' in formatInfo: #allele depth info for each allele in sample
         genotypeIndex = formatInfo.index('AD')
         genotypeFormat = 'alldepths'
     else:
-        print('INFO: Unknown format in VCF genotype fields, region specific information will probably be incorrect.')
+        print('INFO: Unknown format in VCF genotype fields, region specific information will be missing. See readme for supported formats.')
     return(genotypeFormat, genotypeIndex)
 
 
@@ -165,6 +168,8 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
                             present = int(int(match) > 0) #present if number of variant reads is > 0
                         if genotypeFormat == 'alldepths': #match format: 10,0 or 10,5
                             present = int(int(match.split(',')[1]) > 0) #present if depth for variant allele > 0
+                        if genotypeFormat=='varscanfreq': #match format 18.1% or 0.0%
+                            present = int(float(match.replace('%',''))>0) #present if float before % is > 0
                         genoTypes.update({'Region_%s'%(i):present})
                     genoTypesPresent.append("+")
                 else:
