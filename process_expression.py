@@ -4,8 +4,28 @@
 @author: Eszter Lakatos, e.lakatos@qmul.ac.uk & Ryan Schenck, ryan.schenck@univ.ox.ac.uk
 '''
 
-import sys
 import os
+import glob
+
+def GetExpressionFiles(Options):
+    '''
+    Fetches expression file(s) from user input
+
+    :param Options.expression: either a single expression file, or a folder containing expression files in the format <sampleX>.tsv
+    :return: filenames in
+    '''
+    if os.path.exists(Options.expression):
+        if os.path.isdir(Options.expression):
+            getFiles = Options.vcfdir + "*.vcf"
+            allExpFiles = glob.glob(Options.expression + "/*.tsv")
+        else:
+            allExpFiles = Options.expression
+    else:
+        print("WARNING: Unable to locate expression file(s), please check file path. Flag -x is ignored.")
+        allExpFiles = None
+        Options.expression = None
+
+    return(allExpFiles)
 
 def BuildGeneIDTable(idType):
     '''

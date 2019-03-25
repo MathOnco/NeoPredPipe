@@ -138,11 +138,18 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         genotypeFormat, genotypeIndex = DefineGenotypeFormat(testLine)
 
     # Load in Expression data if available
+    expTable = None
     if Options.expression is not None:
-        idType, expTable = BuildExpTable(Options.expression)
-        idTable = BuildGeneIDTable(idType)
-    else:
-        expTable = None
+        # Options.allExpFiles is either a single string or a list of filename strings
+        if isinstance(Options.allExpFiles, list):
+            sampleExpFile = filter(lambda x: '/'+patName+'.tsv' in x, Options.allExpFiles)
+        else:
+            sampleExpFile = [Options.allExpFiles]
+        if len(sampleExpFile)>0:
+            idType, expTable = BuildExpTable(sampleExpFile[0]) #take zeroth element to unlist, there should not be ambiguity
+            idTable = BuildGeneIDTable(idType)
+        else:
+            print('INFO: No expression file found for sample %s!'%(patName))
 
     newLines = []
     genoTypesPresent = []
@@ -158,13 +165,15 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         nmList = [item.split(':')[1] for item in geneList]
         genes = ','.join(geneList)
         
-        if expTable is not None:
+        if Options.expression is not None:
             geneExp = 'NA'
-            for nmId in nmList:
-                tableID = idTable[nmId]
-                if tableID in expTable.keys():
-                    geneExp = str(expTable[tableID])
-                    break
+            if expTable is not None:
+                for nmId in nmList:
+                    #convert gene ID in NeoPredPipe to geneID that is found in the exp file and query expression dictionary
+                    tableID = idTable[nmId]
+                    if tableID in expTable.keys():
+                        geneExp = str(expTable[tableID])
+                        break
             genes = '\t'.join([genes, geneExp])
 
         # Getting information from the genotype fields

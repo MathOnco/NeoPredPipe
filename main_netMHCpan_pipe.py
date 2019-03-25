@@ -18,6 +18,7 @@ from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     predict_neoantigens, ReformatFasta, MakeTempFastas, ConstructAlleles
 from postprocessing import DigestIndSample, AppendDigestedEps
+from process_expression import GetExpressionFiles
 
 def Parser():
     # get user variables
@@ -453,7 +454,6 @@ def main():
         pepmatchPaths = None
 
     Options = Parser()
-    print(Options.expression)
 
     #Check if PeptideMatch paths are provided, ignore -m if not
     if Options.checkPeptides and pepmatchPaths is None:
@@ -466,6 +466,9 @@ def main():
     # Eliminate header line and tailing empty rows
     hlas.pop('', None)
     hlas.pop('Patient', None)
+
+    if Options.expression is not None:
+        Options.allExpFiles = GetExpressionFiles(Options)
 
     assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
     if len(allFiles)>(len(hlas.keys())-1):
