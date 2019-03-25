@@ -10,6 +10,7 @@ import os
 from collections import OrderedDict
 import subprocess
 import re
+from process_expression import BuildExpTable, BuildGeneIDTable
 
 def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=False):
     '''
@@ -136,6 +137,13 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
     if Options.colRegions is not None:
         genotypeFormat, genotypeIndex = DefineGenotypeFormat(testLine)
 
+    # Load in Expression data if available
+    if Options.expression is not None:
+        idType, expTable = BuildExpTable(Options.expression)
+        idTable = BuildGeneIDTable(idType)
+    else:
+        expTable = None
+
     newLines = []
     genoTypesPresent = []
     for ep in digestedEps:
@@ -146,7 +154,18 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         pos = avReadyLine.split('\t')[1]
         ref = avReadyLine.split('\t')[3]
         alt = avReadyLine.split('\t')[4]
-        genes = ','.join([':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != ''])
+        geneList = [':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != '']
+        nmList = [item.split(':')[1] for item in geneList]
+        genes = ','.join(geneList)
+        
+        if expTable is not None:
+            geneExp = 'NA'
+            for nmId in nmList:
+                tableID = idTable[nmId]
+                if tableID in expTable.keys():
+                    geneExp = str(expTable[tableID])
+                    break
+            genes = '\t'.join([genes, geneExp])
 
         # Getting information from the genotype fields
         # Step 1: Determine the mutation location in the genotype field (based on FORMAT info/ genotype index)

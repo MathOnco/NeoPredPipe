@@ -7,6 +7,7 @@ import subprocess
 import os
 
 from postprocessing import DefineGenotypeFormat, ProcessPepmatch
+from process_expression import BuildGeneIDTable
 
 
 class MyTestCase(unittest.TestCase):
@@ -30,6 +31,15 @@ class MyTestCase(unittest.TestCase):
         line_gt = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tECNT=1;HCNT=22;MAX_ED=.;MIN_ED=.;NLOD=27.62;TLOD=10.35\tGT:IGT:DP:DP4:BCOUNT:GQ:JGQ:VAQ:BQ:MQ:AMQ:SS:SSC\t0/0:0/0:8:5,3,0,0:0,0,0,8:51:19:0:26:12:12:0:.\t0/1:0/1:7:2,3,1,1:2,0,0,5:12:19:12:31,28:20:30,15:2:19"
         self.assertEqual(('genotype',0), DefineGenotypeFormat(line_gt))
 
+    def test_build_expression_ids(self):
+        nmID = "NM_025229"
+        geneID = "ENSG00000101251"
+        transcriptID = "ENST00000284951"
+        uscsID = "uc061vme.1"
+        testTable = BuildGeneIDTable('ensembl_gene')
+        self.assertEqual( (geneID,transcriptID,uscsID), (BuildGeneIDTable('ensembl_gene')[nmID], BuildGeneIDTable('ensembl_transcript')[nmID], BuildGeneIDTable('uscs')[nmID]) )
+
+
     def test_read_in_pepmatch(self):
         pmfileName = 'test/Test_pepmatch.out'
         eplines = ['6\tHLA-C*07:02\tTLASKITGM\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline195_NM_0025\t0.1744960\t1.6035',
@@ -49,7 +59,7 @@ class MyTestCase(unittest.TestCase):
         if os.path.isfile("./test/Test_platypus.neoantigens.txt"):
             os.system("rm ./test/Test_platypus.*")
         cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
-               '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8', '-d', '-m' ]
+               '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8', '-d', '-m', '-x', './test/expression.txt' ]
         runcmd = subprocess.Popen(cmd)
         runcmd.wait()
         with open('test/Test_platypus.neoantigens.txt', 'r') as testof:
@@ -68,6 +78,12 @@ class MyTestCase(unittest.TestCase):
             oflines = testof.readlines()
        # self.assertEqual( ('0', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1])) #true for EL
         self.assertEqual( ('1', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1]))
+
+    def test_expression(self):
+        with open('test/Test_platypus.neoantigens.txt', 'r') as testof:
+            oflines = testof.readlines()
+        self.assertEqual( ('NA', '0.12'), (oflines[0].rstrip('\n').split('\t')[-18], oflines[1].rstrip('\n').split('\t')[-18]))
+
 
     def test_main_recopo(self):
         if os.path.isfile("./test/PredictedRecognitionPotentials.txt"):

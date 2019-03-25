@@ -38,11 +38,13 @@ def Parser():
     requiredNamed.add_argument("-n", dest="outName", default="AllSamples", type=str, help="Name of the output file for neoantigen predictions")
     postProcess = parser.add_argument_group('Post Processing Options')
     postProcess.add_argument("-pp", dest="postprocess", default=True, action='store_false', help="Flag to perform post processing. Default=True.")
-    postProcess.add_argument("-c", dest="colRegions", default=None, nargs="+",
+    postProcess.add_argument("-c", dest="colRegions", default=None, nargs='+',
                         help="Columns of regions within vcf that are not normal within a multiregion vcf file after the format field. Example: 0 is normal in test samples, tumor are the other columns. Program can handle different number of regions per vcf file.")
     postProcess.add_argument("-a", dest="includeall", default=False, action='store_true', help="Flag to not filter neoantigen predictions and keep all regardless of prediction value.")
     postProcess.add_argument("-m", dest="checkPeptides", default=False, action='store_true',
                              help="Specifies whether to perform check if predicted epitopes match any normal peptide. If set to True, output is added as a column to neoantigens file. Requires PeptideMatch specified in usr_paths.ini. Default=False")
+    postProcess.add_argument("-x", "--expression", dest="expression", default=None, type=str,
+                        help="RNAseq expression quantification file(s), if specified, expression information is added to output tables.")
     postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off a neoantigen burden summary table. Default=True.")
 
     Options = parser.parse_args()  # main user args
@@ -451,6 +453,8 @@ def main():
         pepmatchPaths = None
 
     Options = Parser()
+    print(Options.expression)
+
     #Check if PeptideMatch paths are provided, ignore -m if not
     if Options.checkPeptides and pepmatchPaths is None:
         print("WARNING: You chose to perform peptide match checking for epitopes, but did not provide paths for PeptideMatch. The pipeline will ignore the -m flag")
