@@ -46,6 +46,8 @@ def Parser():
                              help="Specifies whether to perform check if predicted epitopes match any normal peptide. If set to True, output is added as a column to neoantigens file. Requires PeptideMatch specified in usr_paths.ini. Default=False")
     postProcess.add_argument("-x", "--expression", dest="expression", default=None, type=str,
                         help="RNAseq expression quantification file(s), if specified, expression information is added to output tables.")
+    postProcess.add_argument("--expmulti", dest="expMultiregion", default=False, action='store_true',
+                        help="Flag to specify if expression file(s) has information on multiple regions in multiple columns. Default=False.")
     postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off a neoantigen burden summary table. Default=True.")
 
     Options = parser.parse_args()  # main user args
@@ -470,7 +472,6 @@ def main():
     # Expression related options
     if Options.expression is not None:
         Options.allExpFiles = GetExpressionFiles(Options)
-    Options.expMultiregion = False
 
     # Check VCF and HLA
     assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
