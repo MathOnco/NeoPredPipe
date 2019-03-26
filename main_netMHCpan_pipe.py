@@ -467,9 +467,12 @@ def main():
     hlas.pop('', None)
     hlas.pop('Patient', None)
 
+    # Expression related options
     if Options.expression is not None:
         Options.allExpFiles = GetExpressionFiles(Options)
+    Options.expMultiregion = False
 
+    # Check VCF and HLA
     assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
     if len(allFiles)>(len(hlas.keys())-1):
         print("WARNING: Less samples are detected in HLA file than in VCF folder. Only samples included in HLA file will be processed.")

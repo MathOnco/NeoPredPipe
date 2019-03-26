@@ -45,7 +45,7 @@ def BuildGeneIDTable(idType):
 
     return(idTable)
 
-def BuildExpTable(expFile):
+def BuildExpTable(expFile, multiregion):
     '''
     Reads in expression data into dictionary
 
@@ -66,7 +66,10 @@ def BuildExpTable(expFile):
         elif testID[0:2]=='uc':
             idType = 'uscs'
 
-        expTable = {line.split('\t')[0].split('.')[0]:float(line.split('\t')[1].rstrip('\n')) for line in lines}
+        if multiregion:
+            expTable = {line.split('\t')[0].split('.')[0]:','.join(line.rstrip('\n').split('\t')[1:]) ) for line in lines}
+        else:
+            expTable = {line.split('\t')[0].split('.')[0]:line.split('\t')[1].rstrip('\n') for line in lines}
 
     return(idType, expTable)
 

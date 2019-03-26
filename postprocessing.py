@@ -146,7 +146,7 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         else:
             sampleExpFile = [Options.allExpFiles]
         if len(sampleExpFile)>0:
-            idType, expTable = BuildExpTable(sampleExpFile[0]) #take zeroth element to unlist, there should not be ambiguity
+            idType, expTable = BuildExpTable(sampleExpFile[0], Options.expMultiregion) #take zeroth element to unlist, there should not be ambiguity
             idTable = BuildGeneIDTable(idType)
         else:
             print('INFO: No expression file found for sample %s!'%(patName))
@@ -170,10 +170,11 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
             if expTable is not None:
                 for nmId in nmList:
                     #convert gene ID in NeoPredPipe to geneID that is found in the exp file and query expression dictionary
-                    tableID = idTable[nmId]
-                    if tableID in expTable.keys():
-                        geneExp = str(expTable[tableID])
-                        break
+                    if nmId in idTable.keys():
+                        tableID = idTable[nmId]
+                        if tableID in expTable.keys():
+                            geneExp = expTable[tableID]
+                            break
             genes = '\t'.join([genes, geneExp])
 
         # Getting information from the genotype fields
