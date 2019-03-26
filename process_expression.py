@@ -67,7 +67,7 @@ def BuildExpTable(expFile, multiregion):
             idType = 'uscs'
 
         if multiregion:
-            expTable = {line.split('\t')[0].split('.')[0]:','.join(line.rstrip('\n').split('\t')[1:]) ) for line in lines}
+            expTable = {line.split('\t')[0].split('.')[0]:','.join(line.rstrip('\n').split('\t')[1:])  for line in lines}
         else:
             expTable = {line.split('\t')[0].split('.')[0]:line.split('\t')[1].rstrip('\n') for line in lines}
 
