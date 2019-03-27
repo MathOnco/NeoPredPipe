@@ -51,7 +51,7 @@ def annovar_annotation(FilePath, patName, inFile, annovar):
     annovar_out_ready = outDir + patName + '.avannotated'
 
     with open("logforannovarNeoPredPipe.txt", 'a') as logFile:
-        cmd = ['perl', annovar['annotatevariation'], '-out', annovar_out_ready, '-build', annovar['build'], inFile, annovar['humandb'], '--comment']
+        cmd = ['perl', annovar['annotatevariation'], '-out', annovar_out_ready, '-build', annovar['build'], '-dbtype', annovar['gene_model'], inFile, annovar['humandb'], '--comment']
         runannotate = subprocess.Popen(cmd, stdout=logFile, stderr=logFile)
         runannotate.wait()
 
