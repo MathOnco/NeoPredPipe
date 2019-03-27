@@ -205,6 +205,9 @@ def PrepClasses(FilePath, Options):
         pat = line[0]
         del line[0]
         hlas.update({pat: line})
+
+    if not os.path.exists(Options.OutputDir):
+        os.mkdir(Options.OutputDir)
     
     try:
         os.mkdir(Options.OutputDir+'avready')
