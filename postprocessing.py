@@ -10,6 +10,7 @@ import os
 from collections import OrderedDict
 import subprocess
 import re
+from process_expression import BuildExpTable, BuildGeneIDTable
 
 def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=False):
     '''
@@ -136,6 +137,20 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
     if Options.colRegions is not None:
         genotypeFormat, genotypeIndex = DefineGenotypeFormat(testLine)
 
+    # Load in Expression data if available
+    expTable = None
+    if Options.expression is not None:
+        # Options.allExpFiles is either a single string or a list of filename strings
+        if isinstance(Options.allExpFiles, list):
+            sampleExpFile = filter(lambda x: '/'+patName+'.tsv' in x, Options.allExpFiles)
+        else:
+            sampleExpFile = [Options.allExpFiles]
+        if len(sampleExpFile)>0:
+            idType, expTable = BuildExpTable(sampleExpFile[0], Options.expMultiregion) #take zeroth element to unlist, there should not be ambiguity
+            idTable = BuildGeneIDTable(idType)
+        else:
+            print('INFO: No expression file found for sample %s!'%(patName))
+
     newLines = []
     genoTypesPresent = []
     for ep in digestedEps:
@@ -146,7 +161,21 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         pos = avReadyLine.split('\t')[1]
         ref = avReadyLine.split('\t')[3]
         alt = avReadyLine.split('\t')[4]
-        genes = ','.join([':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != ''])
+        geneList = [':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != '']
+        nmList = [item.split(':')[1] for item in geneList]
+        genes = ','.join(geneList)
+        
+        if Options.expression is not None:
+            geneExp = 'NA'
+            if expTable is not None:
+                for nmId in nmList:
+                    #convert gene ID in NeoPredPipe to geneID that is found in the exp file and query expression dictionary
+                    if nmId in idTable.keys():
+                        tableID = idTable[nmId]
+                        if tableID in expTable.keys():
+                            geneExp = expTable[tableID]
+                            break
+            genes = '\t'.join([genes, geneExp])
 
         # Getting information from the genotype fields
         # Step 1: Determine the mutation location in the genotype field (based on FORMAT info/ genotype index)

@@ -18,6 +18,7 @@ from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     predict_neoantigens, ReformatFasta, MakeTempFastas, ConstructAlleles
 from postprocessing import DigestIndSample, AppendDigestedEps
+from process_expression import GetExpressionFiles
 
 def Parser():
     # get user variables
@@ -38,11 +39,15 @@ def Parser():
     requiredNamed.add_argument("-n", dest="outName", default="AllSamples", type=str, help="Name of the output file for neoantigen predictions")
     postProcess = parser.add_argument_group('Post Processing Options')
     postProcess.add_argument("-pp", dest="postprocess", default=True, action='store_false', help="Flag to perform post processing. Default=True.")
-    postProcess.add_argument("-c", dest="colRegions", default=None, nargs="+",
+    postProcess.add_argument("-c", dest="colRegions", default=None, nargs='+',
                         help="Columns of regions within vcf that are not normal within a multiregion vcf file after the format field. Example: 0 is normal in test samples, tumor are the other columns. Program can handle different number of regions per vcf file.")
     postProcess.add_argument("-a", dest="includeall", default=False, action='store_true', help="Flag to not filter neoantigen predictions and keep all regardless of prediction value.")
     postProcess.add_argument("-m", dest="checkPeptides", default=False, action='store_true',
                              help="Specifies whether to perform check if predicted epitopes match any normal peptide. If set to True, output is added as a column to neoantigens file. Requires PeptideMatch specified in usr_paths.ini. Default=False")
+    postProcess.add_argument("-x", "--expression", dest="expression", default=None, type=str,
+                        help="RNAseq expression quantification file(s), if specified, expression information is added to output tables.")
+    postProcess.add_argument("--expmulti", dest="expMultiregion", default=False, action='store_true',
+                        help="Flag to specify if expression file(s) has information on multiple regions in multiple columns. Default=False.")
     postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off a neoantigen burden summary table. Default=True.")
 
     Options = parser.parse_args()  # main user args
@@ -438,7 +443,8 @@ def main():
     Config = configparser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
-    annPaths['build'] = annPaths['gene_table'].split('/')[-1][:4] # get build version from name of gene table (hg19/hg38_refGene...)
+    annPaths['build'] = annPaths['gene_table'].split('/')[-1].split('_')[0] # get build version from name of gene table (hg19/hg38_refGene...)
+    annPaths['gene_model'] = annPaths['gene_table'].split('/')[-1].split('_')[1].replace(".txt","") # get gene model from X_somethingGene.txt
     if annPaths['build'] not in ['hg19', 'hg38', 'hg18']:
         print("WARNING: Unexpected genome build detected in annovar reference files: %s. Please check path for 'gene_table'. Build hg19 is used for analysis."%(annPaths['build']))
         annPaths['build'] = 'hg19'
@@ -451,6 +457,7 @@ def main():
         pepmatchPaths = None
 
     Options = Parser()
+
     #Check if PeptideMatch paths are provided, ignore -m if not
     if Options.checkPeptides and pepmatchPaths is None:
         print("WARNING: You chose to perform peptide match checking for epitopes, but did not provide paths for PeptideMatch. The pipeline will ignore the -m flag")
@@ -463,6 +470,11 @@ def main():
     hlas.pop('', None)
     hlas.pop('Patient', None)
 
+    # Expression related options
+    if Options.expression is not None:
+        Options.allExpFiles = GetExpressionFiles(Options)
+
+    # Check VCF and HLA
     assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
     if len(allFiles)>(len(hlas.keys())-1):
         print("WARNING: Less samples are detected in HLA file than in VCF folder. Only samples included in HLA file will be processed.")
