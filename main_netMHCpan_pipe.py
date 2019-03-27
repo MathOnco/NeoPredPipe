@@ -90,7 +90,7 @@ class Sample():
         self.digestedEpitopes = None
         self.appendedEpitopes = None
         self.regionsPresent = None
-        self.ProcessAnnovar(FilePath, annovar)
+        self.ProcessAnnovar(FilePath, annovar, Options)
         self.hlasnormed = ConstructAlleles(self.hla, FilePath, self.patID)
 
         if Options.preponly:
@@ -98,33 +98,33 @@ class Sample():
         else:
             self.callNeoantigens(FilePath, netmhcpan, Options)
             if Options.postprocess:
-                self.digestIndSample(pepmatchPaths, Options)
+                self.digestIndSample(FilePath, pepmatchPaths, Options)
 
-    def ProcessAnnovar(self, FilePath, annovar):
+    def ProcessAnnovar(self, FilePath, annovar, Options):
         # Prepare ANNOVAR input files
-        if os.path.isfile("avready/"+self.patID+'.avinput'):
+        if os.path.isfile(Options.OutputDir+"avready/"+self.patID+'.avinput'):
             print("INFO: ANNOVAR Ready files for %s already present."%(self.patID))
-            self.avReadyFile = "avready/"+self.patID+'.avinput'
+            self.avReadyFile = Options.OutputDir+"avready/"+self.patID+'.avinput'
         else:
-            self.avReadyFile = convert_to_annovar(FilePath, self.patID, self.vcfFile, annovar)
+            self.avReadyFile = convert_to_annovar(Options.OutputDir, self.patID, self.vcfFile, annovar)
 
         # Prepare ANNOVAR annotated input files
-        if os.path.isfile("avannotated/"+self.patID+'.avannotated.exonic_variant_function'):
+        if os.path.isfile(Options.OutputDir+"avannotated/"+self.patID+'.avannotated.exonic_variant_function'):
             print("INFO: ANNOVAR Annotation files for %s already present." % (self.patID))
-            self.annotationReady = "avannotated/"+self.patID+'.avannotated.exonic_variant_function'
+            self.annotationReady = Options.OutputDir+"avannotated/"+self.patID+'.avannotated.exonic_variant_function'
         else:
-            self.annotationReady = annovar_annotation(FilePath, self.patID, self.avReadyFile, annovar)
+            self.annotationReady = annovar_annotation(Options.OutputDir, self.patID, self.avReadyFile, annovar)
 
         # Get Coding Change
-        if os.path.isfile("fastaFiles/"+self.patID+'.fasta'):
+        if os.path.isfile(Options.OutputDir+"fastaFiles/"+self.patID+'.fasta'):
             print("INFO: Coding change fasta files for %s already present." % (self.patID))
-            self.fastaChange = "fastaFiles/"+self.patID+'.fasta'
+            self.fastaChange =  Options.OutputDir+"fastaFiles/"+self.patID+'.fasta'
         else:
-            self.fastaChange = get_coding_change(FilePath, self.patID, self.annotationReady, annovar)
+            self.fastaChange = get_coding_change(Options.OutputDir, self.patID, self.annotationReady, annovar)
 
-        if os.path.isfile("fastaFiles/"+self.patID+'.reformat.fasta'):
+        if os.path.isfile(Options.OutputDir+"fastaFiles/"+self.patID+'.reformat.fasta'):
             print("INFO: Coding change fasta files %s has already been reformatted." % (self.patID))
-            self.fastaChangeFormat = "fastaFiles/"+self.patID+'.reformat.fasta'
+            self.fastaChangeFormat = Options.OutputDir+"fastaFiles/"+self.patID+'.reformat.fasta'
         else:
             self.fastaChangeFormat = ReformatFasta(self.fastaChange)
 
@@ -133,9 +133,9 @@ class Sample():
         i = 0
         pepTmp = {}
         for n in Options.epitopes:
-            if os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)) and os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,str(n)+'.Indels')):
-                pepTmp.update({n:"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
-                pepTmp.update({str(n)+'.Indels':"fastaFiles/%s.tmp.%s.fasta"%(self.patID,str(n)+'.Indels')})
+            if os.path.isfile(Options.OutputDir+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)) and os.path.isfile("fastaFiles/%s.tmp.%s.fasta"%(self.patID,str(n)+'.Indels')):
+                pepTmp.update({n:Options.OutputDir+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,n)})
+                pepTmp.update({str(n)+'.Indels':Options.OutputDir+"fastaFiles/%s.tmp.%s.fasta"%(self.patID,str(n)+'.Indels')})
                 print("INFO: Tmp fasta files %s has already been created for netMHCpan length %s." % (self.patID,n))
                 i+=1
                 if i == len(Options.epitopes):
@@ -147,34 +147,34 @@ class Sample():
         i = 0
         epTmp = []
         for n in Options.epitopes:
-            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,n)):
-                epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,n))
+            if os.path.isfile(Options.OutputDir+"tmp/%s.epitopes.%s.txt" % (self.patID,n)):
+                epTmp.append(Options.OutputDir+"tmp/%s.epitopes.%s.txt" % (self.patID,n))
                 i += 1
                 print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,n))
-            if os.path.isfile("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels')):
-                epTmp.append("tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels'))
+            if os.path.isfile(Options.OutputDir+"tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels')):
+                epTmp.append(Options.OutputDir+"tmp/%s.epitopes.%s.txt" % (self.patID,str(n)+'.Indels'))
                 i += 1
                 print("INFO: Epitope prediction files %s have already been created for netMHCpan length %s." % (self.patID,str(n)+'.Indels'))
             if i == 2*len(Options.epitopes):
                 self.epcalls = epTmp
         if i!=2*len(Options.epitopes):
             if i>0:
-                os.system("rm tmp/"+self.patID+".epitopes.*.txt") # if doing predictions, remove existing files to ensure double predicting happens
-            self.epcalls = predict_neoantigens(FilePath, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan, Options.ELpred)
+                os.system("rm "+Options.OutputDir+"tmp/"+self.patID+".epitopes.*.txt") # if doing predictions, remove existing files to ensure double predicting happens
+            self.epcalls = predict_neoantigens(Options.OutputDir, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan, Options.ELpred)
 
-    def digestIndSample(self, pmPaths, Options):
+    def digestIndSample(self, FilePath, pmPaths, Options):
         if self.epcalls != []:
             toDigestSNVs = filter(lambda y: 'Indels.txt' not in y, self.epcalls)
             toDigestIndels = filter(lambda y: 'Indels.txt' in y, self.epcalls)
             if toDigestSNVs != []:
-                self.digestedEpitopes = DigestIndSample(toDigestSNVs, self.patID, Options.checkPeptides, pmPaths)
-                self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
+                self.digestedEpitopes = DigestIndSample(toDigestSNVs, self.patID, Options, pmPaths)
+                self.appendedEpitopes, self.regionsPresent = AppendDigestedEps(FilePath, self.digestedEpitopes, self.patID, self.annotationReady, self.avReadyFile, Options)
             else:
                 self.appendedEpitopes = None
                 self.regionsPresent = None
             if toDigestIndels != []:
-                self.digestedEpitopesIndels = DigestIndSample(toDigestIndels, self.patID, Options.checkPeptides, pmPaths, True)
-                self.appendedEpitopesIndels, self.regionsPresentIndels = AppendDigestedEps(self.digestedEpitopesIndels, self.patID, self.annotationReady, self.avReadyFile, Options)
+                self.digestedEpitopesIndels = DigestIndSample(toDigestIndels, self.patID, Options, pmPaths, True)
+                self.appendedEpitopesIndels, self.regionsPresentIndels = AppendDigestedEps(FilePath, self.digestedEpitopesIndels, self.patID, self.annotationReady, self.avReadyFile, Options)
             else:
                 self.appendedEpitopesIndels = None
                 self.regionsPresentIndels = None
@@ -207,33 +207,28 @@ def PrepClasses(FilePath, Options):
         hlas.update({pat: line})
     
     try:
-        os.mkdir('avready')
+        os.mkdir(Options.OutputDir+'avready')
     except OSError as e:
         print("INFO: Proper directory already exists. Continue.")
 
     try:
-        os.mkdir('avannotated')
+        os.mkdir(Options.OutputDir+'avannotated')
     except OSError as e:
         print("INFO: Proper directory already exists. Continue.")
 
     try:
-        os.mkdir('fastaFiles')
+        os.mkdir(Options.OutputDir+'fastaFiles')
     except OSError as e:
         print("INFO: Proper directory already exists. Continue.")
 
     try:
-        os.mkdir('tmp')
+        os.mkdir(Options.OutputDir+'tmp')
     except OSError as e:
         print("INFO: Proper directory already exists. Continue.")
 
     return(allFiles, hlas)
 
 def FinalOut(sampleClasses, Options, indelProcess=False):
-    if Options.OutputDir[len(Options.OutputDir)-1]=="/":
-        pass
-    else:
-        Options.OutputDir = Options.OutputDir + "/"
-
     if indelProcess:
         epitopesToProcess = 'appendedEpitopesIndels' #Process this special set of predicted epitopes
         regionsToProcess = 'regionsPresentIndels'
@@ -408,31 +403,31 @@ def FinalOut(sampleClasses, Options, indelProcess=False):
 def CleanUp(Options):
     if Options.cleanLog or Options.makeitclean:
         try:
-            os.remove('logforannovarNeoPredPipe.txt')
+            os.remove(Options.OutputDir+'logforannovarNeoPredPipe.txt')
         except OSError:
             pass
         try:
-            os.remove('logForPeptideMatch.tmp')
+            os.remove(Options.OutputDir+'logForPeptideMatch.tmp')
         except OSError:
             pass
     if (Options.deleteInt or Options.makeitclean) and not Options.preponly:
         try:
-            shutil.rmtree("avready/")
+            shutil.rmtree(Options.OutputDir+"avready/")
         except OSError as e:
             print("ERROR: Unable to clean intermediary files.")
             print(e)
         try:
-            shutil.rmtree("avannotated/")
+            shutil.rmtree(Options.OutputDir+"avannotated/")
         except OSError as e:
             print("ERROR: Unable to clean intermediary files.")
             print(e)
         try:
-            shutil.rmtree("fastaFiles/")
+            shutil.rmtree(Options.OutputDir+"fastaFiles/")
         except OSError as e:
             print("ERROR: Unable to clean intermediary files.")
             print(e)
         try:
-            shutil.rmtree("tmp/")
+            shutil.rmtree(Options.OutputDir+"tmp/")
         except OSError as e:
             print("ERROR: Unable to clean tmp files.")
             print(e)
@@ -457,6 +452,12 @@ def main():
         pepmatchPaths = None
 
     Options = Parser()
+
+    #Make sure outputdir ends with '/'
+    if Options.OutputDir[len(Options.OutputDir)-1]=="/":
+        pass
+    else:
+        Options.OutputDir = Options.OutputDir + "/"
 
     #Check if PeptideMatch paths are provided, ignore -m if not
     if Options.checkPeptides and pepmatchPaths is None:
