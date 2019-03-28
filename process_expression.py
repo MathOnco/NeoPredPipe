@@ -27,7 +27,7 @@ def GetExpressionFiles(Options):
 
     return(allExpFiles)
 
-def BuildGeneIDTable(idType):
+def BuildGeneIDTable(FilePath,idType):
     '''
     Links RefSeq IDs (coming from Annovar) to Ensembl or USCS IDs
 
@@ -37,7 +37,7 @@ def BuildGeneIDTable(idType):
     idDict = {'ensembl_gene':0, 'ensembl_transcript':1, 'uscs':4, 'name':3, 'refseq':2}
     idInd = idDict[idType]
 
-    with open('mart_table_hg38_unique.txt', 'r') as martTable:
+    with open(FilePath+'mart_table_hg38_unique.txt', 'r') as martTable:
         lines = martTable.readlines()
         header = lines[0]
         lines = lines[1:]

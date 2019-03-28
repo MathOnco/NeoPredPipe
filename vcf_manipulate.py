@@ -22,10 +22,10 @@ def convert_to_annovar(FilePath, patName, inFile, annovar):
     print("INFO: Running convert2annovar.py on %s" % (inFile))
 
     # specify name for output file
-    outDir = "avready/"
+    outDir = FilePath+"avready/"
     annovar_out_ready = outDir + patName + '.avinput'
 
-    with open("logforannovarNeoPredPipe.txt", 'a') as logFile:
+    with open(FilePath+"logforannovarNeoPredPipe.txt", 'a') as logFile:
         cmd = ['perl', annovar['convert2annovar'], '-format', 'vcf4', inFile, '-outfile', annovar_out_ready, '-allsample',
              '-includeinfo', '-withfreq', '-comment']
         runconvert = subprocess.Popen(cmd, stdout=logFile, stderr=logFile)
@@ -47,10 +47,10 @@ def annovar_annotation(FilePath, patName, inFile, annovar):
     print("INFO: Running annotate_variation.pl on %s"%(inFile))
 
     # specify name for output file
-    outDir = "avannotated/"
+    outDir = FilePath+"avannotated/"
     annovar_out_ready = outDir + patName + '.avannotated'
 
-    with open("logforannovarNeoPredPipe.txt", 'a') as logFile:
+    with open(FilePath+"logforannovarNeoPredPipe.txt", 'a') as logFile:
         cmd = ['perl', annovar['annotatevariation'], '-out', annovar_out_ready, '-build', annovar['build'], '-dbtype', annovar['gene_model'], inFile, annovar['humandb'], '--comment']
         runannotate = subprocess.Popen(cmd, stdout=logFile, stderr=logFile)
         runannotate.wait()
@@ -70,7 +70,7 @@ def get_coding_change(FilePath, patName, inFile, annovar):
     print("INFO: Running coding_change.pl on %s" % (inFile))
 
     # specify name for output file
-    outDir = "fastaFiles/"
+    outDir = FilePath+"fastaFiles/"
     coding_out_ready = outDir + patName + '.fasta'
 
     with open(coding_out_ready, 'a') as logfile:
@@ -242,7 +242,7 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
     epcalls = []
     for n in inFile:
         if checks[n] > 0:
-            output_file = 'tmp/%s.epitopes.%s.txt' % (patName, n)
+            output_file = FilePath+'tmp/%s.epitopes.%s.txt' % (patName, n)
             epcalls.append(output_file)
             with open(output_file, 'a') as epitope_pred:
                 print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))

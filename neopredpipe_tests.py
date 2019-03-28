@@ -36,11 +36,10 @@ class MyTestCase(unittest.TestCase):
         geneID = "ENSG00000101251"
         transcriptID = "ENST00000284951"
         uscsID = "uc061vme.1"
-        testTable = BuildGeneIDTable('ensembl_gene')
-        self.assertEqual( (geneID,transcriptID,uscsID), (BuildGeneIDTable('ensembl_gene')[nmID], BuildGeneIDTable('ensembl_transcript')[nmID], BuildGeneIDTable('uscs')[nmID]) )
+        self.assertEqual( (geneID,transcriptID,uscsID), (BuildGeneIDTable('./','ensembl_gene')[nmID], BuildGeneIDTable('./','ensembl_transcript')[nmID], BuildGeneIDTable('./','uscs')[nmID]) )
 
 
-    def test_read_in_pepmatch(self):
+    def test_filter_read_in_pepmatch(self):
         pmfileName = 'test/Test_pepmatch.out'
         eplines = ['6\tHLA-C*07:02\tTLASKITGM\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline195_NM_0025\t0.1744960\t1.6035',
                    '6\tHLA-C*07:02\tASKITGMLL\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline195_NM_0025\t0.1744960\t1.6035\t<=\tWB',
@@ -55,7 +54,7 @@ class MyTestCase(unittest.TestCase):
 
 
 
-    def test_main_platypus(self):
+    def test_main_multiple(self):
         if os.path.isfile("./test/Test_platypus.neoantigens.txt"):
             os.system("rm ./test/Test_platypus.*")
         cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
@@ -66,20 +65,20 @@ class MyTestCase(unittest.TestCase):
             oflines = testof.readlines()
         self.assertEqual( ['1', '1', '0', '1', '0'] , oflines[0].split('\t')[1:6])
         
-    def test_main_platypus_summaries(self):
+    def test_main_multiple_summaries(self):
         with open('test/Test_platypus.neoantigens.summarytable.txt', 'r') as testsum:
             sumlines = testsum.readlines()
         summary = sumlines[1].rstrip('\n').split('\t')
         #self.assertEqual( (['3','3','2','2','2'], ['1','0','0','0','1','1']), (summary[4:9], summary[22:])) #true for EL
         self.assertEqual( (['3','3','2','1','2'], ['0','0','0','0','2','1']), (summary[4:9], summary[22:]))
 
-    def test_peptide_checking(self):
+    def test_main_peptide_checking(self):
         with open('test/Test_platypus.neoantigens.txt', 'r') as testof:
             oflines = testof.readlines()
        # self.assertEqual( ('0', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1])) #true for EL
         self.assertEqual( ('1', '1'), (oflines[1].rstrip('\n').split('\t')[-1], oflines[2].rstrip('\n').split('\t')[-1]))
 
-    def test_expression(self):
+    def test_main_read_expression(self):
         with open('test/Test_platypus.neoantigens.txt', 'r') as testof:
             oflines = testof.readlines()
         self.assertEqual( ('NA', '0.12'), (oflines[0].rstrip('\n').split('\t')[-18], oflines[1].rstrip('\n').split('\t')[-18]))
@@ -88,7 +87,7 @@ class MyTestCase(unittest.TestCase):
     def test_main_recopo(self):
         if os.path.isfile("./test/PredictedRecognitionPotentials.txt"):
             os.system("rm ./test/PredictedRecognitionPotentials.txt")
-        cmd = ['python', 'NeoRecoPo.py', '-i', './test/Test_platypus.neoantigens.txt', '-f', './fastaFiles/', '-o', './test/']
+        cmd = ['python', 'NeoRecoPo.py', '-i', './test/Test_platypus.neoantigens.txt', '-f', './test/fastaFiles/', '-o', './test/']
         runcmd = subprocess.Popen(cmd)
         runcmd.wait()
         with open('test/PredictedRecognitionPotentials.txt', 'r') as testof:
