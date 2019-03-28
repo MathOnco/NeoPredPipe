@@ -92,7 +92,7 @@ class MyTestCase(unittest.TestCase):
         runcmd.wait()
         with open('test/PredictedRecognitionPotentials.txt', 'r') as testof:
             oflines = testof.readlines()
-        self.assertEqual(['1', 'line3_NM_001005', 'Test_platypus', '3', 'HN', 'KPRHYLTI', 'KPLHYLTI', 'B0702', '7.54006501848'], oflines[1].split('\t')[:-3])
+        self.assertEqual(['1', 'line3_NM_001005', 'Test_platypus', '3', 'HN', 'KPRHYLTI', 'KPLHYLTI', 'B0702', '0.12', '7.54006501848'], oflines[1].split('\t')[:-3])
 
     def test_main_single_region(self):
         if os.path.isfile("test/Test_single.neoantigens.summarytable.txt"):
