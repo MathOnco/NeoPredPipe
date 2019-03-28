@@ -12,9 +12,8 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
    - biopython == 1.70
 2. ANNOVAR
    - Can be downloaded [here](http://annovar.openbioinformatics.org/en/latest/user-guide/download/).
-   - ANNOVAR hg19_refGene
-   - ANNOVAR hg19_refGeneMrna
-   - Other reference builds can be used. Simply change the usr_path.ini file to the appropriate reference (see below).
+   - ANNOVAR reference files, for example: hg19_refGene.txt and hg19_refGeneMrna.fa
+   - Other reference files/builds can be used. Simply change the usr_path.ini file to the appropriate reference (see below).
      - Make sure to use the same one used to call variants.
    - **NOTE: For indel predictions, we highly recommend to use the latest (2018-04-16) release of ANNOVAR, as earlier versions do not provide the appropriate support for protein-elongating frameshift mutations.**
 4. netMHCpan
@@ -24,7 +23,7 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
    - Requires Java.
    - The runnable jar is available [here](https://research.bioinformatics.udel.edu/peptidematch/commandlinetool.jsp).
    - Download a reference protein sequence in fasta format (e.g. from [Ensembl](ftp://ftp.ensembl.org/pub/release-91/fasta/homo_sapiens/pep/) or [UniProt](ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/reference_proteomes/Eukaryota/)) and index it according to the Tutorial.
-   - **We advise the use of PeptideMatch for indel predictions,to filter out non-frameshift peptides and peptides that are novel to the genomic location, but coincidentally exists elsewhere.**
+   - **We advise the use of PeptideMatch for indel predictions, to filter out non-frameshift peptides and peptides that are novel to the genomic location, but coincidentally exist elsewhere.**
 
 ## Installing and preparing environment
 1. Clone the repository:
@@ -101,6 +100,12 @@ Post Processing Options:
 | test1 | hla_a_31_01_02 | hla_a_02_01_80 | hla_b_40_01_02 | hla_b_50_01_01 | hla_c_03_04_20 | hla_c_06_02_01_02 |
 | test2 | hla_a_01_01_01_01 | NA | hla_b_07_02_01 | NA | hla_c_01_02_01 | NA |
 
+3. (Optional) Expression file(s), specified after the -x flag:
+- Either the path to a single file to be used for all samples (for example values compiled from a reference cohort); or a path to a directory, containing files for each sample, named as <patientIdentifier>.tsv. NeoPredPipe will automatically search for appropriate *.tsv files if a directory is specified.
+- Each file should be tab-delimited, with the first column containing gene identifiers, and the second column containing expression values. If the --expmulti flag is specified, expression files are assumed to hold information on multiple regions, and additional columns are read in as expression data.
+- Direct outputs of RNAseq quantification software, such as HTseqCount and kallisto are supported.
+- Currently supported gene identifier formats: Ensembl gene ID, Ensembl transcript ID, RefSeq transcript ID, UCSC transcript ID.
+
 ## Run Using Example .vcf files
 ```bash
 # Run the Pipeline to only prepare the input files. Can be best to run this independently if working on a cluster.
@@ -117,18 +122,18 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
    - A file containing summaries of the neoantigen burdens in each sample (and regions if multiregion).
 
 ## Output Format
-1. The primary output file of neoantigens has the following format (columns 12-26 are taken from [here](http://www.cbs.dtu.dk/services/NetMHCpan/output.php)):
+1. The primary output file of neoantigens has the following format, separated by tabulators (columns 12-26 are taken from [here](http://www.cbs.dtu.dk/services/NetMHCpan/output.php)):
    - **Sample**: vcf filename/patient identifier
-   - **R1**: Region 1 of a multiregion sample, binary for presence (1) or absence (0). Can be *n* numbers of regions. _Only present in multiregion samples_.
-   - **R2**: Region 2 of a multiregion sample, binary for presence (1) or absence (0). Can be *n* numbers of regions. _Only present in multiregion samples_.
-   - **R3**: Region 3 of a multiregion sample, binary for presence (1) or absence (0). Can be *n* numbers of regions. _Only present in multiregion samples_.
-   - **Line**: Line of within the *.avready file (same as the vcf) to identify mutation yielding corresponding neoantigen.
+   - **R1**: Region 1 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are denote -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
+   - **R2**: Region 2 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are denote -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
+   - **R3**: Region 3 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are denote -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
+   - **Line**: Line number from the *.avready file (same as the vcf) to identify mutation yielding corresponding neoantigen.
    - **chr**: Chromosome of mutation
    - **allelepos**: Position of the mutation
    - **ref**: Reference base at the position
    - **alt**: Alternative base at the location
-   - **GeneName:RefID**: Gene name and RefSeq ID separated by a colon. Multiple genes/refseq IDs separated by a comma.
-   - **Candidate**: Symbol (<=) used to denote a Strong or Week Binder in BindLevel
+   - **GeneName:RefID**: Gene name and RefSeq ID separated by a colon. Multiple genes/RefSeq IDs separated by a comma.
+   - **Expression**: Expression value of the gene. Expression values for multiple regions (_if using the -expmulti flag_) are comma-separated. NA for genes that are not found in the corresponding expression file, or for samples without expression information. _Only present if the -x flag is used_.
    - **pos**: Residue number (starting from 0)
    - **hla**: Molecule/allele name
    - **peptide**: Amino acid sequence of the potential ligand
@@ -143,16 +148,17 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
    - **Score**: The raw prediction score
    - **Binding Affinity**: Predicted binding affinity in nanoMolar units.
    - **Rank**: Rank of the predicted affinity compared to a set of random natural peptides. This measure is not affected by inherent bias of certain molecules towards higher or lower mean predicted affinities. Strong binders are defined as having %rank<0.5, and weak binders with %rank<2. We advise to select candidate binders based on %Rank rather than nM Affinity
+   - **Candidate**: Symbol (<=) used to denote a Strong or Week Binder in BindLevel
    - **BindLevel**: (SB: strong binder, WB: weak binder). The peptide will be identified as a strong binder if the % Rank is below the specified threshold for the strong binders, by default 0.5%. The peptide will be identified as a weak binder if the % Rank is above the threshold of the strong binders but below the specified threshold for the weak binders, by default 2%.
    - **Novelty**: Binary value for indicating if the epitope is novel (1) or exists in the reference proteome (0). _Only present if -m flag is set to perform peptide matching in postprocessing_.
 
 | Sample |  R1 |  R2 |  R3 |  Line |  chr |  allelepos |  ref |  alt |  GeneName:RefSeqID |  pos |  hla |  peptide |  core |  Of |  Gp |  Gl |  Ip |  Il |  Icore |  Identity |  Score |  Rank |  Candidate | BindLevel | Novelty |
-| --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |
-| test1 | 0 | 1 | 0 | line16 | chr1 | 153914523 | G | C | DENND4B:NM_014856 | 3 | HLA-B*40:01 | SERQAGAL | SERQAG-AL | 0 | 0 | 0 | 6 | 1 | SERQAGAL | line16_NM_01485 | 0.33670  | 1.30 | <= | WB |  1 |
-| test1 | 1 | 1 | 0 | line8 | chr1 | 53608000 | C | T | SLC1A7:NM_001287597,SLC1A7:NM_001287595,SLC1A7:NM_006671,SLC1A7:NM_001287596 | 2 | HLA-C*06:02 | LGFFLRTRHL | LFFLRTRHL | 0 | 1 | 1 | 0 | 0 | LGFFLRTRHL | line8_NM_001287 | 0.24655 | 1.20 | <= | WB | 1 |
-| test2 | 1 | 0 | 0 | line34 | chr1 | 248402593 | C | A | OR2M4:NM_017504 | 6 | HLA-C*01:02 | VMAYERYVAI | VAYERYVAI | 0 | 1 | 1 | 0 | 0 | VMAYERYVAI | line34_NM_01750 | 0.14917 | 1.50 | <= | WB | 1 |
-| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | 2 | HLA-C*01:02 | FTHGPSSTPL | FTHPSSTPL | 0 | 3 | 1 | 0 | 0 | FTHGPSSTPL | line51_NM_00108 | 0.22570 | 0.40 | <= | SB | 1 |
-| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | 7 | HLA-C*01:02 | SSTPLHPCPF | STPLHPCPF | 0 | 1 | 1 | 0 | 0 | SSTPLHPCPF | line51_NM_00108 | 0.13137 | 2.00 | <= | WB | 1 |
+| --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- | --- |
+| test1 | 0 | 1 | 0 | line16 | chr1 | 153914523 | G | C | DENND4B:NM_014856 | 214 | 3 | HLA-B*40:01 | SERQAGAL | SERQAG-AL | 0 | 0 | 0 | 6 | 1 | SERQAGAL | line16_NM_01485 | 0.33670  | 1.30 | <= | WB |  1 |
+| test1 | 1 | 1 | 0 | line8 | chr1 | 53608000 | C | T | SLC1A7:NM_001287597,SLC1A7:NM_001287595,SLC1A7:NM_006671,SLC1A7:NM_001287596 | 1560 | 2 | HLA-C*06:02 | LGFFLRTRHL | LFFLRTRHL | 0 | 1 | 1 | 0 | 0 | LGFFLRTRHL | line8_NM_001287 | 0.24655 | 1.20 | <= | WB | 1 |
+| test2 | 1 | 0 | 0 | line34 | chr1 | 248402593 | C | A | OR2M4:NM_017504 | 0 | 6 | HLA-C*01:02 | VMAYERYVAI | VAYERYVAI | 0 | 1 | 1 | 0 | 0 | VMAYERYVAI | line34_NM_01750 | 0.14917 | 1.50 | <= | WB | 1 |
+| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | NA | 2 | HLA-C*01:02 | FTHGPSSTPL | FTHPSSTPL | 0 | 3 | 1 | 0 | 0 | FTHGPSSTPL | line51_NM_00108 | 0.22570 | 0.40 | <= | SB | 1 |
+| test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | NA | 7 | HLA-C*01:02 | SSTPLHPCPF | STPLHPCPF | 0 | 1 | 1 | 0 | 0 | SSTPLHPCPF | line51_NM_00108 | 0.13137 | 2.00 | <= | WB | 1 |
 
 2. If there are not multiple regions from a single patient the resulting summary table will appear as follows (the following are the same for both multiregion below and single region):
    - **Sample**: Sample identifier
@@ -176,6 +182,6 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 | test2 | 86 | 66 | 20 | 57 | 43 | 0 | 46 | 30 | 0 | 11 | 13 | 0 | 14 | 72 | 0 | 10 | 4 | 56 | 16 | 0 | 0 |
 
 4. The above two files are reported separately for single nucleotide changes and indels (and/or other genetic alterations resulting in more than 1 amino acid change).
-- _ExperimentName_.neoantigens.txt and _ExperimentName_.neoantigens.summarytable.txt contain single amino acid changes.
--_ExperimentName_.neoantigens.Indels.txt and _ExperimentName_.neoantigens.Indels.summarytable.txt contain neoantigen information arising from indel/frameshift/stop-loss events.
+   - _ExperimentName_.neoantigens.txt and _ExperimentName_.neoantigens.summarytable.txt contain single amino acid changes.
+   - _ExperimentName_.neoantigens.Indels.txt and _ExperimentName_.neoantigens.Indels.summarytable.txt contain neoantigen information arising from indel/frameshift/stop-loss events.
 
