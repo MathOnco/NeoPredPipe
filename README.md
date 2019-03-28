@@ -101,10 +101,10 @@ Post Processing Options:
 | test2 | hla_a_01_01_01_01 | NA | hla_b_07_02_01 | NA | hla_c_01_02_01 | NA |
 
 3. (Optional) Expression file(s), specified after the -x flag:
-- Either the path to a single file to be used for all samples (for example values compiled from a reference cohort); or a path to a directory, containing files for each sample, named as <patientIdentifier>.tsv. NeoPredPipe will automatically search for appropriate *.tsv files if a directory is specified.
-- Each file should be tab-delimited, with the first column containing gene identifiers, and the second column containing expression values. If the --expmulti flag is specified, expression files are assumed to hold information on multiple regions, and additional columns are read in as expression data.
-- Direct outputs of RNAseq quantification software, such as HTseqCount and kallisto are supported.
-- Currently supported gene identifier formats: Ensembl gene ID, Ensembl transcript ID, RefSeq transcript ID, UCSC transcript ID.
+   - Either the path to a single file to be used for all samples (for example values compiled from a reference cohort); or a path to a directory, containing files for each sample, named as <patientIdentifier>.tsv. NeoPredPipe will automatically search for appropriate *.tsv files if a directory is specified.
+   - Each file should be tab-delimited, with the first column containing gene identifiers, and the second column containing expression values. If the --expmulti flag is specified, expression files are assumed to hold information on multiple regions, and additional columns are read in as expression data.
+   - Direct outputs of RNAseq quantification software, such as HTseqCount and kallisto are supported.
+   - Currently supported gene identifier formats: Ensembl gene ID, Ensembl transcript ID, RefSeq transcript ID, UCSC transcript ID.
 
 ## Run Using Example .vcf files
 ```bash
@@ -124,9 +124,9 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
 ## Output Format
 1. The primary output file of neoantigens has the following format, separated by tabulators (columns 12-26 are taken from [here](http://www.cbs.dtu.dk/services/NetMHCpan/output.php)):
    - **Sample**: vcf filename/patient identifier
-   - **R1**: Region 1 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are denote -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
-   - **R2**: Region 2 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are denote -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
-   - **R3**: Region 3 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are denote -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
+   - **R1**: Region 1 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are indicated by -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
+   - **R2**: Region 2 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are indicated by -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
+   - **R3**: Region 3 of a multiregion sample, binary for presence (1) or absence (0), regions above the number of regions in the sample (for varying number of biopsies) are indicated by -1. Can be *n* numbers of regions. _Only present in multiregion samples_.
    - **Line**: Line number from the *.avready file (same as the vcf) to identify mutation yielding corresponding neoantigen.
    - **chr**: Chromosome of mutation
    - **allelepos**: Position of the mutation
@@ -152,7 +152,7 @@ python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlat
    - **BindLevel**: (SB: strong binder, WB: weak binder). The peptide will be identified as a strong binder if the % Rank is below the specified threshold for the strong binders, by default 0.5%. The peptide will be identified as a weak binder if the % Rank is above the threshold of the strong binders but below the specified threshold for the weak binders, by default 2%.
    - **Novelty**: Binary value for indicating if the epitope is novel (1) or exists in the reference proteome (0). _Only present if -m flag is set to perform peptide matching in postprocessing_.
 
-| Sample |  R1 |  R2 |  R3 |  Line |  chr |  allelepos |  ref |  alt |  GeneName:RefSeqID |  pos |  hla |  peptide |  core |  Of |  Gp |  Gl |  Ip |  Il |  Icore |  Identity |  Score |  Rank |  Candidate | BindLevel | Novelty |
+| Sample |  R1 |  R2 |  R3 |  Line |  chr |  allelepos |  ref |  alt |  GeneName:RefSeqID | Expression |  pos |  hla |  peptide |  core |  Of |  Gp |  Gl |  Ip |  Il |  Icore |  Identity |  Score |  Rank |  Candidate | BindLevel | Novelty |
 | --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- | --- |
 | test1 | 0 | 1 | 0 | line16 | chr1 | 153914523 | G | C | DENND4B:NM_014856 | 214 | 3 | HLA-B*40:01 | SERQAGAL | SERQAG-AL | 0 | 0 | 0 | 6 | 1 | SERQAGAL | line16_NM_01485 | 0.33670  | 1.30 | <= | WB |  1 |
 | test1 | 1 | 1 | 0 | line8 | chr1 | 53608000 | C | T | SLC1A7:NM_001287597,SLC1A7:NM_001287595,SLC1A7:NM_006671,SLC1A7:NM_001287596 | 1560 | 2 | HLA-C*06:02 | LGFFLRTRHL | LFFLRTRHL | 0 | 1 | 1 | 0 | 0 | LGFFLRTRHL | line8_NM_001287 | 0.24655 | 1.20 | <= | WB | 1 |
