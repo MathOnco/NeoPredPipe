@@ -49,7 +49,7 @@ class Neoantigen(object):
         pparams = params
         if len(params) == 9:
             pparams.append("1")
-        [nid, mid, sample, wtPeptide, mtPeptide, allele, wtScore, mtScore, HLA, chopscore] = params
+        [nid, mid, sample, wtPeptide, mtPeptide, allele, wtScore, mtScore, HLA, chopscore] = params[:10]
         self.id = int(nid)
         self.mid = mid
         self.sample = sample
@@ -76,6 +76,10 @@ class Neoantigen(object):
             self.kD = Neoantigen.INF
             self.wtkD = Neoantigen.INF
             self.A = 1.
+            
+        self.expr = None
+        if len(params) == 11:
+            self.expr = params[10]
 
     def getSampleName(self):
         return self.sample
