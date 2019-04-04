@@ -28,7 +28,7 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
 ## Installing and preparing environment
 1. Clone the repository:
 ```bash
-git clone https://github.com/rschenck/NeoPredPipe.git
+git clone https://github.com/MathOnco/NeoPredPipe.git
 ```
 2. Configure the 'usr_path.ini' file for your environment.
    - All paths within the annovar header should be where you installed annovar.
