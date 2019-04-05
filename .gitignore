@@ -117,6 +117,7 @@ NeoRecoTMP/*
 neorecopo.p
 PredictedRecognitionPotentials.txt
 AllSamples.neoantigens.filtered.txt
+*.html
 
 .idea
 .DS_Store
