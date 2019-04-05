@@ -41,10 +41,10 @@ python ./NeoPredPipe.py --help
 ```
    - Which produces the following:
 ```bash
-usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-l] [-d] [-r]
-                              [-p] [--EL] [-I VCFDIR] [-H HLAFILE]
-                              [-o OUTPUTDIR] [-n OUTNAME] [-pp]
-                              [-c COLREGIONS [COLREGIONS ...]] [-a] [-m] [-t]
+usage: NeoPredPipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-l] [-d] [-r] [-p]
+                      [--EL] [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR]
+                      [-n OUTNAME] [-pp] [-c COLREGIONS [COLREGIONS ...]] [-a]
+                      [-m] [-x EXPRESSION] [--expmulti] [-t]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -87,6 +87,13 @@ Post Processing Options:
                         output is added as a column to neoantigens file.
                         Requires PeptideMatch specified in usr_paths.ini.
                         Default=False
+  -x EXPRESSION, --expression EXPRESSION
+                        RNAseq expression quantification file(s), if
+                        specified, expression information is added to output
+                        tables.
+  --expmulti            Flag to specify if expression file(s) has information
+                        on multiple regions in multiple columns.
+                        Default=False.
   -t                    Flag to turn off a neoantigen burden summary table.
                         Default=True.
 ```
@@ -114,10 +121,10 @@ Post Processing Options:
 ## Run Using Example .vcf files
 ```bash
 # Run the Pipeline to only prepare the input files. Can be best to run this independently if working on a cluster.
-python main_netMHCpan_pipe.py --preponly -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -n TestRun -c 1 2 -E 8 9 10
+python NeoPredPipe.py --preponly -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -n TestRun -c 1 2 -E 8 9 10
 
 # Run the Pipeline
-python main_netMHCpan_pipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -n TestRun -c 1 2 -E 8 9 10
+python NeoPredPipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt -o ./ -n TestRun -c 1 2 -E 8 9 10
 ```
 
 ## Data post processing
