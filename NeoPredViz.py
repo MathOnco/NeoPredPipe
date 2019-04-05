@@ -44,16 +44,18 @@ class Data:
 
     def __init__(self, summaryNeosFile=None, allNeosFile=None, recopo=None):
         self.summaryData = pd.read_csv(summaryNeosFile, sep="\t")
-        self.neosData = pd.read_csv(allNeosFile, sep="\t")
+        if allNeosFile is not None:
+            self.neosData = pd.read_csv(allNeosFile, sep="\t")
         if recopo is not None:
             self.recopoData = pd.read_csv(recopo, sep="\t")
         else:
             self.recopoData = None
         self.sharedNeos = None
         self.matchedNeos = None
-        with open(allNeosFile, 'r') as inFile:
-            self.allLines = [line.replace('\n','') for line in inFile.readlines()]
-        self.deconstructedRegions, self.sharedCount = self.deconstruct()
+        if allNeosFile is not None:
+            with open(allNeosFile, 'r') as inFile:
+                self.allLines = [line.replace('\n','') for line in inFile.readlines()]
+            self.deconstructedRegions, self.sharedCount = self.deconstruct()
 
     def deconstruct(self):
         out = [ ]
@@ -363,49 +365,82 @@ class Data:
 
 if __name__=="__main__":
     Options = Parser()
-    sys.exit()
     hv.extension('bokeh')
 
     # Get The Data
-    allNeos = "/Users/rschenck/Dropbox/NeoPredPipe/BMC_Bioinformatics/NeoPredPipeTrees/TreeData/Carcinoma7/Set7.neoantigens.txt"
-    summaryNeos = "/Users/rschenck/Desktop/forRyan/Total.neoantigens.summarytable.txt"
-    allNeos = "/Users/rschenck/Desktop/forRyan/Total.neoantigens.txt"
-    recopo = "/Users/rschenck/Desktop/forRyan/PredictedRecognitionPotentials.txt"
+    # allNeos = "/Users/rschenck/Dropbox/NeoPredPipe/BMC_Bioinformatics/NeoPredPipeTrees/TreeData/Carcinoma7/Set7.neoantigens.txt"
+    # summaryNeos = "/Users/rschenck/Desktop/forRyan/Total.neoantigens.summarytable.txt"
+    # allNeos = "/Users/rschenck/Desktop/forRyan/Total.neoantigens.txt"
+    # recopo = "/Users/rschenck/Desktop/forRyan/PredictedRecognitionPotentials.txt"
 
-
-    usrData = Data(summaryNeos, allNeos, recopo)
-
-    # Create charts
-    bar = usrData.SummaryBarChart()
-    # chord, dropSelector = usrData.ChordDiagram()
-    hist = usrData.Histogram()
-    # Heatplot of Shared Epitopes
-    heat = usrData.HeatTable()
-    # Recognition Potentials
-    recoScatter = usrData.NeoRecoScatter()
-
-
-    summaryTable = widgetbox(usrData.SummaryTable())
-    # summaryTab = Panel(child=summaryTable, title="Summary Table")
-
-    neoTable = widgetbox(usrData.EpitopeTable())
-    neoTab = Panel(child=neoTable, title="Epitope Table")
-
-    # Plot Charts
+    # Used for all options
     headerDiv = Div(text="""<h1>NeoPredViz</h1>""", height=15)
-    footerDiv = Div(text="""<p>NeoPredViz was developed by <a href="https://ryanoschenck.com">Ryan O Schenck</a> for <a href="https://github.com/MathOnco/NeoPredPipe">NeoPredPipe</a></p>""", height=15)
+    footerDiv = Div(
+        text="""<p>NeoPredViz was developed by <a href="https://ryanoschenck.com">Ryan O Schenck</a> for <a href="https://github.com/MathOnco/NeoPredPipe">NeoPredPipe</a></p>""",
+        height=15)
     summaryHead = Div(text="""<h5>Summary Table</h5>""", height=5)
     neoshead = Div(text="""<h5>Neoantigens</h5>""", height=5)
+    ###
 
-    mainPageLayout = gridplot(children = [[headerDiv],
-                                          [bar, hist],
-                                          [recoScatter, heat],
-                                          [summaryHead],
-                                          [summaryTable],
-                                          [neoshead],
-                                          [neoTable],
-                                          [footerDiv]],
+    if not Options.NeoRecoFile and not Options.NeosFile:
+        usrData = Data(summaryNeosFile=Options.SummaryFile, allNeosFile=None, recopo=None)
+        bar = usrData.SummaryBarChart()
+        summaryTable = widgetbox(usrData.SummaryTable())
+        usersChildren = [[headerDiv],
+                          [bar],
+                          [None],
+                          [summaryHead],
+                          [summaryTable],
+                          [footerDiv]]
+
+    elif not Options.NeoRecoFile:
+        usrData = Data(summaryNeosFile=Options.SummaryFile, allNeosFile=Options.NeosFile, recopo=None)
+        bar = usrData.SummaryBarChart()
+        hist = usrData.Histogram()
+        heat = usrData.HeatTable() # If NeosFile is provided
+        summaryTable = widgetbox(usrData.SummaryTable())
+        neoTable = widgetbox(usrData.EpitopeTable())
+        usersChildren = [[headerDiv],
+                          [bar, hist],
+                          [heat, None],
+                          [summaryHead],
+                          [summaryTable],
+                          [neoshead],
+                          [neoTable],
+                          [footerDiv]]
+
+    elif not Options.NeosFile:
+        usrData = Data(summaryNeosFile=Options.SummaryFile, allNeosFile=None, recopo=Options.NeoRecoFile)
+        bar = usrData.SummaryBarChart()
+        recoBox = usrData.NeoRecoScatter()
+        summaryTable = widgetbox(usrData.SummaryTable())
+        usersChildren = [[headerDiv],
+                          [bar, recoBox],
+                          [summaryHead],
+                          [summaryTable],
+                          [footerDiv]]
+
+    else: # All files provided
+        usrData = Data(summaryNeosFile=Options.SummaryFile, allNeosFile=Options.NeosFile, recopo=Options.NeoRecoFile)
+        bar = usrData.SummaryBarChart()
+        hist = usrData.Histogram()
+        heat = usrData.HeatTable() # If NeosFile is provided
+        recoBox = usrData.NeoRecoScatter()
+        summaryTable = widgetbox(usrData.SummaryTable())
+        neoTable = widgetbox(usrData.EpitopeTable())
+        usersChildren = [[headerDiv],
+                          [bar, hist],
+                          [heat, recoBox],
+                          [summaryHead],
+                          [summaryTable],
+                          [neoshead],
+                          [neoTable],
+                          [footerDiv]]
+
+
+    mainPageLayout = gridplot(children = usersChildren,
                               sizing_mode="scale_width")
 
-    output_file("test.html", title="NeoPredViz")
+    # Finally yeild outputs
+    output_file(Options.Output, title="NeoPredViz")
     show(mainPageLayout)
