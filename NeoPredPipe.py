@@ -211,6 +211,7 @@ def PrepClasses(FilePath, Options):
     
     try:
         os.mkdir(Options.OutputDir+'avready')
+        
     except OSError as e:
         print("INFO: Proper directory already exists. Continue.")
 
