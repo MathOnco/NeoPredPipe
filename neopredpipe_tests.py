@@ -48,7 +48,7 @@ class MyTestCase(unittest.TestCase):
     def test_main_platypus(self):
         if os.path.isfile("./test/Test_platypus.neoantigens.txt"):
             os.system("rm ./test/Test_platypus.*")
-        cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
+        cmd = ['python', 'NeoPredPipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
                '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8', '-d', '-m' ]
         runcmd = subprocess.Popen(cmd)
         runcmd.wait()
@@ -82,7 +82,7 @@ class MyTestCase(unittest.TestCase):
     def test_main_single_region(self):
         if os.path.isfile("test/Test_single.neoantigens.summarytable.txt"):
             os.system("rm ./test/Test_single.*")
-        cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
+        cmd = ['python', 'NeoPredPipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
                '-n', 'Test_single', '-E', '8' ]
         runcmd = subprocess.Popen(cmd)
         runcmd.wait()

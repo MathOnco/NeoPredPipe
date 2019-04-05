@@ -38,14 +38,14 @@ git clone https://github.com/rschenck/NeoPredPipe.git
    #### Note: You need to provide the absolute path.
 3. You can see the options associated by running the following:
 ```bash
-python ./main_netMHCpan_pipe.py --help
+python ./NeoPredPipe.py --help
 ```
    - Which produces the following:
 ```bash
 usage: main_netMHCpan_pipe.py [-h] [-E EPITOPES [EPITOPES ...]] [-l] [-d] [-r]
-                              [-p] [-I VCFDIR] [-H HLAFILE] [-o OUTPUTDIR]
-                              [-n OUTNAME] [-pp]
-                              [-c COLREGIONS [COLREGIONS ...]] [-a] [-t]
+                              [-p] [--EL] [-I VCFDIR] [-H HLAFILE]
+                              [-o OUTPUTDIR] [-n OUTNAME] [-pp]
+                              [-c COLREGIONS [COLREGIONS ...]] [-a] [-m] [-t]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -53,13 +53,18 @@ optional arguments:
                         Epitope lengths for predictions. Default: 8 9 10
   -l                    Specifies whether to delete the ANNOVAR log file.
                         Default: True. Note: Use for debugging.
-  -d                    Specified whether to delete intermediate files created
+  -d                    Specifies whether to delete intermediate files created
                         by program. Default: True. Note: Set flag to resume
                         job.
   -r, --cleanrun        Specify this alone with no other options to clean-up a
                         run. Be careful that you mean to do this!!
   -p, --preponly        Prep files only without running neoantigen
                         predictions. The prediction step takes the most time.
+  --EL                  Flag to perform netMHCpan predictions with Eluted
+                        Ligand option (without the -BA flag). Please note that
+                        the output will NOT be compatible with downstream
+                        Recognition Potential analysis. Default=False (BA
+                        predictions)
 
 Required arguments:
   -I VCFDIR             Input vcf file directory location. Example: -I

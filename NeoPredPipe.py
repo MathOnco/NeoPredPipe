@@ -434,7 +434,7 @@ def CleanUp(Options):
 
 def main():
     # Pull information about usr system files
-    localpath = os.path.abspath(__file__).replace('main_netMHCpan_pipe.py', '')  # path to scripts working directory
+    localpath = os.path.abspath(__file__).replace('NeoPredPipe.py', '')  # path to scripts working directory
     Config = configparser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
