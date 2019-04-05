@@ -57,7 +57,7 @@ class MyTestCase(unittest.TestCase):
         if os.path.isfile("./test/Test_platypus.neoantigens.txt"):
             os.system("rm ./test/Test_platypus.*")
 
-        cmd = ['python', 'main_netMHCpan_pipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
+        cmd = ['python', 'NeoPredPipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes.txt', '-o', './test/',
                '-n', 'Test_platypus', '-c', '0', '1', '2', '3', '4', '-E', '8', '-d', '-m', '-x', './test/expression.txt' ]
 
         runcmd = subprocess.Popen(cmd)
