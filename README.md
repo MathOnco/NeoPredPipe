@@ -1,9 +1,9 @@
 ## Summary
 
-This tool allows a user to process neoantigens predicted from vcf files using ANNOVAR and netMHCpan.
+This tool allows a user to process neoantigens predicted from single- or multi-region vcf files using ANNOVAR and netMHCpan.
 
 Once the primary pipeline is ran, the user is then able to perform Neoantigen recognition potential as described by [Marta Luksza et al., Nature 2017](https://www.nature.com/articles/nature24473).
-To perform the neoantigen recognition potential please [click here](RecognitionPotential.md)
+To perform the neoantigen recognition potential please [click here](RecognitionPotential.md). Finally, you can visualize these predictions using [NeoPredViz](NeoPredViz.md).
 
 ## Dependencies
 ##### Note: Should be compatible on Darwin and Linux systems, not Windows.
