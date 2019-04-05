@@ -367,12 +367,6 @@ if __name__=="__main__":
     Options = Parser()
     hv.extension('bokeh')
 
-    # Get The Data
-    # allNeos = "/Users/rschenck/Dropbox/NeoPredPipe/BMC_Bioinformatics/NeoPredPipeTrees/TreeData/Carcinoma7/Set7.neoantigens.txt"
-    # summaryNeos = "/Users/rschenck/Desktop/forRyan/Total.neoantigens.summarytable.txt"
-    # allNeos = "/Users/rschenck/Desktop/forRyan/Total.neoantigens.txt"
-    # recopo = "/Users/rschenck/Desktop/forRyan/PredictedRecognitionPotentials.txt"
-
     # Used for all options
     headerDiv = Div(text="""<h1>NeoPredViz</h1>""", height=15)
     footerDiv = Div(
