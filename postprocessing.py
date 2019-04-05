@@ -10,8 +10,9 @@ import os
 from collections import OrderedDict
 import subprocess
 import re
+from process_expression import BuildExpTable, BuildGeneIDTable
 
-def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=False):
+def DigestIndSample(toDigest, patName, Options, pepmatchPaths, indels=False):
     '''
     Filters the resulting file and strips all information within it down to individual calls.
 
@@ -24,11 +25,11 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=Fals
 
     lines = []
     if indels:
-        pmInputFile = 'tmp/'+patName+'.epitopes.Indels.peptidematch.input'
-        pmOutFile = 'tmp/'+patName+'.epitopes.Indels.peptidematch.out'
+        pmInputFile = Options.OutputDir+'tmp/'+patName+'.epitopes.Indels.peptidematch.input'
+        pmOutFile = Options.OutputDir+'tmp/'+patName+'.epitopes.Indels.peptidematch.out'
     else:
-        pmInputFile = 'tmp/'+patName+'.epitopes.peptidematch.input'
-        pmOutFile = 'tmp/'+patName+'.epitopes.peptidematch.out'
+        pmInputFile = Options.OutputDir+'tmp/'+patName+'.epitopes.peptidematch.input'
+        pmOutFile = Options.OutputDir+'tmp/'+patName+'.epitopes.peptidematch.out'
 
     pmInputDict = {}
     pmInputLines = 0
@@ -41,15 +42,15 @@ def DigestIndSample(toDigest, patName, checkPeptides, pepmatchPaths, indels=Fals
                     if line.strip()[0].isdigit():
                         linespl = line.split()
                         lines.append('\t'.join(linespl))
-                        if checkPeptides:
+                        if Options.checkPeptides:
                             pep = linespl[2]
                             pmInputDict['>'+pep] = pep
                             pmInputLines+=1
                 except IndexError as e:
                     pass
                     
-    if checkPeptides and pmInputLines>0:
-        RunPepmatch(pmInputDict,pmInputFile, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'], pmOutFile)
+    if Options.checkPeptides and pmInputLines>0:
+        RunPepmatch(Options.OutputDir,pmInputDict,pmInputFile, pepmatchPaths['peptidematch_jar'], pepmatchPaths['reference_index'], pmOutFile)
         lines = ProcessPepmatch(pmOutFile, lines)
     print("INFO: Object size of neoantigens: %s Kb"%(sys.getsizeof(lines)))
     return(lines)
@@ -111,7 +112,7 @@ def DefineGenotypeFormat(testLine):
     return(genotypeFormat, genotypeIndex)
 
 
-def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
+def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Options):
     '''
     Appends information to digested Eps for analysis.
 
@@ -136,6 +137,20 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
     if Options.colRegions is not None:
         genotypeFormat, genotypeIndex = DefineGenotypeFormat(testLine)
 
+    # Load in Expression data if available
+    expTable = None
+    if Options.expression is not None:
+        # Options.allExpFiles is either a single string or a list of filename strings
+        if isinstance(Options.allExpFiles, list):
+            sampleExpFile = filter(lambda x: '/'+patName+'.tsv' in x, Options.allExpFiles)
+        else:
+            sampleExpFile = [Options.allExpFiles]
+        if len(sampleExpFile)>0:
+            idType, expTable = BuildExpTable(sampleExpFile[0], Options.expMultiregion) #take zeroth element to unlist, there should not be ambiguity
+            idTable = BuildGeneIDTable(FilePath,idType)
+        else:
+            print('INFO: No expression file found for sample %s!'%(patName))
+
     newLines = []
     genoTypesPresent = []
     for ep in digestedEps:
@@ -146,7 +161,21 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
         pos = avReadyLine.split('\t')[1]
         ref = avReadyLine.split('\t')[3]
         alt = avReadyLine.split('\t')[4]
-        genes = ','.join([':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != ''])
+        geneList = [':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != '']
+        nmList = [item.split(':')[1] for item in geneList]
+        genes = ','.join(geneList)
+        
+        if Options.expression is not None:
+            geneExp = 'NA'
+            if expTable is not None:
+                for nmId in nmList:
+                    #convert gene ID in NeoPredPipe to geneID that is found in the exp file and query expression dictionary
+                    if nmId in idTable.keys():
+                        tableID = idTable[nmId]
+                        if tableID in expTable.keys():
+                            geneExp = expTable[tableID]
+                            break
+            genes = '\t'.join([genes, geneExp])
 
         # Getting information from the genotype fields
         # Step 1: Determine the mutation location in the genotype field (based on FORMAT info/ genotype index)
@@ -190,12 +219,12 @@ def AppendDigestedEps(digestedEps, patName, exonicVars, avReady, Options):
     return(newLines, genoTypesPresent)
 
 
-def RunPepmatch(pmInputDict, pmInput, pepmatchJar, refIndex, pmfileName):
+def RunPepmatch(FilePath,pmInputDict, pmInput, pepmatchJar, refIndex, pmfileName):
     with open(pmInput, 'w') as inputFile:
         for k in pmInputDict.keys():
             inputFile.write(k+'\n'+pmInputDict[k]+'\n')
 
-    with open('logForPeptideMatch.tmp', 'a') as logFile:
+    with open(FilePath+'logForPeptideMatch.tmp', 'a') as logFile:
         cmd = ['java', '-jar', pepmatchJar, '-a', 'query', '-i', refIndex,'-Q', pmInput, '-o', pmfileName]
         runcmd = subprocess.Popen(cmd, stdout=logFile)
         runcmd.wait()

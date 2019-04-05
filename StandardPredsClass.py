@@ -39,6 +39,7 @@ class StandardPreds:
         self.blastpResults = None # List containing xml files for the blastp results from each patient epitopes to the IEDB database
         self.filesToPredict = None
         self.epitopeLengths = None
+        self.hasExpression = False # Boolean of whether the original predictions had expression information, default is false
     def load(self):
         '''
         Loads the data class of neoantigen predictions to get the right information.
@@ -63,6 +64,10 @@ class StandardPreds:
                 hla = line.split('\t')[-13]
             if hla not in self.hlas[sam]:
                 self.hlas[sam].append(hla)
+
+        if ':' not in lines[0].split('\t')[-17]: #Checks if it is expression instead of geneName:geneID combination
+            self.hasExpression = True
+
 
     def __ensureFiltered(self, data):
         '''
@@ -288,7 +293,7 @@ class StandardPreds:
         :return: a list of data needed for the neoantigen recognition potential.
         '''
         # Header for the table is as follows:
-        # ID,MUTATION_ID,Sample,WT.PEPTIDE,MT.PEPTIDE,MT.ALLELE (which is the hla for the peptide),WT.SCORE,MT.SCORE,HLA,CHOP_SCORE
+        # ID,MUTATION_ID,Sample,WT.PEPTIDE,MT.PEPTIDE,MT.ALLELE (which is the hla for the peptide),WT.SCORE,MT.SCORE,HLA,CHOP_SCORE,Expression (if available)
         if self.chop_scores is None:
             self.SetChopScore(None)
         else:
@@ -328,6 +333,9 @@ class StandardPreds:
 
             # Construct table line
             lineOut = '\t'.join([str(count), identifier, sample, wtpeptide, mutpeptide, hla.replace("HLA-","").replace("*","").replace(":",""), wtscore, mutscore, lineHLAs, str(self.chop_scores[count-1])])
+            if self.hasExpression:
+                expression = MutPred[-17]
+                lineOut = '\t'.join([lineOut, expression])
             count += 1
             tableLines.append(lineOut)
 
@@ -412,7 +420,10 @@ class StandardPreds:
         filename = "%sNeoantigens.WTandMTtable.txt"%(tmpDir)
 
         with open(filename, 'w') as outFile:
-            outFile.write("\t".join(["ID","MUTATION_ID","Sample","WT.PEPTIDE","MT.PEPTIDE","MT.ALLELE","WT.SCORE","MT.SCORE","HLA","CHOP_SCORE"]) + "\n")
+            if len(self.WTandMTtable[0].split('\t'))==11:
+                outFile.write("\t".join(["ID","MUTATION_ID","Sample","WT.PEPTIDE","MT.PEPTIDE","MT.ALLELE","WT.SCORE","MT.SCORE","HLA","CHOP_SCORE", "EXPRESSION"]) + "\n")
+            else:
+                outFile.write("\t".join(["ID","MUTATION_ID","Sample","WT.PEPTIDE","MT.PEPTIDE","MT.ALLELE","WT.SCORE","MT.SCORE","HLA","CHOP_SCORE"]) + "\n")
             for line in self.WTandMTtable:
                 outFile.write(line + "\n")
 
@@ -482,8 +493,12 @@ class StandardPreds:
             outputFile = "PredictedRecognitionPotentials"
 
         with open(Options.neorecoOut + outputFile + ".txt", "w") as outFile:
-            header = ["NeoantigenID", "Mutation", "Sample", "MutatedPeptide", "ResidueChangeClass", "MutantPeptide",
-                      "WildtypePeptide", "HLA", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
+            if neoantigens[neoantigens.keys()[0]].expr is None:
+                header = ["NeoantigenID", "Mutation", "Sample", "MutatedPeptide", "ResidueChangeClass", "MutantPeptide",
+                "WildtypePeptide", "HLA", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
+            else:
+                header = ["NeoantigenID", "Mutation", "Sample", "MutatedPeptide", "ResidueChangeClass", "MutantPeptide",
+                "WildtypePeptide", "HLA","Expression", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
             header = "\t".join(header)
             outFile.write(header+'\n')
             for neo in neoantigens:
@@ -504,7 +519,11 @@ class StandardPreds:
 
                 fitnessCost = A * R * w
 
-                l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, neoantigen.allele, A,
-                     R, 1 - w, fitnessCost]  # , neoAlignment, epitopeAlignment, score, species]
+                if neoantigen.expr is not None:
+                    l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, neoantigen.allele,
+                    neoantigen.expr, A,R, 1 - w, fitnessCost]
+                else:
+                    l = [neo, neoantigen.mid, neoantigen.sample, neoantigen.position, residueChange, mtpeptide, wtpeptide, neoantigen.allele, A,
+                    R, 1 - w, fitnessCost]  
                 l = "\t".join(map(lambda s: str(s), l))
                 outFile.write(l+'\n')
