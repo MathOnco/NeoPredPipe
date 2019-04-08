@@ -99,7 +99,7 @@ Post Processing Options:
 ```
 
 ## Input files
-1. VCF file. A standard vcf file with a patient identifier as the title of the .vcf.
+1. VCF file(s). A standard vcf file with a patient identifier as the title of the .vcf. Several vcf files can be specified in the same directory.
 2. An hla file with the following tab delimited format:
    - Note, patient identifier in the rows must match that preceding *.vcf
    - Patient identifier and HLA types should be separated by tabulators.
@@ -111,6 +111,23 @@ Post Processing Options:
 |  --- |  --- |  --- |  --- |  --- |  --- |  ---  |
 | test1 | hla_a_31_01_02 | hla_a_02_01_80 | hla_b_40_01_02 | hla_b_50_01_01 | hla_c_03_04_20 | hla_c_06_02_01_02 |
 | test2 | hla_a_01_01_01_01 | NA | hla_b_07_02_01 | NA | hla_c_01_02_01 | NA |
+
+2. (Option 2) In case patient-specific HLA types are not known, but WGS/WES bam files are available for the patient, we recommend the use of _in silico_ haplotyping tool, [POLYSOLVER](https://software.broadinstitute.org/cancer/cga/polysolver). POLYSOLVER can be obtained in a cross-platform, easy-to-use Docker container format, as described [here](https://software.broadinstitute.org/cancer/cga/polysolver_download).
+   - Follow the steps on the link above for setup and testing POLYSOLVER-Docker.
+   - Modify and execute the code below to run polysolver on a sample with name <patientIdentifer>.
+   - After executing this for each sample, simply supply the *absolute* path to the directory "HLAtypes" as the -H input of NeoPredPipe, and your HLA predictions will be automatically read into the program.
+   
+```bash
+# Specify your home folder that has a folder of bamfiles and a folder where you want to save the HLAtyping outputs too
+mydir="/path/to/your/home/directory"
+
+# Create a folder for the output of haplotyping
+mkdir $mydir/HLAtypes
+mkdir $mydir/HLAtypes/<patientIdentifier>
+
+# Change paths to fit the names of your own folders/files (and change hg19 to hg38 if needed) and run the following command to generate outputs in a folder named <patientIdentifier>
+docker run -d -P --name $NAME -v $mydir:/data sachet/polysolver:v4 bash /home/polysolver/scripts/shell_call_hla_type /data/<bamfiles>/<patientIdentifier>.bam Unknown 1 hg19 STDFQ 0 /data/HLAtypes/<patientIdentifier>
+```
 
 3. (Optional) Expression file(s), specified after the -x flag:
    - Either the path to a single file to be used for all samples (for example values compiled from a reference cohort); or a path to a directory, containing files for each sample, named as <patientIdentifier>.tsv. NeoPredPipe will automatically search for appropriate *.tsv files if a directory is specified.
