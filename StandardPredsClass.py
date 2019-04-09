@@ -14,7 +14,8 @@ from Bio import SeqIO
 from NeoAlign import Aligner
 from NeoClass import Neoantigen
 
-from vcf_manipulate import ExtractSeq, predict_neoantigensWT
+from vcf_manipulate import ExtractSeq
+from predict_binding import predict_neoantigensWT
 from postprocessing import DigestIndSampleWT
 
 

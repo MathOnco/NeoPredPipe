@@ -16,7 +16,8 @@ except:
 import shutil
 from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
-    predict_neoantigens, ReformatFasta, MakeTempFastas, ConstructAlleles
+    ReformatFasta, MakeTempFastas
+from predict_binding import predict_neoantigens
 from postprocessing import DigestIndSample, AppendDigestedEps
 from process_expression import GetExpressionFiles
 
@@ -231,6 +232,50 @@ def PrepClasses(FilePath, Options):
         print("INFO: Proper directory already exists. Continue.")
 
     return(allFiles, hlas)
+
+def ConstructAlleleHelper(s):
+    return(s[:4].lower() + s[4:].capitalize())
+
+def ConstructAlleles(hlas, FilePath, patID):
+    '''
+    Constructs the proper HLA input from HLA calls.
+
+    :param hlas: list of HLA types for the Patient
+    :return: list of normalized HLA identifiers for netMHCpan
+    '''
+    # TODO need a better way of verifying the format of the HLA alleles and matching in the list of those available...Some aren't working and should be...
+    with open("%s/netMHCpanAlleles.txt"%(FilePath),'r') as alleles:
+        allAlleles = [i.rstrip('\n').lower() for i in alleles.readlines()]
+    
+    hlas = [hla.lower() for hla in hlas if 'NA' not in hla]
+    hlas = [i.replace("hla_","hla-") for i in hlas]
+    hlas = [hla.replace("_","",1) for hla in hlas if 'NA' not in hla]
+    hlas = [hla.replace("_",":",1) for hla in hlas if 'NA' not in hla]
+    
+    netMHCpanHLAS = []
+    for hla in hlas:
+        if len([h for h in allAlleles if hla == h]) == 1:
+            netMHCpanHLAS.append(hla.replace("_", "").upper())
+        elif len([h for h in allAlleles if hla.replace("_","")[0:-2] == h]) == 1:
+            netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())
+        elif len([h for h in allAlleles if hla.replace("_", "")[0:-4] == h]) == 1:
+            netMHCpanHLAS.append(hla.replace("_", "")[0:-4].upper())
+        elif len([h for h in allAlleles if hla.replace("_", "")[0:-5] == h]) == 1:
+            netMHCpanHLAS.append(hla.replace("_", "")[0:-5].upper())
+        else:
+            sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
+
+    # for hla in hlas:
+    #     if hla.replace("_","")[0:-2] in allAlleles:
+    #         netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())
+    #     elif hla.replace("_","")[0:-4] in allAlleles:
+    #         netMHCpanHLAS.append(hla.replace("_", "")[0:-4].upper())
+    #     elif hla.replace(" ", "") in allAlleles:
+    #         netMHCpanHLAS.append(hla.replace("_", "").upper())
+    #     else:
+    #         sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
+
+    return(list(set(netMHCpanHLAS)))
 
 def FinalOut(sampleClasses, Options, indelProcess=False):
     if indelProcess:
