@@ -68,7 +68,9 @@ optional arguments:
 Required arguments:
   -I VCFDIR             Input vcf file directory location. Example: -I
                         ./Example/input_vcfs/
-  -H HLAFILE            HLA file for vcf patient samples.
+  -H HLAFILE            HLA file for vcf patient samples OR directory with
+                        patient-specific directories from running POLYSOLVER
+                        (see Readme).
   -o OUTPUTDIR          Output Directory Path
   -n OUTNAME            Name of the output file for neoantigen predictions
 
