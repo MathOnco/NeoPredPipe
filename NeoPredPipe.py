@@ -485,7 +485,7 @@ def main():
 
     # Check VCF and HLA
     assert len(allFiles) > 0, "No input vcf files detected. Perhaps they are compressed?"
-    if len(allFiles)>(len(hlas.keys())-1):
+    if len(allFiles)>len(hlas.keys()):
         print("WARNING: Less samples are detected in HLA file than in VCF folder. Only samples included in HLA file will be processed.")
 
     # Prepare samples
