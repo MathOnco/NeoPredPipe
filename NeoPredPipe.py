@@ -36,7 +36,7 @@ def Parser():
     requiredNamed = parser.add_argument_group('Required arguments')
     requiredNamed.add_argument("-I", dest="vcfdir", default=None, type=str,
                                help="Input vcf file directory location. Example: -I ./Example/input_vcfs/")
-    requiredNamed.add_argument("-H", dest="hlafile", default=None, type=str, help="HLA file for vcf patient samples.")
+    requiredNamed.add_argument("-H", dest="hlafile", default=None, type=str, help="HLA file for vcf patient samples OR directory with patient-specific directories from running POLYSOLVER (see Readme).")
     requiredNamed.add_argument("-o", dest="OutputDir", default=None, type=str, help="Output Directory Path")
     requiredNamed.add_argument("-n", dest="outName", default="AllSamples", type=str, help="Name of the output file for neoantigen predictions")
     postProcess = parser.add_argument_group('Post Processing Options')
