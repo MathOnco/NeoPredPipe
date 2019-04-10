@@ -18,7 +18,7 @@ from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     ReformatFasta, MakeTempFastas
 from predict_binding import predict_neoantigens
-from hla_preprocess import ConstructAlleles
+from hla_preprocess import ConstructAlleles, composeHLAFile, readInHLAwinners
 from postprocessing import DigestIndSample, AppendDigestedEps
 from process_expression import GetExpressionFiles
 
@@ -197,17 +197,18 @@ def PrepClasses(FilePath, Options):
             sys.exit("Unable to locate vcf files.")
     
     hlas = dict()
-    try:
+    if os.path.isfile(Options.hlafile):
         with open(Options.hlafile, 'r') as hlaFile:
             lines = hlaFile.readlines()
-    except:
-        sys.exit("Unable to locate HLA file.")
-    for line in lines:
-        line = line.rstrip('\n').split("\t")
-        pat = line[0]
-        del line[0]
-        hlas.update({pat: line})
-    print(hlas)
+        for line in lines:
+            line = line.rstrip('\n').split("\t")
+            pat = line[0]
+            del line[0]
+            hlas.update({pat: line})
+    elif os.path.isdir(Options.hlafile):
+        hlas = composeHLAFile(Options.hlafile)
+    else:
+        sys.exit("Unable to locate HLA file or directory.")
 
     if not os.path.exists(Options.OutputDir):
         os.mkdir(Options.OutputDir)

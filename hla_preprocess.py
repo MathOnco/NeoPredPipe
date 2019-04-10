@@ -17,6 +17,8 @@ def readInHLAwinners(hladir):
     :return: An array of HLA allele predictions, with NA for duplicates, as defined by NeoPredPipe
     '''
     hlaFileName = hladir.rstrip('/')+'/winners.hla.txt'
+    if not os.path.isfile(hlaFileName):
+    	return(None)
     with open(hlaFileName, 'r') as hlafile:
         hlaList = []
         for line in hlafile.readlines():
@@ -38,8 +40,9 @@ def composeHLAFile(allHLAdir):
             hlaDir = sample
             sampleID = sample.split('/')[-1]
             hlaList = readInHLAwinners(hlaDir)
-            outFile.write(sampleID+'\t'+ ('\t').join(hlaList)+'\n')
-            hlas.update({sampleID: hlaList})
+            if hlaList != None:
+            	outFile.write(sampleID+'\t'+ ('\t').join(hlaList)+'\n')
+            	hlas.update({sampleID: hlaList})
     return(hlas)
 
 
