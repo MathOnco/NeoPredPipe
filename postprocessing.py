@@ -154,7 +154,10 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
     newLines = []
     genoTypesPresent = []
     for ep in digestedEps:
-        epID = int(ep.split('\t')[10].split('_')[0].replace('line',''))
+        if Options.typeII:
+            epID = int(ep.split('\t')[3].split(';')[0].replace('line',''))
+        else:
+            epID = int(ep.split('\t')[10].split('_')[0].replace('line',''))
         exonicLine = exonicInfo[epID]
         avReadyLine = varInfo[epID]
         chrom = avReadyLine.split('\t')[0]

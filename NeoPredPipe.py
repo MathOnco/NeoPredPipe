@@ -33,6 +33,8 @@ def Parser():
     parser.add_argument('-p', "--preponly", dest="preponly", default=False, action='store_true',help="Prep files only without running neoantigen predictions. The prediction step takes the most time.")
     parser.add_argument("--EL", dest="ELpred", default=False, action='store_true',
         help="Flag to perform netMHCpan predictions with Eluted Ligand option (without the -BA flag). Please note that the output will NOT be compatible with downstream Recognition Potential analysis. Default=False (BA predictions)")
+    parser.add_argument("--typeII", dest="typeII", default=False, action='store_true',
+        help="Flag to indicate that MHC-typeII predictions will be performed (using netMHCIIpan).")
     requiredNamed = parser.add_argument_group('Required arguments')
     requiredNamed.add_argument("-I", dest="vcfdir", default=None, type=str,
                                help="Input vcf file directory location. Example: -I ./Example/input_vcfs/")
@@ -316,7 +318,7 @@ def FinalOut(sampleClasses, Options, indelProcess=False):
                                 region_count[s*3]+=1
                                 r +=1
 
-                    if "<=\tWB" in line:
+                    if "<=\tWB" in line or "<=WB" in line:
                         wbind +=1
 
                         if Options.colRegions is not None:
@@ -326,7 +328,7 @@ def FinalOut(sampleClasses, Options, indelProcess=False):
                                     region_count[(s * 3)+1] += 1
                                     rw +=1
 
-                    elif "<=\tSB" in line:
+                    elif "<=\tSB" in line or "<=SB" in line:
                         sbind+=1
 
                         if Options.colRegions is not None:
