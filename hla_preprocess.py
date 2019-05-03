@@ -7,6 +7,7 @@
 import sys
 import os
 import glob
+import itertools
 
 
 def readInHLAwinners(hladir):
@@ -87,5 +88,51 @@ def ConstructAlleles(hlas, FilePath, patID):
     #         netMHCpanHLAS.append(hla.replace("_", "").upper())
     #     else:
     #         sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
+
+    return(list(set(netMHCpanHLAS)))
+
+def ConstructAlleles_typeII(hlas, FilePath, patID):
+    '''
+    Constructs the proper HLA input from HLA calls.
+
+    :param hlas: list of HLA types for the Patient
+    :return: list of normalized HLA identifiers for netMHCpan
+    '''
+    # TODO need a better way of verifying the format of the HLA alleles and matching in the list of those available...Some aren't working and should be...
+    with open("%s/netMHCpanAlleles2.txt"%(FilePath),'r') as alleles:
+        allAlleles = [i.rstrip('\n').upper() for i in alleles.readlines()]
+    
+    hlas = [hla.upper() for hla in hlas]
+    hlas = [hla.rstrip("PNQG") for hla in hlas if 'NA' not in hla] #potential characters at the end that have to be omitted
+    hlas = [''.join(hla.split(':')[:2]) for hla in hlas]
+
+    hlas_drb = []; hlas_dpa = []; hlas_dpb = []; hlas_dqa = []; hlas_dqb = []
+    for hla in hlas:
+        if 'DRB' in hla:
+            hlas_drb.append(hla.replace("*","_",1))
+        elif 'DPA' in hla:
+            hlas_dpa.append(hla.replace("*","",1))
+        elif 'DPB' in hla:
+            hlas_dpb.append(hla.replace("*","",1))
+        elif 'DQA' in hla:
+            hlas_dqa.append(hla.replace("*","",1))
+        elif 'DQB' in hla:
+            hlas_dqb.append(hla.replace("*","",1))
+
+    hlas_dp = ['HLA-'+'-'.join(hla) for hla in list(itertools.product(hlas_dpa, hlas_dpb))]
+    hlas_dq = ['HLA-'+'-'.join(hla) for hla in list(itertools.product(hlas_dqa, hlas_dqb))]
+
+    netMHCpanHLAS = []
+    for hla in hlas_drb:
+        if hla in allAlleles:
+            netMHCpanHLAS.append(hla)
+        else:
+            sys.exit("ERROR: HLA type not found for %s : %s" % (patID, hla))
+    for hla in hlas_dp + hlas_dq:
+        if hla in allAlleles:
+            netMHCpanHLAS.append(hla)
+        else:
+            print("WARNING: HLA type combination not found for %s: %s. It will be omitted in the analysis." % (patID, hla))
+    
 
     return(list(set(netMHCpanHLAS)))

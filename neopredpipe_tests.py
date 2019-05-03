@@ -8,6 +8,7 @@ import os
 
 from postprocessing import DefineGenotypeFormat, ProcessPepmatch
 from process_expression import BuildGeneIDTable
+from hla_preprocess import ConstructAlleles_typeII
 
 class MyTestCase(unittest.TestCase):
     def test_genotypeformat_ad(self):
@@ -51,7 +52,12 @@ class MyTestCase(unittest.TestCase):
                          '6\tHLA-C*07:02\tRLFPLIQAL\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline196_NM_0025\t0.1744960\t1.6035\t<=\tWB\t1']
         self.assertEqual(appendedlines, ProcessPepmatch(pmfileName, eplines))
 
+    def test_hla_format_typeII(self):
+        hlas = ['DRB1*12:02P', 'DPA1*01:03P','DPB1*90:01P','DRB1*01:01:01G', 'DPA1*02:04','NA', 'DQA1*05:01P', 'DQB1*02:02G', 'DQB1*03:39']
+        FilePath = '.'
+        patID = 'hla_test'
 
+        self.assertEqual( ['HLA-DQA10501-DQB10202','HLA-DPA10103-DPB19001','DRB1_0101','DRB1_1202','HLA-DPA10204-DPB19001'], ConstructAlleles_typeII(hlas,FilePath,patID))
 
     def test_main_multiple(self):
         if os.path.isfile("./test/Test_platypus.neoantigens.txt"):
