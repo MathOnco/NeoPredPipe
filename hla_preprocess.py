@@ -8,6 +8,8 @@ import sys
 import os
 import glob
 import itertools
+import re
+
 
 
 def readInHLAwinners(hladir):
@@ -44,6 +46,66 @@ def composeHLAFile(allHLAdir):
             if hlaList != None:
             	outFile.write(sampleID+'\t'+ ('\t').join(hlaList)+'\n')
             	hlas.update({sampleID: hlaList})
+    return(hlas)
+
+def processHLAminerFile(hladir):
+    '''
+    Transforms HLAminer output (which is really not a csv) into a list of best hits of HLA2 haplotypes (<=2 preds per allele)
+
+    :param hladir: The directory which HLAminer was outputted to
+    :return: A filtered file with the filtered alleles
+    '''
+    pattern = r'D(\w+)\*\d+:\d+[PNQG]?[,:]\d+[.:]\d+,\d+\.\d+e?[-,]\d+[,.]\d+e?-?(\d+)?[.,]\d+\.?(\d+)?'
+    hlaFileName = hladir.rstrip('/')+'/HLAminer_HPRA.csv'
+
+    filteredfile = open(hladir.rstrip('/')+'/HLAminer_processed.txt','w')
+    hlaMainList = []
+    with open(hlaFileName, 'r') as hlafile: 
+        lines = hlafile.readlines()
+        for line in lines:
+            if re.search(pattern, line):
+                hla = line.strip('\t').split(',')[0]
+                hlaMain = hla.split(':')[0]
+                if not hlaMain in hlaMainList:
+                    hlaMainList.append(hlaMain)
+                    filteredfile.write(hla+'\n')
+    filteredfile.close()
+
+def readInHLA2processed(hladir):
+    '''
+    Transforms pre-processed HLAminer output to a single table line for hla file
+
+    :param hladir: The directory which HLAminer was outputted to
+    :return: An array of HLA allele predictions
+    '''
+    hlaFileName = hladir.rstrip('/')+'/HLAminer_processed.txt'
+    hlaPreFileName = hladir.rstrip('/')+'/HLAminer_HPRA.csv'
+    if not os.path.isfile(hlaFileName):
+        if os.path.isfile(hlaPreFileName):
+            processHLAminerFile(hladir)
+        else:
+            return(None)
+    with open(hlaFileName, 'r') as hlafile:
+        hlaList = []
+        for line in hlafile.readlines():
+            hla = line.rstrip('\n')
+            #filter out DRA and DRB2-DRB9, change this line if it is not required
+            if not re.search(r'DR[AB][^1]',hla):
+                hlaList.append(hla)
+    return(hlaList)
+
+def composeHLA2File(allHLAdir):
+    outFileName = allHLAdir+'/hlatypes.txt'
+    hlas = dict()
+    with open(outFileName, 'w') as outFile:
+        sampleList = glob.glob(allHLAdir+'/*')
+        for sample in sampleList:
+            hlaDir = sample
+            sampleID = sample.split('/')[-1]
+            hlaList = readInHLA2processed(hlaDir)
+            if hlaList != None:
+                outFile.write(sampleID+'\t'+ ('\t').join(hlaList)+'\n')
+                hlas.update({sampleID: hlaList})
     return(hlas)
 
 
