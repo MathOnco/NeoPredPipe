@@ -48,7 +48,7 @@ def composeHLAFile(allHLAdir):
             	hlas.update({sampleID: hlaList})
     return(hlas)
 
-def processHLAminerFile(hladir):
+def processHLAminerFile(hlaFileName):
     '''
     Transforms HLAminer output (which is really not a csv) into a list of best hits of HLA2 haplotypes (<=2 preds per allele)
 
@@ -56,9 +56,8 @@ def processHLAminerFile(hladir):
     :return: A filtered file with the filtered alleles
     '''
     pattern = r'D(\w+)\*\d+:\d+[PNQG]?[,:]\d+[.:]\d+,\d+\.\d+e?[-,]\d+[,.]\d+e?-?(\d+)?[.,]\d+\.?(\d+)?'
-    hlaFileName = hladir.rstrip('/')+'/HLAminer_HPRA.csv'
 
-    filteredfile = open(hladir.rstrip('/')+'/HLAminer_processed.txt','w')
+    filteredfile = open(hlaFileName.replace('HPRA.csv','processed.txt'),'w')
     hlaMainList = []
     with open(hlaFileName, 'r') as hlafile: 
         lines = hlafile.readlines()
@@ -71,21 +70,17 @@ def processHLAminerFile(hladir):
                     filteredfile.write(hla+'\n')
     filteredfile.close()
 
-def readInHLA2processed(hladir):
+def readInHLA2hlaminer(hlaFileName):
     '''
     Transforms pre-processed HLAminer output to a single table line for hla file
 
     :param hladir: The directory which HLAminer was outputted to
     :return: An array of HLA allele predictions
     '''
-    hlaFileName = hladir.rstrip('/')+'/HLAminer_processed.txt'
-    hlaPreFileName = hladir.rstrip('/')+'/HLAminer_HPRA.csv'
-    if not os.path.isfile(hlaFileName):
-        if os.path.isfile(hlaPreFileName):
-            processHLAminerFile(hladir)
-        else:
-            return(None)
-    with open(hlaFileName, 'r') as hlafile:
+    hlaProcessedFileName = hlaFileName.replace('HPRA.csv','processed.txt')
+    if not os.path.isfile(hlaProcessedFileName):
+        processHLAminerFile(hlaFileName)
+    with open(hlaProcessedFileName, 'r') as hlafile:
         hlaList = []
         for line in hlafile.readlines():
             hla = line.rstrip('\n')
@@ -94,16 +89,39 @@ def readInHLA2processed(hladir):
                 hlaList.append(hla)
     return(hlaList)
 
+def readInHLA2hlahd(hlaFileName):
+    '''
+    Transforms pre-processed HLA-HD output to a single table line for hla file
+
+    :param hladir: The directory which HLA-HD was outputted to
+    :return: An array of HLA allele predictions
+    '''
+    with open(hlaFileName, 'r') as hlafile:
+        hlaList = []
+        for line in hlafile.readlines():
+            lineArray = line.rstrip('\n').split('\t')
+            # This line should be modified to include A-C or DBR2-9 or other predictions
+            if re.search(r'D[PQR][AB]1', lineArray[0]):
+                for hla in lineArray[1:]:
+                    if hla!='-' and hla!='Not typed':
+                        hlaList.append(hla[4:])
+    return(hlaList)
+
 def composeHLA2File(allHLAdir):
     outFileName = allHLAdir+'/hlatypes.txt'
     hlas = dict()
     with open(outFileName, 'w') as outFile:
         sampleList = glob.glob(allHLAdir+'/*')
         for sample in sampleList:
-            hlaDir = sample
+            hladir = sample
             sampleID = sample.split('/')[-1]
-            hlaList = readInHLA2processed(hlaDir)
-            if hlaList != None:
+            if os.path.isfile(hladir.rstrip('/')+'/result/'+sampleID+'_final.result.txt'):
+                hlaList = readInHLA2hlahd(hladir.rstrip('/')+'/result/'+sampleID+'_final.result.txt')
+            elif os.path.isfile(hladir.rstrip('/')+'/HLAminer_HPRA.csv'):
+                hlaList = readInHLA2hlaminer(hladir.rstrip('/')+'/HLAminer_HPRA.csv')
+            else:
+                hlaList = None
+            if hlaList is not None:
                 outFile.write(sampleID+'\t'+ ('\t').join(hlaList)+'\n')
                 hlas.update({sampleID: hlaList})
     return(hlas)
