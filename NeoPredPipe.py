@@ -18,7 +18,7 @@ from collections import Counter
 from vcf_manipulate import convert_to_annovar, annovar_annotation, get_coding_change,\
     ReformatFasta, MakeTempFastas
 from predict_binding import predict_neoantigens
-from hla_preprocess import ConstructAlleles, composeHLAFile, readInHLAwinners
+from hla_preprocess import ConstructAlleles, ConstructAlleles_typeII, composeHLAFile, composeHLA2File, readInHLAwinners
 from postprocessing import DigestIndSample, AppendDigestedEps
 from process_expression import GetExpressionFiles
 
@@ -33,8 +33,6 @@ def Parser():
     parser.add_argument('-p', "--preponly", dest="preponly", default=False, action='store_true',help="Prep files only without running neoantigen predictions. The prediction step takes the most time.")
     parser.add_argument("--EL", dest="ELpred", default=False, action='store_true',
         help="Flag to perform netMHCpan predictions with Eluted Ligand option (without the -BA flag). Please note that the output will NOT be compatible with downstream Recognition Potential analysis. Default=False (BA predictions)")
-    parser.add_argument("--typeII", dest="typeII", default=False, action='store_true',
-        help="Flag to indicate that MHC-typeII predictions will be performed (using netMHCIIpan).")
     requiredNamed = parser.add_argument_group('Required arguments')
     requiredNamed.add_argument("-I", dest="vcfdir", default=None, type=str,
                                help="Input vcf file directory location. Example: -I ./Example/input_vcfs/")
@@ -55,6 +53,7 @@ def Parser():
     postProcess.add_argument("-t", dest="buildSumTable", default=True, action='store_false', help="Flag to turn off a neoantigen burden summary table. Default=True.")
 
     Options = parser.parse_args()  # main user args
+    Options.typeII = False
     if Options.makeitclean:
         CleanUp(Options)
         sys.exit("Process Complete")
@@ -95,7 +94,10 @@ class Sample():
         self.appendedEpitopes = None
         self.regionsPresent = None
         self.ProcessAnnovar(FilePath, annovar, Options)
-        self.hlasnormed = ConstructAlleles(self.hla, FilePath, self.patID)
+        if Options.typeII:
+            self.hlasnormed = ConstructAlleles_typeII(self.hla, FilePath, self.patID)
+        else:
+            self.hlasnormed = ConstructAlleles(self.hla, FilePath, self.patID)
 
         if Options.preponly:
             print("INFO: Input files prepared and completed for %s" % (self.patID))
@@ -208,7 +210,10 @@ def PrepClasses(FilePath, Options):
             del line[0]
             hlas.update({pat: line})
     elif os.path.isdir(Options.hlafile):
-        hlas = composeHLAFile(Options.hlafile)
+        if Options.typeII:
+            hlas = composeHLA2File(Options.hlafile)
+        else:
+            hlas = composeHLAFile(Options.hlafile)
     else:
         sys.exit("Unable to locate HLA file or directory.")
 
@@ -445,6 +450,7 @@ def CleanUp(Options):
 def main():
     # Pull information about usr system files
     localpath = os.path.abspath(__file__).replace('NeoPredPipe.py', '')  # path to scripts working directory
+    Options = Parser()
     Config = configparser.ConfigParser()
     Config.read(localpath + "usr_paths.ini")
     annPaths = ConfigSectionMap(Config.sections()[0], Config)  # get annovar script paths
@@ -455,13 +461,13 @@ def main():
         annPaths['build'] = 'hg19'
     else:
         print("INFO: Annovar reference files of build %s were given, using this build for all analysis."%(annPaths['build']))
-    netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get annovar script paths
+    netMHCpanPaths = ConfigSectionMap(Config.sections()[1], Config)  # get netmhcpan paths
+    if netMHCpanPaths['netmhcpan'].rstrip('\n').split('/')[-1]=='netMHCIIpan': #set typeII if netMHCIIpan is supplied instead of netMHCpan
+        Options.typeII = True
     try:
         pepmatchPaths = ConfigSectionMap(Config.sections()[2], Config)  # get PeptideMatch paths
     except IndexError as e:
         pepmatchPaths = None
-
-    Options = Parser()
 
     #Make sure outputdir ends with '/'
     if Options.OutputDir[len(Options.OutputDir)-1]=="/":
