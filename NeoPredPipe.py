@@ -166,7 +166,7 @@ class Sample():
         if i!=2*len(Options.epitopes):
             if i>0:
                 os.system("rm "+Options.OutputDir+"tmp/"+self.patID+".epitopes.*.txt") # if doing predictions, remove existing files to ensure double predicting happens
-            self.epcalls = predict_neoantigens(Options.OutputDir, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan, Options.ELpred)
+            self.epcalls = predict_neoantigens(Options.OutputDir, self.patID, self.peptideFastas, self.hlasnormed , Options.epitopes, netmhcpan, Options)
 
     def digestIndSample(self, FilePath, pmPaths, Options):
         if self.epcalls != []:

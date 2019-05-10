@@ -9,7 +9,7 @@ import sys
 import os
 import subprocess
 
-def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netMHCpan, ELpred):
+def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netMHCpan, Options):
     '''
     Strips out all WILDTYPE and IMMEDIATE-STOPGAIN from fasta file.
 
@@ -40,8 +40,10 @@ def predict_neoantigens(FilePath, patName, inFile, hlasnormed, epitopeLens, netM
             epcalls.append(output_file)
             with open(output_file, 'a') as epitope_pred:
                 print("INFO: Running Epitope Predictions for %s on epitopes of length %s"%(patName,n))
-                if ELpred:
+                if Options.ELpred:
                     cmd = [netMHCpan['netmhcpan'], '-l', str(n).split('.')[0], '-a', ','.join(hlasnormed), '-f', inFile[n]]
+                elif Options.typeII:
+                    cmd = [netMHCpan['netmhcpan'], '-length', str(n).split('.')[0], '-a', ','.join(hlasnormed), '-f', inFile[n]]
                 else:
                     cmd = [netMHCpan['netmhcpan'], '-BA', '-l', str(n).split('.')[0], '-a', ','.join(hlasnormed), '-f', inFile[n]]
                 netMHC_run = subprocess.Popen(cmd, stdout=epitope_pred, stderr=epitope_pred)
