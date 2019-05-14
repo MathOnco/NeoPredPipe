@@ -178,7 +178,6 @@ def ConstructAlleles_typeII(hlas, FilePath, patID):
     :param hlas: list of HLA types for the Patient
     :return: list of normalized HLA identifiers for netMHCpan
     '''
-    # TODO need a better way of verifying the format of the HLA alleles and matching in the list of those available...Some aren't working and should be...
     with open("%s/netMHCpanAlleles2.txt"%(FilePath),'r') as alleles:
         allAlleles = [i.rstrip('\n').upper() for i in alleles.readlines()]
     
@@ -207,7 +206,7 @@ def ConstructAlleles_typeII(hlas, FilePath, patID):
         if hla in allAlleles:
             netMHCpanHLAS.append(hla)
         else:
-            sys.exit("ERROR: HLA type not found for %s : %s" % (patID, hla))
+            print("ERROR (non-fatal): HLA type not found for %s : %s. Continuing with other hlas." % (patID, hla))
     for hla in hlas_dp + hlas_dq:
         if hla in allAlleles:
             netMHCpanHLAS.append(hla)
