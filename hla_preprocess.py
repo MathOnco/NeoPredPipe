@@ -130,14 +130,14 @@ def composeHLA2File(allHLAdir):
 def ConstructAlleleHelper(s):
     return(s[:4].lower() + s[4:].capitalize())
 
-def ConstructAlleles(hlas, FilePath, patID):
+def ConstructAllelesOld(hlas, FilePath, patID):
     '''
     Constructs the proper HLA input from HLA calls.
 
     :param hlas: list of HLA types for the Patient
     :return: list of normalized HLA identifiers for netMHCpan
     '''
-    # TODO need a better way of verifying the format of the HLA alleles and matching in the list of those available...Some aren't working and should be...
+    # Outdated version only kept for historical reasons for now!
     with open("%s/netMHCpanAlleles.txt"%(FilePath),'r') as alleles:
         allAlleles = [i.rstrip('\n').lower() for i in alleles.readlines()]
     
@@ -159,15 +159,36 @@ def ConstructAlleles(hlas, FilePath, patID):
         else:
             sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
 
-    # for hla in hlas:
-    #     if hla.replace("_","")[0:-2] in allAlleles:
-    #         netMHCpanHLAS.append(hla.replace("_","")[0:-2].upper())
-    #     elif hla.replace("_","")[0:-4] in allAlleles:
-    #         netMHCpanHLAS.append(hla.replace("_", "")[0:-4].upper())
-    #     elif hla.replace(" ", "") in allAlleles:
-    #         netMHCpanHLAS.append(hla.replace("_", "").upper())
-    #     else:
-    #         sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
+    return(list(set(netMHCpanHLAS)))
+
+def ConstructAlleles(hlas, FilePath, patID):
+    '''
+    Constructs the proper HLA input from HLA calls.
+
+    :param hlas: list of HLA types for the Patient
+    :return: list of normalized HLA identifiers for netMHCpan
+    '''
+
+    with open("%s/netMHCpanAlleles.txt"%(FilePath),'r') as alleles:
+        allAlleles = [i.rstrip('\n').upper() for i in alleles.readlines()]
+    
+    hlas = [hla.upper() for hla in hlas]
+    hlasWithSuffix = [hla for hla in hlas if hla[-1] in 'NQSALC' and 'NA' not in hla]
+    hlas = [hla.rstrip('NQSALC') for hla in hlas if 'NA' not in hla]
+    hlas = [i.replace("HLA_","HLA-") for i in hlas]
+    hlas = ['_'.join(hla.split('_')[:3]) for hla in hlas] #Strip 5th-8th digits as they do not modify protein structure
+    hlas = [hla.replace("_","",1) for hla in hlas]
+    hlas = [hla.replace("_",":",1) for hla in hlas]
+
+    if len(hlasWithSuffix)>0:
+        print("WARNING: Expression status indicating suffix found for %s : %s.\n Keep in mind when analysing results!" % (patID, ', '.join(hlasWithSuffix)))
+    
+    netMHCpanHLAS = []
+    for hla in hlas:
+        if hla in allAlleles:
+            netMHCpanHLAS.append(hla)
+        else:
+            sys.exit("ERROR: HLA type not found for %s %s" % (patID, hla))
 
     return(list(set(netMHCpanHLAS)))
 

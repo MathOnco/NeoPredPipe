@@ -205,7 +205,7 @@ def PrepClasses(FilePath, Options):
         with open(Options.hlafile, 'r') as hlaFile:
             lines = hlaFile.readlines()
         for line in lines:
-            line = line.rstrip('\n').split("\t")
+            line = line.rstrip().split("\t")
             pat = line[0]
             del line[0]
             hlas.update({pat: line})

@@ -8,7 +8,7 @@ import os
 
 from postprocessing import DefineGenotypeFormat, ProcessPepmatch
 from process_expression import BuildGeneIDTable
-from hla_preprocess import processHLAminerFile, readInHLA2hlaminer, readInHLA2hlahd, composeHLA2File, ConstructAlleles_typeII
+from hla_preprocess import processHLAminerFile, readInHLA2hlaminer, readInHLA2hlahd, composeHLA2File, ConstructAlleles, ConstructAlleles_typeII
 
 class MyTestCase(unittest.TestCase):
     def test_genotypeformat_ad(self):
@@ -51,6 +51,13 @@ class MyTestCase(unittest.TestCase):
                          '6\tHLA-C*07:02\tSKITGMLLE\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline195_NM_0025\t0.1744960\t1.6035\t<=\tWB\t0',
                          '6\tHLA-C*07:02\tRLFPLIQAL\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline196_NM_0025\t0.1744960\t1.6035\t<=\tWB\t1']
         self.assertEqual(appendedlines, ProcessPepmatch(pmfileName, eplines))
+
+    def test_hla_format_typeI(self):
+        hlas = ['hla_a_03_01_27', 'hla_a_01_01_01_01', 'hla_b_07_02_09', 'hla_a_33_03_03q', 'hla_a_03_01_01_02n','hla_b_39_01_01_02l','hla_b_82_02', 'NA']
+        FilePath = '.'
+        patID = 'hla_test'
+
+        self.assertEqual( ['HLA-A33:03','HLA-B82:02','HLA-A01:01','HLA-A03:01','HLA-B39:01','HLA-B07:02'], ConstructAlleles(hlas,FilePath,patID) )
 
     def test_hla_format_typeII(self):
         hlas = ['DRB1*12:02P', 'DPA1*01:03P','DPB1*90:01P','DRB1*01:01:01G', 'DPA1*02:04','NA', 'DQA1*05:01P', 'DQB1*02:02:03:01', 'DQB1*03:39']
