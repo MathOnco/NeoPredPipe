@@ -8,7 +8,7 @@ To perform the neoantigen recognition potential please [click here](RecognitionP
 ## Citation
 
 NeoPredPipe has now been published in BMC Bioinformatics. Please cite:
-Schenck, Ryan O. and Lakatos, Eszter and Gatenbee, Chandler and Graham, Trevor A. and Anderson, Alexander R. A. [NeoPredPipe: high-throughput neoantigen prediction and recognition potential pipeline](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-2876-4). BMC Bioinformatics. 2019. 20:264.
+- Schenck, Ryan O. and Lakatos, Eszter and Gatenbee, Chandler and Graham, Trevor A. and Anderson, Alexander R. A. [NeoPredPipe: high-throughput neoantigen prediction and recognition potential pipeline](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-019-2876-4). BMC Bioinformatics. 2019. 20:264.
 
 ## Dependencies
 ##### Note: Should be compatible on Darwin and Linux systems, not Windows.
