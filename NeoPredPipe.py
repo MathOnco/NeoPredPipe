@@ -31,6 +31,7 @@ def Parser():
     parser.add_argument("-d", dest="deleteInt", default=True, action='store_false', help="Specifies whether to delete intermediate files created by program. Default: True. Note: Set flag to resume job.")
     parser.add_argument("-r", "--cleanrun", dest="makeitclean", default=False, action='store_true', help="Specify this alone with no other options to clean-up a run. Be careful that you mean to do this!!")
     parser.add_argument('-p', "--preponly", dest="preponly", default=False, action='store_true',help="Prep files only without running neoantigen predictions. The prediction step takes the most time.")
+    parser.add_argument("--manualproc", dest="manualproc", default=False, action='store_true',help="Process vcf files into annovar-input format manually, to avoid issues from non 'genotype-calling' formats.")
     parser.add_argument("--EL", dest="ELpred", default=False, action='store_true',
         help="Flag to perform netMHCpan predictions with Eluted Ligand option (without the -BA flag). Please note that the output will NOT be compatible with downstream Recognition Potential analysis. Default=False (BA predictions)")
     requiredNamed = parser.add_argument_group('Required arguments')
@@ -112,7 +113,7 @@ class Sample():
             print("INFO: ANNOVAR Ready files for %s already present."%(self.patID))
             self.avReadyFile = Options.OutputDir+"avready/"+self.patID+'.avinput'
         else:
-            self.avReadyFile = convert_to_annovar(Options.OutputDir, self.patID, self.vcfFile, annovar)
+            self.avReadyFile = convert_to_annovar(Options.OutputDir, self.patID, self.vcfFile, annovar, Options.manualproc)
 
         # Prepare ANNOVAR annotated input files
         if os.path.isfile(Options.OutputDir+"avannotated/"+self.patID+'.avannotated.exonic_variant_function'):
