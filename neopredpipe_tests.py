@@ -134,6 +134,17 @@ class MyTestCase(unittest.TestCase):
             oflines = testof.readlines()
         self.assertEqual( ['3', '2', '1'] , oflines[1].rstrip('\n').split('\t')[1:])
 
+    def test_main_strelka(self):
+        if os.path.isfile("test/Test_strelka.neoantigens.txt"):
+            os.system("rm ./test/Test_strelka.*")
+        cmd = ['python', 'NeoPredPipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes_strelka.txt', '-o', './test/',
+               '-n', 'Test_strelka', '-E', '8' , '-c', '1','2','3','--manualproc']
+        runcmd = subprocess.Popen(cmd)
+        runcmd.wait()
+        with open('test/Test_strelka.neoantigens.txt', 'r') as testof:
+            oflines = testof.readlines()
+        self.assertEqual( (['0','1','1'],['1','1','1']) , (oflines[0].split('\t')[1:4],oflines[1].split('\t')[1:4]) )
+
 
 if __name__ == '__main__':
     unittest.main()

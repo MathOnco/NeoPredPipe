@@ -1,0 +1,4 @@
+Patient	HLA-A_1	HLA-A_2	HLA-B_1	HLA-B_2	HLA-C_1	HLA-C_2
+Test_strelka	hla_a_03_01_01_01	hla_a_02_01_01_01	hla_b_07_02_01	HLA-B44:02	HLA-C07:02	HLA-C05:01
+
+
