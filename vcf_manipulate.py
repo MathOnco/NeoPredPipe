@@ -11,12 +11,13 @@ import subprocess
 from Bio import SeqIO
 
 # Convert to annovar format
-def convert_to_annovar(FilePath, patName, inFile, annovar):
+def convert_to_annovar(FilePath, patName, inFile, annovar, manualproc=False):
     '''
     :param FilePath: Primary path of working directory
     :param patName: ID associated with a patient
     :param inFile: VCF file for neoantigens to be predicted from
     :param annovar: Dictionary housing annovar specific script locations. See README.md.
+    :param manualproc: Boolean flag indicating if manual processing should be done instead of annovar's convert2annovar
     :return: Name of the ANNOVAR ready vcf file for annovar_annnotation()
     '''
     print("INFO: Running convert2annovar.py on %s" % (inFile))
@@ -25,13 +26,27 @@ def convert_to_annovar(FilePath, patName, inFile, annovar):
     outDir = FilePath+"avready/"
     annovar_out_ready = outDir + patName + '.avinput'
 
-    with open(FilePath+"logforannovarNeoPredPipe.txt", 'a') as logFile:
-        cmd = ['perl', annovar['convert2annovar'], '-format', 'vcf4', inFile, '-outfile', annovar_out_ready, '-allsample',
-             '-includeinfo', '-withfreq', '-comment']
-        runconvert = subprocess.Popen(cmd, stdout=logFile, stderr=logFile)
-        runconvert.wait()
+    if manualproc:
+        # process vcf file manually for avinput format
+        with open(inFile, 'r') as vcfFile:
+            vcfLines = vcfFile.readlines()
+        with open(annovar_out_ready, 'w') as processedFile:
+            for line in vcfLines:
+                if line[0]=='#':
+                    processedFile.write(line.rstrip()+'\n')
+                else:
+                    linespl = line.split('\t')
+                    processedFile.write('\t'.join([linespl[0],linespl[1],linespl[1],linespl[3],linespl[4],
+                        '.',linespl[5],'.',line.rstrip()])+'\n') #frequency and depth info is filled with placeholder
+        print('INFO: Manual VCF Conversion Process complete %s'%(inFile))
 
-    print('INFO: VCF Conversion Process complete %s'%(inFile))
+    else:
+        with open(FilePath+"logforannovarNeoPredPipe.txt", 'a') as logFile:
+            cmd = ['perl', annovar['convert2annovar'], '-format', 'vcf4', inFile, '-outfile', annovar_out_ready, '-allsample',
+                    '-includeinfo', '-withfreq', '-comment']
+            runconvert = subprocess.Popen(cmd, stdout=logFile, stderr=logFile)
+            runconvert.wait()
+        print('INFO: ANNOVAR VCF Conversion Process complete %s'%(inFile))
 
     return(annovar_out_ready)
 
