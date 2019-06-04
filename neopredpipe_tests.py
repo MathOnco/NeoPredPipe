@@ -11,26 +11,6 @@ from process_expression import BuildGeneIDTable
 from hla_preprocess import processHLAminerFile, readInHLA2hlaminer, readInHLA2hlahd, composeHLA2File, ConstructAlleles, ConstructAlleles_typeII
 
 class MyTestCase(unittest.TestCase):
-    def test_genotypeformat_ad(self):
-        line_ad = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tECNT=1;HCNT=22;MAX_ED=.;MIN_ED=.;NLOD=27.62;TLOD=10.35\tGT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:QSS:REF_F1R2:REF_F2R1\t0/0:93,0:0.00:0:0:.:2406,0:49:44\t0/1:57,6:0.081:5:1:0.167:1457,187:32:25"
-        self.assertEqual(('alldepths', 1), DefineGenotypeFormat(line_ad))
-
-    def test_genotypeformat_a(self):
-        line_a = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tNS=3;DISTR=|G|AG|G|;SB=1.0000	GT:A:GQ:SS:BCOUNT:DP\t0/0:G:100.0000:0:0,0,18,0:18\t0/1:AG:19.4939:2:4,0,15,0:19\t0/0:G:100.0000:0:0,0,26,0:26"
-        self.assertEqual(('allele', 1), DefineGenotypeFormat(line_a))
-
-    def test_genotypeformat_nv(self):
-        line_nv = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tMQ;badReads\tAC=5;AF=0.500;AN=10;BRF=0.97;FR=0.4556;HP=6;HapScore=2;MGOF=39;MMLQ=26;MQ=0.36;NF=4;NR=2;PP=111;QD=24.2952020912;SC=CAGATAGTGGAGGGGCTTACA;SbPval=0.65;Source=Platypus;TC=14;TCF=10;TCR=4;TR=6;WE=621651;WS=621636;set=FilteredInAll\tGT:GOF:GQ:NR:NV:PL\t0/1:4:15:2:1:33,0,15"
-        self.assertEqual(('numvarreads', 4), DefineGenotypeFormat(line_nv))
-
-    def test_genotypeformat_freq(self):
-        line_freq = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tECNT=1;HCNT=22;MAX_ED=.;MIN_ED=.;NLOD=27.62;TLOD=10.35\tGT:GQ:DP:RD:AD:FREQ:DP4\t0/0:.:21:21:0:0%:20,1,0,0\t0/1:.:28:23:5:17.86%:22,1,5,0"
-        self.assertEqual(('varscanfreq',5), DefineGenotypeFormat(line_freq))
-
-    def test_genotypeformat_gt(self):
-        line_gt = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tECNT=1;HCNT=22;MAX_ED=.;MIN_ED=.;NLOD=27.62;TLOD=10.35\tGT:IGT:DP:DP4:BCOUNT:GQ:JGQ:VAQ:BQ:MQ:AMQ:SS:SSC\t0/0:0/0:8:5,3,0,0:0,0,0,8:51:19:0:26:12:12:0:.\t0/1:0/1:7:2,3,1,1:2,0,0,5:12:19:12:31,28:20:30,15:2:19"
-        self.assertEqual(('genotype',0), DefineGenotypeFormat(line_gt))
-
     def test_build_expression_ids(self):
         nmID = "NM_025229"
         geneID = "ENSG00000101251"
@@ -51,6 +31,30 @@ class MyTestCase(unittest.TestCase):
                          '6\tHLA-C*07:02\tSKITGMLLE\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline195_NM_0025\t0.1744960\t1.6035\t<=\tWB\t0',
                          '6\tHLA-C*07:02\tRLFPLIQAL\tTLASKITGM\t0\t0\t0\t0\t0\tTLASKITGM\tline196_NM_0025\t0.1744960\t1.6035\t<=\tWB\t1']
         self.assertEqual(appendedlines, ProcessPepmatch(pmfileName, eplines))
+
+    def test_genotypeformat_ad(self):
+        line_ad = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tECNT=1;HCNT=22;MAX_ED=.;MIN_ED=.;NLOD=27.62;TLOD=10.35\tGT:AD:AF:ALT_F1R2:ALT_F2R1:FOXOG:QSS:REF_F1R2:REF_F2R1\t0/0:93,0:0.00:0:0:.:2406,0:49:44\t0/1:57,6:0.081:5:1:0.167:1457,187:32:25"
+        self.assertEqual(('alldepths', 1), DefineGenotypeFormat(line_ad))
+
+    def test_genotypeformat_a(self):
+        line_a = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tNS=3;DISTR=|G|AG|G|;SB=1.0000	GT:A:GQ:SS:BCOUNT:DP\t0/0:G:100.0000:0:0,0,18,0:18\t0/1:AG:19.4939:2:4,0,15,0:19\t0/0:G:100.0000:0:0,0,26,0:26"
+        self.assertEqual(('allele', 1), DefineGenotypeFormat(line_a))
+
+    def test_genotypeformat_nv(self):
+        line_nv = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tMQ;badReads\tAC=5;AF=0.500;AN=10;BRF=0.97;FR=0.4556;HP=6;HapScore=2;MGOF=39;MMLQ=26;MQ=0.36;NF=4;NR=2;PP=111;QD=24.2952020912;SC=CAGATAGTGGAGGGGCTTACA;SbPval=0.65;Source=Platypus;TC=14;TCF=10;TCR=4;TR=6;WE=621651;WS=621636;set=FilteredInAll\tGT:GOF:GQ:NR:NV:PL\t0/1:4:15:2:1:33,0,15"
+        self.assertEqual(('numvarreads', 4), DefineGenotypeFormat(line_nv))
+
+    def test_genotypeformat_freq(self):
+        line_freq = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tECNT=1;HCNT=22;MAX_ED=.;MIN_ED=.;NLOD=27.62;TLOD=10.35\tGT:GQ:DP:RD:AD:FREQ:DP4\t0/0:.:21:21:0:0%:20,1,0,0\t0/1:.:28:23:5:17.86%:22,1,5,0"
+        self.assertEqual(('varscanfreq',5), DefineGenotypeFormat(line_freq))
+
+    def test_genotypeformat_gt(self):
+        line_gt = "line3\tnonsynonymous SNV\tPRAMEF20:NM_001099852:exon2:c.G247A:p.D83N,\tchr1\t13743058\t13743058\tG\tA\t0.1667\t19.4939\t26\tchr1\t13743058\t.\tG\tA\t19.4939\tPASS\tECNT=1;HCNT=22;MAX_ED=.;MIN_ED=.;NLOD=27.62;TLOD=10.35\tGT:IGT:DP:DP4:BCOUNT:GQ:JGQ:VAQ:BQ:MQ:AMQ:SS:SSC\t0/0:0/0:8:5,3,0,0:0,0,0,8:51:19:0:26:12:12:0:.\t0/1:0/1:7:2,3,1,1:2,0,0,5:12:19:12:31,28:20:30,15:2:19"
+        self.assertEqual(('genotype',0), DefineGenotypeFormat(line_gt))
+
+    def test_genotypeformat_strelka(self):
+        line_strelka = "line984\tsynonymous SNV\tRAB25:NM_020387:exon2:c.C114T:p.S38S,\tchr1\t156065981\t156065981\tC\tT\t.\t.\t.\tchr1\t156065981\t.\tC\tT\t.\tPASS\tSOMATIC;QSS=56;TQSS=1;NT=ref;QSS_NT=56;TQSS_NT=1;SGT=CC->CT;DP=267;MQ=60.00;MQ0=0;ReadPosRankSum=-1.09;SNVSB=0.00;SomaticEVS=10.10\tDP:FDP:SDP:SUBDP:AU:CU:GU:TU\t162:0:0:0:0,0:162,163:0,0:0,0\t103:0:0:0:0,0:99,100:0,0:4,4"
+        self.assertEqual(('strelka',5), (DefineGenotypeFormat(line_strelka)[0],DefineGenotypeFormat(line_strelka)[1]['CU']))
 
     def test_hla_format_typeI(self):
         hlas = ['hla_a_03_01_27', 'hla_a_01_01_01_01', 'hla_b_07_02_09', 'hla_a_33_03_03q', 'hla_a_03_01_01_02n','hla_b_39_01_01_02l','hla_b_82_02', 'NA']

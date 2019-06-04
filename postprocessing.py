@@ -107,6 +107,9 @@ def DefineGenotypeFormat(testLine):
     elif 'GT' in formatInfo: #just use genotype-info, should be very universal
         genotypeIndex = formatInfo.index('GT')
         genotypeFormat = 'genotype'
+    elif 'AU' in formatInfo and 'CU' in formatInfo and 'GU' in formatInfo and 'TU' in formatInfo:
+        genotypeIndex = {a:formatInfo.index(a) for a in ['AU','CU','GU','TU']} #tier count information for each possible base
+        genotypeFormat = 'strelka'
     else:
         print('INFO: Unknown format in VCF genotype fields, region specific information will be missing. See readme for supported formats.')
     return(genotypeFormat, genotypeIndex)
@@ -196,7 +199,14 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
                         genoTypes.update({'Region_%s' % (i): 0})
                     else:
                     #otherwise take the corresponding piece of the genotype line
-                        match = genoTypeLines[int(i)].split(':')[genotypeIndex]
+                        # first handle Strelka, as in this case genotypeIndex is a dictionary, not an integer
+                        if genotypeFormat=='strelka': #match format is tier1,tier2 for all 4 alleles
+                            match = genoTypeLines[int(i)].split(':')[genotypeIndex[alt+'U']] #use alt to identify which allele to look for
+                            #match format: tier1,tier2, so 0,0 or 5,6
+                            present = sum([int(x) for x in match.split(',')]) > 0 #present if any is above zero, meaning sum is above 0
+                            #present = int(match.split(',')[0]) > 0 #present if tier1 is above zero
+                        else:
+                            match = genoTypeLines[int(i)].split(':')[genotypeIndex]
                         if genotypeFormat == 'allele': #match format: A or AG
                             present = int(len(match) > 1) #present if more than one allele at variant position
                         if genotypeFormat == 'numvarreads': #match format: 0 or 12
