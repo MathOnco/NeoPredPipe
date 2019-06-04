@@ -203,7 +203,7 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
                         if genotypeFormat=='strelka': #match format is tier1,tier2 for all 4 alleles
                             match = genoTypeLines[int(i)].split(':')[genotypeIndex[alt+'U']] #use alt to identify which allele to look for
                             #match format: tier1,tier2, so 0,0 or 5,6
-                            present = sum([int(x) for x in match.split(',')]) > 0 #present if any is above zero, meaning sum is above 0
+                            present = int(sum([int(x) for x in match.split(',')]) > 0) #present if any is above zero, meaning sum is above 0
                             #present = int(match.split(',')[0]) > 0 #present if tier1 is above zero
                         else:
                             match = genoTypeLines[int(i)].split(':')[genotypeIndex]
