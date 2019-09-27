@@ -36,8 +36,16 @@ def convert_to_annovar(FilePath, patName, inFile, annovar, manualproc=False):
                     processedFile.write(line.rstrip()+'\n')
                 else:
                     linespl = line.split('\t')
-                    processedFile.write('\t'.join([linespl[0],linespl[1],linespl[1],linespl[3],linespl[4],
-                        '.',linespl[5],'.',line.rstrip()])+'\n') #frequency and depth info is filled with placeholder
+		    vcf_file_chr = linespl[0]
+                    vcf_file_start = linespl[1]
+                    vcf_file_end = linespl[1]
+                    vcf_file_ref = linespl[3]
+                    vcf_file_alt = linespl[4]
+                    vcf_file_qual = linespl[5]
+                    if( len( vcf_file_ref ) > len( vcf_file_alt ) ): # fix to work with deletions (tested on Sterlka2 vcf output)
+                        deletion_length = len( vcf_file_ref ) - len( vcf_file_alt )
+                        vcf_file_end = str( int( vcf_file_start ) + deletion_length )
+                    processedFile.write('\t'.join([ vcf_file_chr, vcf_file_start, vcf_file_end, vcf_file_ref, vcf_file_alt, '.', vcf_file_qual, '.', line.rstrip() ]) + '\n') #frequency and depth info is filled with placeholder
         print('INFO: Manual VCF Conversion Process complete %s'%(inFile))
 
     else:
