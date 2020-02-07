@@ -167,7 +167,10 @@ def MakeTempFastas(inFile, epitopeLens):
                 try:
                     pos = int(seq_record.id.replace(";;",";").split(";")[5].split('-')[0])-1
                 except ValueError:
-                    pos = int(seq_record.id.replace(";;",";").split(";")[6].split('-')[0])-1
+                    try:
+                        pos = int(seq_record.id.replace(";;",";").split(";")[6].split('-')[0])-1
+                    except IndexError:
+                        sys.exit("ERROR: Could not process fasta line in reformatted fasta: %s" % (seq_record.id))
 
                 if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower() or 'from;*;to;' in seq_record.id.lower(): #if mutation is potentially frameshift
                     miniseq = ExtractSeq(seq_record, pos, n, True) # flag for frameshift
