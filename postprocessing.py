@@ -114,6 +114,12 @@ def DefineGenotypeFormat(testLine):
         print('INFO: Unknown format in VCF genotype fields, region specific information will be missing. See readme for supported formats.')
     return(genotypeFormat, genotypeIndex)
 
+def getAltIndex(allele, alleleList):
+    ind = -1
+    if allele in alleleList:
+        ind = alleleList.index(allele)
+    return(ind)
+
 
 def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Options):
     '''
@@ -167,6 +173,12 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
         pos = avReadyLine.split('\t')[1]
         ref = avReadyLine.split('\t')[3]
         alt = avReadyLine.split('\t')[4]
+        altOriginal = avReadyLine.split('\t')[12] # retrieve original alternative allele to handle multi-allele variants
+        altOriginal = altOriginal.split(',')
+        if len(altOriginal) > 1:
+            altInd = getAltIndex(alt,altOriginal) # get which of multiple alleles is this, in case needed
+        else:
+            altInd = 0
         geneList = [':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != '']
         nmList = [item.split(':')[1] for item in geneList]
         genes = ','.join(geneList)
@@ -210,9 +222,17 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
                         if genotypeFormat == 'allele': #match format: A or AG
                             present = int(len(match) > 1) #present if more than one allele at variant position
                         if genotypeFormat == 'numvarreads': #match format: 0 or 12
-                            present = int(int(match) > 0) #present if number of variant reads is > 0
+                            match = [int(x) for x in match.split(',')]
+                            if altInd > -1:
+                                present = int(match[altInd] > 0) #present if number of variant reads is > 0
+                            else:
+                                present = int(max(match) > 0)
                         if genotypeFormat == 'alldepths': #match format: 10,0 or 10,5
-                            present = int(int(match.split(',')[1]) > 0) #present if depth for variant allele > 0
+                            matchAlt = [int(x) for x in match.split(',')[1:]] #discard reference allele depth
+                            if altInd > -1: #might have to handle multi-allele case by finding which of the alleles
+                                present = int(matchAlt[altInd] > 0) #present if depth for variant allele > 0
+                            else:
+                                present = int(max(matchAlt) > 0)
                         if genotypeFormat=='varscanfreq': #match format 18.1% or 0.0%
                             present = int(float(match.replace('%',''))>0) #present if float before % is > 0
                         if genotypeFormat=='genotype': #match format 0/0, 0/1 or 1/0
