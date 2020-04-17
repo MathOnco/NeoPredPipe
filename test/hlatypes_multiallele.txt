@@ -1,0 +1,2 @@
+Patient	HLA-A_1	HLA-A_2	HLA-B_1	HLA-B_2	HLA-C_1	HLA-C_2
+Test_multiAllele	hla_a_02_01_53	hla_a_29_02_12	hla_b_18_01_06	hla_b_44_02_11	hla_c_05_01_01_02	hla_c_05_01_23

@@ -81,6 +81,19 @@ class MyTestCase(unittest.TestCase):
 
         self.assertEqual( (hlas1,hlas2), (hlaDict['Test_hlaminer'],hlaDict['Test_hlahd']))
 
+    def test_main_multiallele(self):
+        if os.path.isfile("./test/Test_multiAllele.neoantigens.unfiltered.txt"):
+            os.system("rm ./test/Test_multiAllele.*")
+
+        cmd = ['python', 'NeoPredPipe.py', '-I', './test/vcfs/', '-H', './test/hlatypes_multiallele.txt', '-o', './test/',
+               '-n', 'Test_multiAllele', '-c', '0', '1', '2', '3', '-E', '9', '-a']
+
+        runcmd = subprocess.Popen(cmd)
+        runcmd.wait()
+        with open('test/Test_multiAllele.neoantigens.unfiltered.txt', 'r') as testof:
+            oflines = testof.readlines()
+        self.assertEqual( (['1', '1', '0', '1'],['1','1','1','1']) , (oflines[0].split('\t')[1:5], oflines[9].split('\t')[1:5]))
+
     def test_main_multiple(self):
         if os.path.isfile("./test/Test_platypus.neoantigens.txt"):
             os.system("rm ./test/Test_platypus.*")
