@@ -172,7 +172,7 @@ def MakeTempFastas(inFile, epitopeLens):
                     except IndexError:
                         sys.exit("ERROR: Could not process fasta line in reformatted fasta: %s" % (seq_record.id))
 
-                if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower() or 'from;*;to;' in seq_record.id.lower(): #if mutation is potentially frameshift
+                if 'dup' in seq_record.id.lower() or 'del' in seq_record.id.lower() or 'ins' in seq_record.id.lower() or 'from;*;to;' in seq_record.id.lower() or 'fs' in seq_record.id: #if mutation is potentially frameshift
                     miniseq = ExtractSeq(seq_record, pos, n, True) # flag for frameshift
                     mySeqsIndels.append(">"+seq_record.id[0:100]+"\n"+miniseq+"\n")
                 else:
