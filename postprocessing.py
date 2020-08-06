@@ -228,11 +228,20 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
                             else:
                                 present = int(max(match) > 0)
                         if genotypeFormat == 'alldepths': #match format: 10,0 or 10,5
-                            matchAlt = [int(x) for x in match.split(',')[1:]] #discard reference allele depth
-                            if altInd > -1: #might have to handle multi-allele case by finding which of the alleles
-                                present = int(matchAlt[altInd] > 0) #present if depth for variant allele > 0
+                            matchAltStr = [x for x in match.split(',')[1:]] #discard reference allele depth
+                            if len(matchAltStr)==0: # handle case when there is only a single '.' listed
+                                present = 0
                             else:
-                                present = int(max(matchAlt) > 0)
+                                matchAlt = []
+                                for x in matchAltStr:
+                                    if x == '.': # handle case when '.' is found instead of 0
+                                        matchAlt.append(0)
+                                    else:
+                                        matchAlt.append(int(x))
+                                if altInd > -1: #might have to handle multi-allele case by finding which of the alleles
+                                    present = int(matchAlt[altInd] > 0) #present if depth for variant allele > 0
+                                else:
+                                    present = int(max(matchAlt) > 0)
                         if genotypeFormat=='varscanfreq': #match format 18.1% or 0.0%
                             present = int(float(match.replace('%',''))>0) #present if float before % is > 0
                         if genotypeFormat=='genotype': #match format 0/0, 0/1 or 1/0
