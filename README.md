@@ -20,10 +20,11 @@ NeoPredPipe has now been published in BMC Bioinformatics. Please cite:
    - ANNOVAR reference files, for example: hg19_refGene.txt and hg19_refGeneMrna.fa
    - Other reference files/builds can be used. Simply change the usr_path.ini file to the appropriate reference (see below).
      - Make sure to use the same one used to call variants.
-   - **NOTE: For indel predictions, we highly recommend to use the latest (2018-04-16) release of ANNOVAR, as earlier versions do not provide the appropriate support for protein-elongating frameshift mutations.**
-4. netMHCpan
-   - Using [netMHCpan-4.0](http://www.cbs.dtu.dk/cgi-bin/nph-sw_request?netMHCpan) for all tests of this pipeline.
-   - Follow their steps for installation on your platform.
+   - **NOTE: For indel predictions, we highly recommend to use the 2018-04-16 or later release of ANNOVAR, as earlier versions do not provide the appropriate support for protein-elongating frameshift mutations.**
+4. netMHCpan or netMHCIIpan
+   - The pipeline has been primarily developed to support [netMHCpan-4.0](http://www.cbs.dtu.dk/services/NetMHCpan-4.0/). (Other versions can be used but might throw an error in the final postprocessing step due to inconsistencies in output format.)
+   - Support for MHC-II prediction using [netMHCIIpan-3.2](http://www.cbs.dtu.dk/services/NetMHCIIpan-3.2/) is also available, but note that this functionality has not been thoroughly tested.  
+   - To install either software, choose your platform and follow instructions [here](https://services.healthtech.dtu.dk/software.php).
 5. PeptideMatch (Only necessary if one wishes to check predicted epitopes for novelty against a reference proteome.)
    - Requires Java.
    - The runnable jar is available [here](https://research.bioinformatics.udel.edu/peptidematch/commandlinetool.jsp).
@@ -38,8 +39,9 @@ git clone https://github.com/MathOnco/NeoPredPipe.git
 2. Configure the 'usr_path.ini' file for your environment.
    - All paths within the annovar header should be where you installed annovar.
    - Only one path is needed to the netMHCpan executible under netMHCpan
+      - If you wish to use netMHCIIpan instead, simply provide that path in this section and the pipeline will process files accordingly
    - If you wish to use PeptideMatch, provide paths for both jar and reference index.
-   #### Note: You need to provide the absolute path.
+   #### Note: You need to provide the absolute paths for all the above.
 3. You can see the options associated by running the following:
 ```bash
 python ./NeoPredPipe.py --help
@@ -187,6 +189,7 @@ python NeoPredPipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt
    - **Candidate**: Symbol (<=) used to denote a Strong or Week Binder in BindLevel
    - **BindLevel**: (SB: strong binder, WB: weak binder). The peptide will be identified as a strong binder if the % Rank is below the specified threshold for the strong binders, by default 0.5%. The peptide will be identified as a weak binder if the % Rank is above the threshold of the strong binders but below the specified threshold for the weak binders, by default 2%.
    - **Novelty**: Binary value for indicating if the epitope is novel (1) or exists in the reference proteome (0). _Only present if -m flag is set to perform peptide matching in postprocessing_.
+   
 
 | Sample |  R1 |  R2 |  R3 |  Line |  chr |  allelepos |  ref |  alt |  GeneName:RefSeqID | Expression |  pos |  hla |  peptide |  core |  Of |  Gp |  Gl |  Ip |  Il |  Icore |  Identity |  Score |  Rank |  Candidate | BindLevel | Novelty |
 | --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- |  --- | --- |
@@ -195,6 +198,9 @@ python NeoPredPipe.py -I ./Example/input_vcfs -H ./Example/HLAtypes/hlatypes.txt
 | test2 | 1 | 0 | 0 | line34 | chr1 | 248402593 | C | A | OR2M4:NM_017504 | 0 | 6 | HLA-C*01:02 | VMAYERYVAI | VAYERYVAI | 0 | 1 | 1 | 0 | 0 | VMAYERYVAI | line34_NM_01750 | 0.14917 | 1.50 | <= | WB | 1 |
 | test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | NA | 2 | HLA-C*01:02 | FTHGPSSTPL | FTHPSSTPL | 0 | 3 | 1 | 0 | 0 | FTHGPSSTPL | line51_NM_00108 | 0.22570 | 0.40 | <= | SB | 1 |
 | test2 | 1 | 1 | 0 | line51 | chr2 | 240982213 | C | G | PRR21:NM_001080835 | NA | 7 | HLA-C*01:02 | SSTPLHPCPF | STPLHPCPF | 0 | 1 | 1 | 0 | 0 | SSTPLHPCPF | line51_NM_00108 | 0.13137 | 2.00 | <= | WB | 1 |
+
+   Note that if MHC-II prediction is performed, the epitope-specific columns (after **GeneName:RefID** or **Expression**) will correspond to that output, as specified [here](http://www.cbs.dtu.dk/services/NetMHCIIpan/output.php).
+
 
 2. If there are not multiple regions from a single patient the resulting summary table will appear as follows (the following are the same for both multiregion below and single region):
    - **Sample**: Sample identifier
