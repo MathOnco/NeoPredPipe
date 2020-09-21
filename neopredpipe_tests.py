@@ -92,7 +92,7 @@ class MyTestCase(unittest.TestCase):
         runcmd.wait()
         with open('test/Test_multiAllele.neoantigens.unfiltered.txt', 'r') as testof:
             oflines = testof.readlines()
-        self.assertEqual( (['1', '1', '0', '1'],['1','1','1','1']) , (oflines[0].split('\t')[1:5], oflines[9].split('\t')[1:5]))
+        self.assertEqual( (['1', '1', '0', '0'],['1','1','1','0']) , (oflines[0].split('\t')[1:5], oflines[9].split('\t')[1:5]))
 
     def test_main_multiple(self):
         if os.path.isfile("./test/Test_platypus.neoantigens.txt"):

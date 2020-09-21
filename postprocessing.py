@@ -95,21 +95,27 @@ def DefineGenotypeFormat(testLine):
     if 'NV' in formatInfo: #number of variant reads in sample
         genotypeIndex = formatInfo.index('NV')
         genotypeFormat = 'numvarreads'
+        print('Processing genotype information according to NV (number of variant reads) field.')
     elif 'A' in formatInfo: #alleles found in sample
         genotypeIndex = formatInfo.index('A')
         genotypeFormat = 'allele'
+        print('Processing genotype information according to A (list of alleles) field.')
     elif 'FREQ' in formatInfo: #varscan2 allele frequency
         genotypeIndex = formatInfo.index('FREQ')
         genotypeFormat = 'varscanfreq'
+        print('Processing genotype information according to FREQ (allele frequency) field.')
     elif 'AD' in formatInfo: #allele depth info for each allele in sample
         genotypeIndex = formatInfo.index('AD')
         genotypeFormat = 'alldepths'
+        print('Processing genotype information according to AD (allelic depth) field.')
     elif 'GT' in formatInfo: #just use genotype-info, should be very universal
         genotypeIndex = formatInfo.index('GT')
         genotypeFormat = 'genotype'
+        print('Processing genotype information according to GT (genotype) field.')
     elif 'AU' in formatInfo and 'CU' in formatInfo and 'GU' in formatInfo and 'TU' in formatInfo:
         genotypeIndex = {a:formatInfo.index(a) for a in ['AU','CU','GU','TU']} #tier count information for each possible base
         genotypeFormat = 'strelka'
+        print('INFO: Strelka-specific format found, processing genotype information accordingly.')
     else:
         print('INFO: Unknown format in VCF genotype fields, region specific information will be missing. See readme for supported formats.')
     return(genotypeFormat, genotypeIndex)
@@ -219,34 +225,37 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
                             #present = int(match.split(',')[0]) > 0 #present if tier1 is above zero
                         else:
                             match = genoTypeLines[int(i)].split(':')[genotypeIndex]
-                        if genotypeFormat == 'allele': #match format: A or AG
-                            present = int(len(match) > 1) #present if more than one allele at variant position
-                        if genotypeFormat == 'numvarreads': #match format: 0 or 12
-                            match = [int(x) for x in match.split(',')]
-                            if altInd > -1:
-                                present = int(match[altInd] > 0) #present if number of variant reads is > 0
-                            else:
-                                present = int(max(match) > 0)
-                        if genotypeFormat == 'alldepths': #match format: 10,0 or 10,5
-                            matchAltStr = [x for x in match.split(',')[1:]] #discard reference allele depth
-                            if len(matchAltStr)==0: # handle case when there is only a single '.' listed
-                                present = 0
-                            else:
-                                matchAlt = []
-                                for x in matchAltStr:
-                                    if x == '.': # handle case when '.' is found instead of 0
-                                        matchAlt.append(0)
-                                    else:
-                                        matchAlt.append(int(x))
-                                if altInd > -1: #might have to handle multi-allele case by finding which of the alleles
-                                    present = int(matchAlt[altInd] > 0) #present if depth for variant allele > 0
+                        try:
+                            if genotypeFormat == 'allele': #match format: A or AG
+                                present = int(len(match) > 1) #present if more than one allele at variant position
+                            if genotypeFormat == 'numvarreads': #match format: 0 or 12
+                                match = [int(x) for x in match.split(',')]
+                                if altInd > -1 and len(match)>1:
+                                    present = int(match[altInd] > 0) #present if number of variant reads is > 0
                                 else:
-                                    present = int(max(matchAlt) > 0)
-                        if genotypeFormat=='varscanfreq': #match format 18.1% or 0.0%
-                            present = int(float(match.replace('%',''))>0) #present if float before % is > 0
-                        if genotypeFormat=='genotype': #match format 0/0, 0/1 or 1/0
-                            present = int('1' in match) #present if contains 1
-                        genoTypes.update({'Region_%s'%(i):present})
+                                    present = int(max(match) > 0)
+                            if genotypeFormat == 'alldepths': #match format: 10,0 or 10,5
+                                matchAltStr = [x for x in match.split(',')[1:]] #discard reference allele depth
+                                if len(matchAltStr)==0: # handle case when there is only a single '.' listed
+                                    present = 0
+                                else:
+                                    matchAlt = []
+                                    for x in matchAltStr:
+                                        if x == '.': # handle case when '.' is found instead of 0
+                                            matchAlt.append(0)
+                                        else:
+                                            matchAlt.append(int(x))
+                                    if altInd > -1: #might have to handle multi-allele case by finding which of the alleles
+                                        present = int(matchAlt[altInd] > 0) #present if depth for variant allele > 0
+                                    else:
+                                        present = int(max(matchAlt) > 0)
+                            if genotypeFormat=='varscanfreq': #match format 18.1% or 0.0%
+                                present = int(float(match.replace('%',''))>0) #present if float before % is > 0
+                            if genotypeFormat=='genotype': #match format 0/0, 0/1 or 1/0
+                                present = int('1' in match) #present if contains 1
+                            genoTypes.update({'Region_%s'%(i):present})
+                        except IndexError:
+                            sys.exit("ERROR: Index problem while Processing: %s" % (avReadyLine))
                     genoTypesPresent.append("+")
                 else:
                     genoTypes.update({'Region_%s'%(i):-1})
