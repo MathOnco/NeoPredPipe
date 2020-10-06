@@ -179,7 +179,6 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
         pos = avReadyLine.split('\t')[1]
         ref = avReadyLine.split('\t')[3]
         alt = avReadyLine.split('\t')[4]
-        flag = avReadyLine.split('\t')[5]
         altOriginal = avReadyLine.split('\t')[12] # retrieve original alternative allele to handle multi-allele variants
         altOriginal = altOriginal.split(',')
         if len(altOriginal) > 1:
@@ -263,10 +262,10 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
                     genoTypesPresent.append("-")
 
             regionInfo = '\t'.join([str(genoTypes[i]) for i in genoTypes])
-            newLines.append('\t'.join([patName, regionInfo,'line%s' % (epID), chrom, pos, ref, alt, flag, genes, ep]))
+            newLines.append('\t'.join([patName, regionInfo,'line%s' % (epID), chrom, pos, ref, alt, genes, ep]))
         else:
             genoTypesPresent = []
-            newLines.append('\t'.join([patName, 'line%s' % (epID), chrom, pos, ref, alt, flag, genes, ep]))
+            newLines.append('\t'.join([patName, 'line%s' % (epID), chrom, pos, ref, alt, genes, ep]))
 
     return(newLines, genoTypesPresent)
 
