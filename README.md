@@ -22,7 +22,7 @@ NeoPredPipe has now been published in BMC Bioinformatics. Please cite:
      - Make sure to use the same one used to call variants.
    - **NOTE: For indel predictions, we highly recommend to use the 2018-04-16 or later release of ANNOVAR, as earlier versions do not provide the appropriate support for protein-elongating frameshift mutations.**
 4. netMHCpan or netMHCIIpan
-   - The pipeline has been primarily developed to support [netMHCpan-4.0](http://www.cbs.dtu.dk/services/NetMHCpan-4.0/). (Other versions can be used but might throw an error in the final postprocessing step due to inconsistencies in output format.)
+   - The pipeline has been primarily developed to support [netMHCpan-4.0](http://www.cbs.dtu.dk/services/NetMHCpan-4.0/). It is also compatible with netMHCpan-4.1, but have not been tested with this latest version.
    - Support for MHC-II prediction using [netMHCIIpan-3.2](http://www.cbs.dtu.dk/services/NetMHCIIpan-3.2/) is also available, but note that this functionality has not been thoroughly tested.  
    - To install either software, choose your platform and follow instructions [here](https://services.healthtech.dtu.dk/software.php).
 5. PeptideMatch (Only necessary if one wishes to check predicted epitopes for novelty against a reference proteome.)
