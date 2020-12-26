@@ -173,8 +173,10 @@ def ConstructAlleles(hlas, FilePath, patID):
         allAlleles = [i.rstrip('\n').upper() for i in alleles.readlines()]
     
     hlas = [hla.upper() for hla in hlas]
-    hlasWithSuffix = [hla for hla in hlas if hla[-1] in 'NQSALC' and 'NA' not in hla]
-    hlas = [hla.rstrip('NQSALC') for hla in hlas if 'NA' not in hla]
+    hlas = [hla for hla in hlas if 'NA' not in hla]
+    if 'H-2' not in hlas[0] and 'H2' not in hlas[0]:
+        hlasWithSuffix = [hla for hla in hlas if hla[-1] in 'NQSALC']
+        hlas = [hla.rstrip('NQSALC') for hla in hlas]
     hlas = [i.replace("HLA_","HLA-") for i in hlas]
     hlas = ['_'.join(hla.split('_')[:3]) for hla in hlas] #Strip 5th-8th digits as they do not modify protein structure
     hlas = [hla.replace("_","",1) for hla in hlas]
