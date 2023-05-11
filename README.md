@@ -13,8 +13,8 @@ NeoPredPipe has now been published in BMC Bioinformatics. Please cite:
 ## Dependencies
 ##### Note: Should be compatible on Darwin and Linux systems, not Windows.
 
-1. Python == 2.7 (Built using Python 2.7.13, not compatible with python 3 yet)
-   - biopython == 1.70
+1. Python >= 2.7 (Built using Python 2.7.13, compatible with Python 3)
+   - biopython == 1.7 (Tested on 1.70-1.76)
 2. ANNOVAR
    - Can be downloaded [here](http://annovar.openbioinformatics.org/en/latest/user-guide/download/).
    - ANNOVAR reference files, for example: hg19_refGene.txt and hg19_refGeneMrna.fa
