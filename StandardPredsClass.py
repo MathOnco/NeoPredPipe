@@ -494,7 +494,7 @@ class StandardPreds:
             outputFile = "PredictedRecognitionPotentials"
 
         with open(Options.neorecoOut + outputFile + ".txt", "w") as outFile:
-            if neoantigens[neoantigens.keys()[0]].expr is None:
+            if neoantigens[list(neoantigens.keys())[0]].expr is None:
                 header = ["NeoantigenID", "Mutation", "Sample", "MutatedPeptide", "ResidueChangeClass", "MutantPeptide",
                 "WildtypePeptide", "HLA", "A", "R", "Excluded", "NeoantigenRecognitionPotential"]
             else:

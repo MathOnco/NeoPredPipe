@@ -100,7 +100,7 @@ class Aligner(object):
         # iterate over all neoantigens
         for i in self.alignments:
             # energies of all bound states of neoantigen i
-            bindingEnergies = map(lambda el: -k * (a - el[2]), self.alignments[i].values())
+            bindingEnergies = list(map(lambda el: -k * (a - el[2]), self.alignments[i].values()))
             # partition function, over all bound states and an unbound state
             lZ = Aligner.logSum(bindingEnergies + [0])
             lGb = Aligner.logSum(bindingEnergies)

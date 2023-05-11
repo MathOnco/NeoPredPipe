@@ -36,7 +36,7 @@ def convert_to_annovar(FilePath, patName, inFile, annovar, manualproc=False):
                     processedFile.write(line.rstrip()+'\n')
                 else:
                     linespl = line.split('\t')
-		    vcf_file_chr = linespl[0]
+                    vcf_file_chr = linespl[0]
                     vcf_file_start = linespl[1]
                     vcf_file_end = linespl[1]
                     vcf_file_ref = linespl[3]
