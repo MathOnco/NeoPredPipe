@@ -25,6 +25,7 @@ NeoPredPipe has now been published in BMC Bioinformatics. Please cite:
    - The pipeline has been primarily developed to support [netMHCpan-4.0](http://www.cbs.dtu.dk/services/NetMHCpan-4.0/). It is also compatible with netMHCpan-4.1, but have not been tested with this latest version.
    - Support for MHC-II prediction using [netMHCIIpan-3.2](http://www.cbs.dtu.dk/services/NetMHCIIpan-3.2/) is also available, but note that this functionality has not been thoroughly tested.  
    - To install either software, choose your platform and follow instructions [here](https://services.healthtech.dtu.dk/software.php).
+        - When following the instructions for netMHCpan-4.0, note that the location of the data file (step 2 of set-up) has been changed! The updated location is (based on your operating system): https://services.healthtech.dtu.dk/services/NetMHCpan-4.0/data.<Darwin|Linux>.tar.gz
    - Note that support for versions/software **other than netMHCpan-4.0** is limited, and the examples shown here are generated using this version.
 5. PeptideMatch (Only necessary if one wishes to check predicted epitopes for novelty against a reference proteome.)
    - Requires Java.
