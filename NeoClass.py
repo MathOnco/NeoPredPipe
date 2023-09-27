@@ -57,9 +57,13 @@ class Neoantigen(object):
         self.mtPeptide = mtPeptide
 
         if indels==False:
-            [res1, res2] = filter(lambda el: el[0] != el[1], zip(self.wtPeptide, self.mtPeptide))[0]
+            try:
+                [res1, res2] = filter(lambda el: el[0] != el[1], zip(self.wtPeptide, self.mtPeptide))[0]
+            except TypeError:
+                [res1, res2] = list(filter(lambda el: el[0] != el[1], zip(self.wtPeptide, self.mtPeptide)))[0]
+
             self.residueChange = Neoantigen.residueChangeClass(res1, res2)
-            self.position = filter(lambda el: el[1], map(lambda i: [i, self.mtPeptide[i] != self.wtPeptide[i]], range(0, len(self.wtPeptide))))
+            self.position = list(filter(lambda el: el[1], map(lambda i: [i, self.mtPeptide[i] != self.wtPeptide[i]], range(0, len(self.wtPeptide)))))
             self.position = self.position[0][0] + 1
         else:
             self.residueChange = "-"
