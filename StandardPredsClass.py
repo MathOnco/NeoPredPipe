@@ -374,7 +374,7 @@ class StandardPreds:
 
             if os.path.isfile(out)==False:
                 print("INFO: Running blastp on %s"%(fasta))
-                cmd = ' '.join([blastp, '-evalue 100000000 -gapextend 1 -gapopen 11 -outfmt 5 -out', out, '-query', fasta, '-subject', iedb])
+                cmd = ' '.join([blastp, '-num_threads 8 -evalue 100000000 -gapextend 1 -gapopen 11 -outfmt 5 -out', out, '-query', fasta, '-subject', iedb])
                 os.system(cmd)
                 blastpOut.append(out)
             else:
