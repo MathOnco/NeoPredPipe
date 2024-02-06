@@ -22,7 +22,6 @@ def DigestIndSample(toDigest, patName, Options, pepmatchPaths, indels=False):
     '''
     # temp_files = None
     # output_file = "%s%s.digested.txt" % (FilePath, toDigest[0].split('/')[len(toDigest[0].split('/')) - 1].split('.epitopes.')[0])
-
     lines = []
     if indels:
         pmInputFile = Options.OutputDir+'tmp/'+patName+'.epitopes.Indels.peptidematch.input'
@@ -170,12 +169,11 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
     genoTypesPresent = []
     for ep in digestedEps:
         if Options.typeII:
-            epID = int(ep.split('\t')[3].split(';')[0].replace('line',''))
+            epID = int(ep.split('\t')[6].split(';')[0].replace('line',''))
         else:
             epID = int(ep.split('\t')[10].split('_')[0].replace('line',''))
         exonicLine = exonicInfo[epID]
         avReadyLine = varInfo[epID]
-        chrom = avReadyLine.split('\t')[0]
         pos = avReadyLine.split('\t')[1]
         ref = avReadyLine.split('\t')[3]
         alt = avReadyLine.split('\t')[4]
@@ -188,6 +186,7 @@ def AppendDigestedEps(FilePath,digestedEps, patName, exonicVars, avReady, Option
         geneList = [':'.join(item.split(':')[0:2]) for item in exonicLine.split('\t')[2].split(',') if item != '']
         nmList = [item.split(':')[1] for item in geneList]
         genes = ','.join(geneList)
+        chrom = avReadyLine.split('\t')[0]
         
         if Options.expression is not None:
             geneExp = 'NA'

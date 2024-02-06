@@ -10,6 +10,8 @@ import os
 import subprocess
 from Bio import SeqIO
 
+from plugins import ConstructWildtypeFa
+
 # Convert to annovar format
 def convert_to_annovar(FilePath, patName, inFile, annovar, manualproc=False):
     '''
@@ -183,6 +185,7 @@ def MakeTempFastas(inFile, epitopeLens):
         epsIndels[n] = mySeqsIndels
 
     tmpFiles = {}
+    tmpFilesWT = {}
     for n in epitopeLens:
         tmpFasta = inFile.replace(".reformat.fasta",".tmp.%s.fasta"%(n))
         tmpFastaIndels = inFile.replace(".reformat.fasta",".tmp.%s.Indels.fasta"%(n))
@@ -194,5 +197,12 @@ def MakeTempFastas(inFile, epitopeLens):
         with open(tmpFastaIndels, 'w') as outFile:
             for line in epsIndels[n]:
                 outFile.write(line)
-
-    return(tmpFiles)
+        # ConstructWildtypeFa
+        tmpFastaWT = tmpFasta.replace(".fasta", ".WT.fasta")
+        tmpFastaIndelsWT = tmpFastaIndels.replace(".fasta", ".WT.fasta")
+        ConstructWildtypeFa(tmpFasta, tmpFastaWT)
+        ConstructWildtypeFa(tmpFastaIndels, tmpFastaIndelsWT)
+        tmpFilesWT.update({n:tmpFastaWT})
+        tmpFilesWT.update({str(n)+'.Indels':tmpFastaIndelsWT})
+    # return(tmpFiles)
+    return tmpFiles, tmpFilesWT

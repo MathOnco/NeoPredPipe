@@ -1,0 +1,27 @@
+Bootstrap: docker
+From: python:3.9.18
+Stage: build
+
+
+%files
+    annovar /opt
+    NeoPredPipe_class1 /opt
+    NeoPredPipe_class2 /opt
+    /home/report/lixy/sif/neo/opt/netMHCpan-4.1 /opt
+    /home/report/lixy/sif/neo/opt/netMHCIIpan-4.2 /opt
+    /home/report/lixy/neo/ncbi-blast-2.13.0+/bin/blastp /opt
+    /home/report/lixy/neo/PeptideMatchCMD_1.1.jar /opt
+%post
+    ln -s /opt/netMHCIIpan-4.2/netMHCIIpan /usr/local/bin/
+    ln -s /opt/netMHCpan-4.1/netMHCpan /usr/local/bin/
+    ln -s /opt/blastp /usr/local/bin/
+    apt-get update && apt-get install -y tcsh perl ccrypt
+    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple biopython pandas numpy
+
+%environment
+    export PATH=/opt:$PATH
+
+%labels
+    Author biolxy@aliyun.com
+
+# singularity  build --fakeroot NeoPredPipe.sif singularity_images.def
